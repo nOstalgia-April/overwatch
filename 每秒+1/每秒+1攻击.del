@@ -1,3 +1,76 @@
 // 每秒+1攻击：全局攻击力变量，每秒自动递增
-// 由对应规则在 Ongoing Global 中驱动
+// 等级 = floor(Attack / 10)，等级提供生命下限
+// 玩家持续变强，然后去打boss
 globalvar Number Attack = 0;
+
+playervar Number Level = 0;
+playervar Number HpFloor = 0;
+playervar Boolean PanelCreated! = false;
+
+rule: '每秒+1攻击 驱动'
+Event.OngoingGlobal
+{
+    Attack++;
+    Wait(1, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: '玩家等级同步'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(!IsDummyBot())
+{
+    Level = RoundToInteger(Attack / 10, Rounding.Down);
+    HpFloor = 200 + Level * 50;
+    Wait(0.250, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+// 生命下限：当血量低于 HpFloor 时，回复到 HpFloor
+rule: '生命下限兜底'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(!IsDummyBot() && IsAlive() && HasSpawned())
+if(Health() < HpFloor)
+{
+    Heal(EventPlayer(), null, HpFloor - Health());
+    Wait(0.250, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+// 玩家攻击力作用于伤害：持续把伤害百分比同步为 100 + Attack * 10
+rule: '攻击力作用于伤害'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(!IsDummyBot())
+{
+    SetDamageDealt(EventPlayer(), 100 + Attack * 10);
+    Wait(0.250, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+// 面板：显示当前全局攻击力 / 自身等级 / 生命下限
+rule: '攻击力面板'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(!IsDummyBot())
+if(!PanelCreated)
+{
+    PanelCreated = true;
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <'<0> 攻击力 <1>', IconString(Icon.Fire), Attack>,
+        Subheader: <'等级 <0>', Level>,
+        Text: <'生命下限 <0>', HpFloor>,
+        Location: Location.Right,
+        SortOrder: 0,
+        HeaderColor: Color.Orange,
+        SubheaderColor: Color.Yellow,
+        TextColor: Color.White,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+    );
+}
