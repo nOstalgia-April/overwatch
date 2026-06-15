@@ -1,0 +1,177 @@
+﻿import '图标库.del';
+
+enum SkillType{
+    None,
+    AddDamage
+}
+enum SkillHero{
+    All,
+    Ash
+}
+
+single struct SkillData {
+    public Number ID;
+    public PresetIcon Icon;
+    public String Name;
+    public String Des;
+    public Number MaxLevel;
+    public Number Tier;
+    public Number Level;
+    public Number Maxlevel;
+    public Boolean isUnlocked;
+    public SkillHero Hero;
+    public SkillType Provides;
+    public SkillType[] Requires;
+}
+
+single struct SkillTreeNode {
+    public SkillData Skill;
+    public Number Depth;
+    public Number ParentID;
+    public Number[] ChildIDs;
+}
+
+globalvar SkillData[] Skill_Pool = [];
+playervar SkillData[] CurrentSkills;
+playervar SkillData[] HeroSkills;
+
+Number SkillSortKey(in SkillData skill):
+    skill.Tier * 1000 + skill.ID;
+
+Boolean SkillHasParent(in SkillData skill, in SkillData[] pool) {
+    foreach (SkillData candidate in pool) {
+        if (candidate.ID == skill.ID) {
+            continue;
+        }
+        if (candidate.Provides == SkillType.None) {
+            continue;
+        }
+        if (ArrayContains(skill.Requires, candidate.Provides)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+SkillData[] SkillChildren(in SkillData skill, in SkillData[] pool) {
+    if (skill.Provides == SkillType.None) {
+        return [];
+    }
+    return pool.Filter(t => t.ID != skill.ID && ArrayContains(t.Requires, skill.Provides)).Sort(t => SkillSortKey(t));
+}
+
+Boolean[] CreateVisitedTracker(in Number length) {
+    Boolean[] tracker = [];
+    for (define i = 0; i < length; i++) {
+        tracker += false;
+    }
+    return tracker;
+}
+
+void MarkVisited(Boolean[] tracker, in SkillData[] ordered, in SkillData skill) {
+    Number index = ordered.IndexOf(skill);
+    if (index >= 0) {
+        tracker[index] = true;
+    }
+}
+
+Boolean IsVisited(in Boolean[] tracker, in SkillData[] ordered, in SkillData skill) {
+    Number index = ordered.IndexOf(skill);
+    return index >= 0 && tracker[index];
+}
+
+recursive SkillTreeNode[] BuildSkillTreeFromSkill(in SkillData skill, in SkillData[] ordered, Boolean[] visited, in Number depth, in Number parentID) {
+    MarkVisited(visited, ordered, skill);
+    SkillData[] children = SkillChildren(skill, ordered);
+    Number[] childIDs = [];
+    if (children.Length > 0) {
+        childIDs = children.Map(t => t.ID);
+    }
+    SkillTreeNode node = {
+        Skill: skill,
+        Depth: depth,
+        ParentID: parentID,
+        ChildIDs: childIDs
+    };
+    SkillTreeNode[] branch = [];
+    branch += node;
+    foreach (SkillData child in children) {
+        if (IsVisited(visited, ordered, child)) {
+            continue;
+        }
+        branch += BuildSkillTreeFromSkill(child, ordered, visited, depth + 1, skill.ID);
+    }
+    return branch;
+}
+
+SkillTreeNode[] BuildSkillTree(in SkillData[] pool) {
+    if (pool.Length == 0) {
+        return [];
+    }
+    SkillData[] ordered = pool.Sort(t => SkillSortKey(t));
+    SkillData[] roots = ordered.Filter(t => !SkillHasParent(t, ordered));
+    if (roots.Length == 0) {
+        roots = [];
+        roots += ordered.First;
+    }
+    Boolean[] visited = CreateVisitedTracker(ordered.Length);
+    SkillTreeNode[] result = [];
+    foreach (SkillData root in roots) {
+        result += BuildSkillTreeFromSkill(root, ordered, visited, 0, -1);
+    }
+    for (define i = 0; i < ordered.Length; i++) {
+        if (!visited[i]) {
+            result += BuildSkillTreeFromSkill(ordered[i], ordered, visited, Max(0, ordered[i].Tier), -1);
+        }
+    }
+    return result;
+}
+
+rule: "初始化技能池(测试版)"
+Event.OngoingGlobal
+{
+    if (Skill_Pool.Length == 0) {
+        Skill_Pool += {
+            ID: 0,
+            Icon: PresetIcon.None,
+            Name: "Melee Boost",
+            Des: "Increase melee damage by 10 / 20 / 30 / 40.",
+            MaxLevel: 4,
+            Tier: 0,
+            Level: 0,
+            Maxlevel: 4,
+            isUnlocked: false,
+            Hero: SkillHero.All,
+            Provides: SkillType.AddDamage,
+            Requires: []
+        };
+        Skill_Pool += {
+            ID: 1,
+            Icon: PresetIcon.None,
+            Name: "Bleeding Shot",
+            Des: "Headshots on Harassers apply 20 / 30 / 40 / 50 bleed.",
+            MaxLevel: 4,
+            Tier: 1,
+            Level: 0,
+            Maxlevel: 4,
+            isUnlocked: false,
+            Hero: SkillHero.All,
+            Provides: SkillType.None,
+            Requires: [SkillType.AddDamage]
+        };
+        Skill_Pool += {
+            ID: 2,
+            Icon: PresetIcon.None,
+            Name: "Elite Explosion",
+            Des: "Killing an elite deals 20 / 40 / 60 explosion damage.",
+            MaxLevel: 3,
+            Tier: 1,
+            Level: 0,
+            Maxlevel: 3,
+            isUnlocked: false,
+            Hero: SkillHero.All,
+            Provides: SkillType.None,
+            Requires: [SkillType.AddDamage]
+        };
+    }
+}

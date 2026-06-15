@@ -1,0 +1,1116 @@
+    globalvar Boss[] BossPool = [];
+    globalvar BossData[] BossDataPool;
+    globalvar BossSkill[] BossSkillPool;
+    playervar String bot_Name;
+    playervar Number bot_State;
+    playervar Boolean isBoss;
+
+    void MonkeySetup(in Player p){
+        WaitUntil(HasSpawned(),1);
+        ForceThrottle(p,1);
+        SetMoveSpeed(p,65);
+        CreateEffect(IsAlive(EvaluateOnce(p))?AllLivingPlayers():null,Effect.Ring,Color.Red,UpdateEveryFrame(PositionOf(EvaluateOnce(p))),3,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(IsAlive(EvaluateOnce(p))?AllLivingPlayers():null,Effect.Ring,Color.Red,UpdateEveryFrame(PositionOf(EvaluateOnce(p))),9,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+        CreateInWorldText(Position: EvaluateOnce(p),Header: <'<0> <1>%',AbilityIconString(Hero.Winston,Button.Ultimate),UltimateChargePercent(EvaluateOnce(p))>,Scale: 2,Clipping: Clipping.DoNotClip,TextColor: Color.Rose,VisibleTo: IsAlive(EvaluateOnce(p))?AllLivingPlayers():null);
+    }
+    rule: '战斗Ai调用'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if(isBoss&&IsAlive()&&CountOf(bot_target_array)>0)
+    {
+        switch(bot_Name){
+            case '大猩猩':
+            MonkeyAi(EventPlayer());return;
+            case '毒猪':
+            PoisionPigAi(EventPlayer());return;
+        }
+        
+    }
+
+    rule: '关闭各种'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    {
+        DisableAnnouncer();
+        //DisableCompletion();
+        DisableGameModeHud();
+        DisableGameModeInworldUI();
+        DisableMessages();
+        DisableMusic();
+        //DisableScoring();
+        //DisableRespawning();
+        EnableSpectate();
+    }
+
+    void PigSetup(Player p){
+        WaitUntil(HasSpawned(),1);
+        ForceThrottle(p,1);
+        CreateEffect(IsAlive(p)?AllLivingPlayers():null,Effect.Ring,Color.Red,UpdateEveryFrame(PositionOf(EvaluateOnce(p))),12,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+    }
+    globalvar Number BossID;
+    rule: '创建boss'
+    if(IsGameInProgress())
+    {
+        //BossID++;
+        if(false){
+            Boss pig = new Boss(
+            BossDataPool[1],
+            <BossSkill[]>BossSkillPool[1],
+            heroSetup: PigSetup
+        );
+        }
+        if(true){
+        Boss Monkey = new Boss(
+            BossDataPool[0],
+            <BossSkill[]>BossSkillPool[0],
+            heroSetup: MonkeySetup
+        );
+        }
+
+        
+    }
+    rule: 'My Player Rule'
+    Event.OnDeath
+    Team.All
+    Player.All
+    if(isBoss&&TotalTimeElapsed()<=600)
+    {
+        DestroyAllEffects();
+        DestroyDummyBot(Team.Team1,SlotOf());
+        Boss poisionpig = new Boss(
+            BossDataPool[1],
+            <BossSkill[]>BossSkillPool[1],
+            heroSetup: PigSetup);
+    }
+    enum TriggerType {
+            Ongoing,    // 持续检测型
+            OnDamage     // 伤害事件型
+        }
+
+    // 动态实例
+    class Boss {
+        public BossData Data;  // 引用配置
+        public Player Entity;
+        public BossSkill[] Skills;
+        // 新增：英雄专属初始化委托
+        public (Player)=>void HeroSpecificSetup;
+        
+        public constructor(BossData data, BossSkill[] skills, (Player)=>void heroSetup = null) {
+            BossPool += this;
+
+            Data = data;
+            Skills = skills;
+            HeroSpecificSetup = heroSetup;  // 保存委托
+
+            // 基础初始化
+            CreateDummyBot(
+                Hero: Data.BossHero,
+                Team: Team.Team1,
+                Slot: -1,
+                Position: NearestWalkablePosition(),
+                Facing: Vector(0, 0, 0)
+            );
+            Entity = LastCreatedEntity();
+            
+            CreateBeamEffect(AllLivingPlayers(),BeamType.BadBeam,EyePosition(Entity),EyePosition(Entity.bot_target_player),Color.Red,EffectRev.VisibleToPositionRadiusAndColor);
+
+            // 通用属性
+            Entity.isBoss = true;
+            Entity.bot_Name = Data.Name;
+            Entity.bot_State = 1;
+
+            WaitUntil(IsAlive(Entity) && HasSpawned(Entity) ,5);
+            StartForcingDummyBotName(Entity, Data.Name);
+            StartScalingPlayer(Entity, Data.Scale);
+            AddHealthPoolToPlayer(Entity, HealthType.Health, Data.Health * (NumberOfPlayers(Team.Team2)/4), Recoverable: true, Reevaluation: true);
+            SetDamageReceived(Entity, Data.Armor);
+
+            Current_Boss = this;
+            RefreshBossTexts(this);
+
+            // 执行英雄专属逻辑（如果提供了委托）
+            if (HeroSpecificSetup != null) {
+                HeroSpecificSetup(Entity);
+            }
+            
+            
+        }
+
+        public void CreateBoss(){
+            // 基础初始化
+            CreateDummyBot(
+                Hero: Data.BossHero,
+                Team: Team.Team1,
+                Slot: -1,
+                Position: Vector(0, 0, 0),
+                Facing: Vector(0, 0, 0)
+            );
+            Entity = LastCreatedEntity();
+            
+
+            // 通用属性
+            Entity.isBoss = true;
+            Entity.bot_Name = Data.Name;
+            Entity.bot_State = 1;
+
+            WaitUntil(IsAlive(Entity) && HasSpawned(Entity) ,5);
+            StartForcingDummyBotName(Entity, Data.Name);
+            StartScalingPlayer(Entity, Data.Scale);
+            AddHealthPoolToPlayer(Entity, HealthType.Health, Data.Health, Recoverable: true, Reevaluation: true);
+            SetDamageReceived(Entity, Data.Armor);
+
+            Current_Boss = this;
+            RefreshBossTexts(this);
+
+            // 执行英雄专属逻辑（如果提供了委托）
+            if (HeroSpecificSetup != null) {
+                HeroSpecificSetup(Entity);
+            }
+        }
+        // 触发技能（外部调用入口）
+        public void CastSkill(Number skillIndex, Player target) {
+            if (skillIndex < Skills.Length) {
+                Skills[skillIndex].Trigger(Entity, target);
+            }
+        }
+        
+        // 自动触发所有可用的技能
+        public void AutoCastSkills_Ongoing(Player target) {
+            define fiteredSkill_Ongoing = Skills.Filter(BossSkill => BossSkill.RuleType == TriggerType.Ongoing);
+            foreach (BossSkill skill! in fiteredSkill_Ongoing) {
+                skill.Trigger(Entity, target);
+            }
+        }
+
+        public void AutoCastSkills_OnDamageDealt(Player target,Button eventButton) {
+            define fiteredSkill_OnDamageDealt = Skills.Filter(BossSkill => BossSkill.RuleType == TriggerType.OnDamage);
+            foreach (BossSkill skill! in fiteredSkill_OnDamageDealt) {
+                if(skill.TriggerButton == eventButton){
+                    skill.Trigger(Entity, target);
+                }
+            }
+        }
+    }
+
+    single struct BossData {
+        public String Name;
+        public Hero BossHero;
+        public Number Scale;
+        public Number Health;
+        public Number Armor;
+    }
+
+    class BossSkill {
+        // 基础属性
+        public String Name;
+        public String Description;
+        public Number Cooldown;
+        public Number CurrentCooldown;
+        public Number RequiredPhase = 1;
+        public Button TriggerButton;
+        public TriggerType RuleType = TriggerType.Ongoing;
+        // 构造函数
+        public constructor() {
+        }
+        
+        // 公开方法：触发技能（管理冷却和条件检查）
+        public void Trigger(Player boss, Player target) {
+            if (CurrentCooldown <= 0 && RequiredPhase <= boss.bot_State && HasSpawned(boss) && CanTrigger(boss)) {
+                    CurrentCooldown = Cooldown;
+                OnActive(boss, target);  // 实际技能效果
+            }
+        }
+        
+        // 可覆盖的条件检查
+        public virtual Boolean CanTrigger(Player boss) {
+            return true;
+        }
+        
+        // 虚方法：技能具体效果（子类必须实现）
+        public virtual void OnActive(Player boss, Player target) {
+            // 默认空实现（或抛出错误）
+            SmallMessage(null, "技能未实现: " + Name);
+        }
+        
+        // 更新冷却
+        public void Update() {
+            CurrentCooldown = Max(0, CurrentCooldown - 0.25);
+        }
+    }
+
+    class Skill_YuanShiBaoNu : BossSkill {
+        public Boolean _hasTriggered = false;  // 新增：标记是否已触发
+
+        public constructor() 
+        {
+            Name = <'<0>原始暴怒',AbilityIconString(Hero.Winston,Button.Ultimate)>;
+            Description = '低于1000血\n释放大招';
+            Cooldown = 0;
+            RequiredPhase = 1;
+            
+        }
+        
+        // 覆盖条件检查
+        public override Boolean CanTrigger(Player boss) {
+            return !_hasTriggered && Health(boss) < 1000;
+        }
+        
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            _hasTriggered = true;  // 设置为已触发
+
+            SetStatus(boss,boss,Status.Stunned,1);
+            SetStatus(boss,boss,Status.Unkillable,10);
+            Wait(1,WaitBehavior.IgnoreCondition);
+            SetUltimateCharge(boss,100);
+            NextBossPhase(boss);
+            StartScalingPlayer(Player: boss,Scale: 1.6);
+            SetMoveSpeed(boss,100);
+        }
+    }
+    class Skill_Test : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>测试',IconString(Icon.Fire)>;
+            Description = '在所有毒圈释放一次爆炸\n造成100伤害';
+            Cooldown = 15;
+            RequiredPhase = 2;
+        }
+
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            SmallMessage(Header: '测试的触发一次');
+        }
+    }
+    class Skill_JingPen : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>井喷',IconString(Icon.Fire)>;
+            Description = '在所有毒圈释放三次爆炸\n每次造成150伤害';
+            Cooldown = 5;
+            RequiredPhase = 2;
+        }
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            define count = 0;
+            while(count < 3){
+                Wait(1);
+                count = count + 1;
+                foreach(Vector duquan! in Duquan_Locations){
+                Damage(PlayersWithinRadius(duquan,Radius: 5,Team: Team.Team2,LOSCheck: RadiusLOS.Surfaces),null,200);
+                PlayEffect(Type: PlayEffect.JunkratFragLauncherExplosionEffect,Color: Team.Team1,Position: duquan,Radius: 5);
+                PlayEffect(Type: PlayEffect.ExplosionSound,Color: Team.Team1,Position: duquan,Radius: 100);
+                }
+            }
+            
+            
+        }
+    }
+
+
+
+    void name(){
+        
+    }
+    class Skill_ChuanBoWenYi : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>传播瘟疫',AbilityIconString(Hero.Roadhog,Button.Ultimate)>;
+            Description = '现在，毒炸弹爆炸时会传播瘟疫';
+            Cooldown = 0;
+            RequiredPhase = 2;
+        }
+    }
+
+    class Skill_DiErJieDuan : BossSkill {
+        public Boolean _hasTriggered = false;  // 新增：标记是否已触发
+
+        public constructor() 
+        {
+            Name = <'<0>第二阶段',AbilityIconString(Hero.Winston,Button.Ultimate)>;
+            Description = '低于1/2血\n毒猪释放大招\n进入第二阶段';
+            Cooldown = 0;
+            RequiredPhase = 1;
+        }
+        
+        // 覆盖条件检查
+        public override Boolean CanTrigger(Player boss) {
+            return !_hasTriggered && NormalizedHealth() < 0.5;
+        }
+        
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            _hasTriggered = true;  // 设置为已触发
+
+            SetStatus(boss,boss,Status.Stunned,1);
+            Wait(1,WaitBehavior.IgnoreCondition);
+            StopForcingPlayerPosition(boss);
+            NextBossPhase(boss);
+            ClearStatus(boss,Status.Rooted);
+            SetMoveSpeed(boss,100);
+        }
+    }
+    globalvar Number Duquan_unique_ID = 0;
+    rule: '毒炸弹效果创建'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    {
+        ChaseVariableAtRate(Duquan_CountDown,rate: 1,destination: 0,reevaluation: RateChaseReevaluation.DestinationAndRate);
+        CreateEffect(VisibleTo: Duquan_CountDown>0?AllLivingPlayers():null,Type: Effect.EchoCloningEffect,Color: Color.Team2,EventPlayer(),Radius: 1,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+        CreateInWorldText(VisibleTo: Duquan_CountDown>0?AllLivingPlayers():null,Header: <'毒炸弹<0>s',Duquan_CountDown>,Position: EventPlayer(),Scale: 1.5,Clipping: Clipping.DoNotClip,TextColor: Color.Green,Reevaluation: InworldTextRev.VisibleToPositionStringAndColor);
+
+    }
+
+    void _CreateDuQuan(in Vector location){
+        
+        CreateEffect(Color: Color.LimeGreen,Type: Effect.Cloud
+        ,Position: EvaluateOnce(location),Radius: 5,Reevaluation: EffectRev.Color);
+        define ID1! = LastCreatedEntity();
+
+        CreateEffect(Color: Color.LimeGreen,Type: Effect.Ring
+        ,Position:  EvaluateOnce(location),Radius: 5,Reevaluation: EffectRev.Color);
+        define ID2! = LastCreatedEntity();
+
+        Duquan_Locations += location;
+
+        DuQuanPool[Duquan_unique_ID] = {Location:location,id1:ID1,id2:ID2}; 
+        Duquan_unique_ID++;
+    }
+
+    rule: '毒炸弹倒数'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if(Duquan_CountDown > 0 && Duquan_CountDown >0)
+    {
+        while(Duquan_CountDown>0){
+            SmallMessage(EventPlayer(),<'毒炸弹倒计时:<0>s',EventPlayer().Duquan_CountDown>);
+            PlayEffect(EventPlayer(),PlayEffect.DebuffImpactSound,Position: PositionOf(),Radius: 150);
+            Wait(1);
+        }
+        SetStatus(EventPlayer(),null,Status.KnockedDown,1);
+        Damage(PlayersWithinRadius(Center: EventPlayer(),Radius: 5,Team: Team.Team2,LOSCheck: RadiusLOS.Surfaces),null,50);
+        _CreateDuQuan(RayCastHitPosition(EventPlayer(),PositionOf(EventPlayer())+Vector(0,-20,0),PlayersToInclude: [],IncludePlayerOwnedObjects: []));
+
+        if(Current_Boss.Entity.bot_State >= 2){
+            FilteredArray(PlayersWithinRadius(Center: EventPlayer(),Radius: 5,Team: Team.Team2,LOSCheck: RadiusLOS.Surfaces),ArrayElement().Duquan_CountDown==0&&ArrayElement()!=EventPlayer()).Duquan_CountDown = RandomInteger(8,12);
+        }
+        
+
+    }
+    class Skill_JiXianBaoNu : BossSkill {
+        private Boolean _hasTriggered = false;  // 新增：标记是否已触发
+
+        public constructor() 
+        {
+            Name = <'<0>极限暴怒',AbilityIconString(Hero.Winston,Button.Ultimate)>;
+            Description = '现在，猩猩的Shift会随着\n大招充能进行冷却缩减';
+            Cooldown = 4;
+            RequiredPhase = 1;
+        }
+        
+        // 实现效果
+        public virtual override void OnActive(Player boss, Player target) {
+            PlayEffect(Type: PlayEffect.AnaBioticGrenadeExplosionEffect,Position: boss,Radius: 2);
+            if(!IsUsingUltimate(boss)){
+                SetAbilityCooldown(boss,Button.Ability1,Min(
+                Min(1.5,
+                AbilityCooldown(boss,Button.Ability1) - (0.01*Min(UltimateChargePercent(boss),80))*AbilityCooldown(boss,Button.Ability1))
+                ,AbilityCooldown(boss,Button.Ability1))
+                );
+            }
+        }
+    }
+
+    class Skill_PingFuNuQi : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>平复怒气',IconString(Icon.Happy)>;
+            Description = '猩猩身边每有一名玩家\n怒气（大招充能）消耗8%';
+            Cooldown = 8;
+            RequiredPhase = 1;
+        }
+        
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            SetUltimateCharge(boss,UltimateChargePercent(boss)-8*CountOf(FilteredArray(PlayersWithinRadius(boss,9,Team.Team2,LOSCheck: RadiusLOS.Surfaces)))) ;
+            PlayEffect(Type: PlayEffect.RingExplosion,Color: Color.Green,Position: boss,Radius: 9);
+        }
+    }
+
+    class Skill_TianNvSanHua : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>天女散花',AbilityIconString(Hero.Winston,Button.Ability1)>;
+            Description = '猩猩跳跃时\n释放弹幕攻击';
+            Cooldown = 0;
+        }
+        
+        // 覆盖条件检查
+        public override Boolean CanTrigger(Player boss) {
+            return IsUsingAbility1(boss);
+        }
+        
+        // 实现效果
+        public virtual override void OnActive(Player boss, Player target) {
+            while(IsInAir()){
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.Team2,Amount: 40, AmountScalar: 10,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.Team2,Amount: 40, AmountScalar: 10,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.Team2,Amount: 40, AmountScalar: 10,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)) + DirectionTowards(boss,boss.bot_target_player),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+            Wait(RandomReal(0.1,0.2));
+            }
+        }
+    }
+
+    class Skill_BingDongYouJian_Damaged: BossSkill{
+        public constructor() 
+        {
+            Name = <'<0>冰冻右键',AbilityIconString(Hero.Mei,Button.SecondaryFire)>;
+            Description = '猩猩会对远距离敌人使用右键\n造成冰冻\n并提供10%大招充能';
+
+            RequiredPhase = 2;
+
+            RuleType = TriggerType.OnDamage;
+
+            TriggerButton = Button.SecondaryFire;
+        }
+        
+        
+        // 实现效果
+        public virtual override void OnActive(Player boss, Player target = Victim()) {
+            
+
+
+            // 击倒和击退
+            SetStatus(target, boss, Status.Frozen, 1);
+
+            SetUltimateCharge(boss,UltimateChargePercent(boss)+10);
+        }
+    }
+
+    class Skill_BaoChiJuLi_Damaged : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>保持距离',AbilityIconString(Hero.Winston,Button.Melee)>;
+            Description = '猩猩会对近距离的敌人拳击\n造成巨额伤害\n并加速25%大招充能';
+            Cooldown = 8;
+
+            RequiredPhase = 1;
+
+            RuleType = TriggerType.OnDamage;
+
+            TriggerButton = Button.Melee;
+        }
+        
+        
+        // 实现效果
+        public virtual override void OnActive(Player boss, Player target = Victim()) {
+            
+            // 特效：爆炸效果
+            PlayEffect(
+                Type: PlayEffect.BadExplosion,
+                VisibleTo: AllLivingPlayers(),
+                Color: Color.Red,
+                Position: PositionOf(target),
+                Radius: 3
+            );
+
+            // 击倒和击退
+            SetStatus(target, boss, Status.KnockedDown, 1);
+            ApplyImpulse(target, DirectionTowards(EyePosition(boss), EyePosition(target)), 150);
+
+            // 禁用拳击以防止连续触发
+            SetMeleeEnabled(boss,false);
+            WaitUntil(IsOnGround(target), 3);
+
+            // 造成伤害
+            Damage(target, boss, 0.4*MaxHealth(target));
+
+            SetUltimateCharge(boss, UltimateChargePercent(boss)+25);
+
+            // 回复10%已损失生命值
+            Heal(boss, null, 0.1*(MaxHealth(boss)-Health(boss)));
+            PlayEffect(Type: PlayEffect.GoodPickupEffect,Color: Color.Green,Position: boss,Radius: 1);
+            PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: boss,Radius: 200);
+
+            // 恢复拳击
+            WaitAsync(5,()=>{SetMeleeEnabled(boss,true);});
+        }
+    }
+
+
+    globalvar String BossPassiveSkillsText;
+
+    void GenerateBossPassiveSkillsText(Boss boss!)'生成boss被动技能文本'{
+        define message! = '————————\n';
+        foreach(BossSkill skill! in boss.Skills.Filter(BossSkill => BossSkill.Cooldown == 0 && BossSkill.RequiredPhase <= boss.Entity.bot_State)){
+            message = message + skill.Name + ':\n  ' + skill.Description + '\n\n';
+        }
+        BossPassiveSkillsText = message;
+    }
+
+    //从1到0的变化，0为完成态
+    Color GradientColor(Number[] Start_RGB,Number[] End_RGB,Number Loader):
+        CustomColor(
+            End_RGB[0] - Loader*(End_RGB[0]-Start_RGB[0]),
+            End_RGB[1] - Loader*(End_RGB[1]-Start_RGB[1]),
+            End_RGB[2] - Loader*(End_RGB[2]-Start_RGB[2]),
+
+            200 - Loader*(200-75)
+        );
+
+    Color UnfinishedColor_Red:
+        CustomColor(178, 34, 34, 255);
+
+        Number UnfinishedColor_Red_R:
+            178;
+
+        Number UnfinishedColor_Red_G:
+            34;
+
+        Number UnfinishedColor_Red_B:
+            34;
+
+    Color FinishedColor_Green:
+        CustomColor(62, 220, 94, 255);
+
+        Number FinishedColor_Gold_R:
+            255;
+
+        Number FinishedColor_Gold_G:
+            215;
+
+        Number FinishedColor_Gold_B:
+            0;
+
+    Color TextColor_Beige:
+        CustomColor(245,245,220,255);
+
+    Color SubheaderColor_SandyBrown:
+        CustomColor(244,164,96,255);
+
+    globalvar Any[] Current_BossActiveSkill_HUDids;
+
+    rule: 'My Player Rule'
+    Event.OnDeath
+    Team.All
+    Player.All
+    if(IsDummyBot())
+    {
+        DestroyDummyBot(Team.Team1,SlotOf(EventPlayer()));
+    }
+    void GenerateBossActiveSkillsHUD(Boss boss!)'生成boss主动技能文本'{
+        foreach(Any hud! in Current_BossActiveSkill_HUDids){
+            DestroyHudText(hud);
+        }
+        Current_BossActiveSkill_HUDids = [];
+        Number i! = 0;
+        foreach(BossSkill skill! in boss.Skills.Filter(BossSkill => BossSkill.Cooldown > 0 && BossSkill.RequiredPhase <= boss.Entity.bot_State)){
+            i++;
+            CreateHudText(
+                Header: <'\r\r\r\r\r\n\r\r<0>\n',EvaluateOnce(skill).Name>,
+                Subheader: EvaluateOnce(skill).CurrentCooldown > 0 ? <'<0>未就绪',IconString(Icon.No)> : <'<0>已就绪',IconString(Icon.Checkmark)>,
+                Text: <'<0>\n\n当前冷却:<1>s',EvaluateOnce(skill).Description,EvaluateOnce(skill).CurrentCooldown>,
+                Location: Location.Left,
+                Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+                SortOrder: i,
+
+                HeaderColor: 
+
+                EvaluateOnce(skill).CurrentCooldown > 0 
+                ? 
+                GradientColor(
+                    [UnfinishedColor_Red_R,UnfinishedColor_Red_G,UnfinishedColor_Red_B],
+                    [FinishedColor_Gold_R,FinishedColor_Gold_G,FinishedColor_Gold_B],
+                    EvaluateOnce(skill).CurrentCooldown/EvaluateOnce(skill).Cooldown
+                    )
+                :
+                FinishedColor_Green
+
+                    ,
+
+                SubheaderColor: SubheaderColor_SandyBrown,
+                TextColor: TextColor_Beige
+            );
+            Current_BossActiveSkill_HUDids += LastTextID();
+        }
+    }
+
+    void RefreshBossTexts(Boss boss!)'刷新boss文本'{
+        GenerateBossPassiveSkillsText(boss);
+        GenerateBossActiveSkillsHUD(boss);
+    }
+
+    rule: 'Boss文本初始化'
+    {
+        CreateHudText(
+            VisibleTo: AllLivingPlayers(),
+            Text: BossPassiveSkillsText,
+            Location: Location.Right,
+            SortOrder: -9999,
+            TextColor: Color.Orange,
+            Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+        );
+    }
+
+    globalvar Boss Current_Boss;
+
+
+
+
+    globalvar Number[] BossSkillCooldowns;  // 记录每个技能的剩余冷却时间
+    globalvar Number[] BossSkillLastUsed;  // 记录每个技能最后使用的时间
+
+    rule: 'Boss 造成伤害触发技能'
+    Event.OnDamageDealt
+    Team.All
+    Player.All
+    if (EventPlayer().isBoss)
+    {
+        Boss boss! = GetBossByEntity(EventPlayer());
+        Player target = Victim();
+        boss.AutoCastSkills_OnDamageDealt(target,EventAbility());
+    }
+    // Boss 自动战斗
+    rule: "Boss 自动攻击"
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if (EventPlayer().isBoss)
+    {
+        Boss boss! = GetBossByEntity(EventPlayer());
+        Player target = EventPlayer().bot_target_player;
+        boss.AutoCastSkills_Ongoing(target);
+        Wait(0.5);
+        LoopIfConditionIsTrue();
+    }
+    rule: '更新Boss技能冷却'
+    Event.OngoingGlobal
+    {
+        foreach (Boss boss! in BossPool) {
+            if (IsAlive(boss.Entity) && HasSpawned(boss.Entity)) {
+                foreach (BossSkill skill! in boss.Skills) {
+                    skill.Update();
+                }
+            }
+        }
+        Wait(0.25, WaitBehavior.IgnoreCondition);
+        LoopIfConditionIsTrue();
+    }
+
+    rule: '显示负载'
+    {
+        CreateHudText(VisibleTo: HostPlayer(),Header: ServerLoad() + '\n' + ServerLoadAverage());
+    }
+
+    rule: 'Boss Initialize'
+    {
+
+        
+        BossDataPool[0] = {Name:'大猩猩',Armor:70,BossHero:Hero.Winston,Health:7000,Scale:1};
+        BossSkillPool[0] = [
+            new Skill_YuanShiBaoNu(),
+            new Skill_TianNvSanHua(),
+            new Skill_BaoChiJuLi_Damaged(),
+            new Skill_BingDongYouJian_Damaged(),
+            new Skill_JiXianBaoNu(),
+            new Skill_PingFuNuQi()
+        ];
+
+        BossDataPool[1] = {Name:'毒猪',Armor:40,BossHero:Hero.Roadhog,Health:10000,Scale:1.4};
+        BossSkillPool[1] = [
+            new Skill_DuQuanZhaDan_Damaged(),
+            new Skill_DuNAiGuan(),
+            new Skill_DuQuanZao(),
+            new Skill_DiErJieDuan(),
+            new Skill_ChuanBoWenYi(),
+            new Skill_JingPen()
+        ];
+    }
+
+    globalvar DuQuan[] DuQuanPool=[];
+    globalvar Vector[] Duquan_Locations=[];
+    playervar Number Duquan_CountDown;
+
+    class Skill_DuQuanZhaDan_Damaged : BossSkill{
+        
+        public constructor() 
+        {
+            Name = <'<0>毒圈炸弹',IconString(Icon.Poison2)>;
+            Description = '猪的钩子带毒\n目标会附带一个定时炸弹\n在炸弹结束时被击倒\n并在原地留下一个永久的毒圈';
+            Cooldown = 10;
+
+            RuleType = TriggerType.OnDamage;
+
+            TriggerButton = Button.Ability1;
+        }
+
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            target.Duquan_CountDown = RandomInteger(8,12);
+            SetAbilityCooldown(boss,Button.Ability1,Cooldown+2);
+        }
+    }
+
+    class Skill_DuNAiGuan : BossSkill{
+
+        public constructor() 
+        {
+            Name = <'<0>毒奶罐',AbilityIconString(Hero.Roadhog,Button.SecondaryFire)>;
+            Description = '释放毒奶罐时\n路霸会点名所有红圈外的玩家\n睡眠2s\n额外附带毒炸弹';
+            Cooldown = 16;
+        }
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            BigMessage(Header: '快在它喝奶结束前靠近毒猪！');
+            SetAbilityCharge(boss,Button.SecondaryFire,100);
+            StartHoldingButton(boss,Button.SecondaryFire);
+            Wait(1);
+            WaitUntil(!IsFiringSecondary(boss),4);
+                    Player[] player! = FilteredArray(AllLivingPlayers(Team.Team2),ArrayElement().Duquan_CountDown==0 && DistanceBetween(ArrayElement(),boss) >= 12);
+                    SetStatus(player,null,Status.Asleep,2);
+                    player.Duquan_CountDown = RandomInteger(8,12);
+            }
+        
+    }
+
+    class Skill_WoDeDuNe: BossSkill{
+        public constructor() 
+        {
+            Name = <'<0>开大',AbilityIconString(Hero.Roadhog,Button.Ultimate)>;
+            Description = '开大...';
+            Cooldown = 25;
+
+            RequiredPhase = 2;
+        }
+        // 覆盖条件检查
+            public override Boolean CanTrigger(Player boss) {
+            return !IsUsingUltimate(boss);
+        }
+
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            SetUltimateCharge(boss,100);
+            PressButton(boss,Button.Ultimate);
+            }
+        
+    }
+    struct DuQuan{
+        public Vector Location;
+        public Any id1;
+        public Any id2;
+
+        public void DestroyDuQuan(){
+            Duquan_Locations -= Location;
+            DestroyEffect(id1);
+            DestroyEffect(id2);
+        }
+    }
+    playervar Boolean Person3=false;
+    rule: '第三人称'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if(IsButtonHeld(EventPlayer(),Button.Interact))
+    {
+        Wait(1,WaitBehavior.AbortWhenFalse);
+        if(!Person3){
+            StartCamera(EventPlayer(), RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + WorldVectorOf(Vector(0,
+            1, 0), EventPlayer(), LocalVector.Rotation) + FacingDirectionOf(EventPlayer()) * -2, AllPlayers(), EventPlayer(), true),
+            UpdateEveryFrame(RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + 100 * FacingDirectionOf(
+            EventPlayer()), AllPlayers(), EventPlayer(), true)), 20);
+        }
+        else{
+            StopCamera(EventPlayer());
+        }
+        
+    }
+    class Skill_DuQuanZao : BossSkill{
+
+        public constructor() 
+        {
+            Name = <'<0>毒圈澡',IconString(Icon.Happy)>;
+            Description = '当毒猪路过毒圈时\n消除毒圈\n并回复20%已损失生命值';
+            Cooldown = 1;
+
+            RequiredPhase = 2;
+        }
+        public override Boolean CanTrigger(Player boss) {
+            return IsTrueForAny(Duquan_Locations,DistanceBetween(ArrayElement(),boss)<=5) && CountOf(Duquan_Locations)>0;
+        }
+        // 实现效果
+        public override void OnActive(Player boss, Player target) {
+            Heal(boss,null,0.2*(MaxHealth(boss)-Health(boss)));
+            PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaEffect,Position: boss,Radius: 2);
+
+            Vector theDuquan = FirstOf(FilteredArray(Duquan_Locations,DistanceBetween(ArrayElement(),boss)<=5));
+            FindDuQuanByLocation(theDuquan).DestroyDuQuan();
+        }
+    }
+
+    DuQuan FindDuQuanByLocation(in Vector location){
+        foreach(DuQuan f in DuQuanPool){
+            if(f.Location == location){
+                return f;
+            }
+        }
+    }
+    rule: '入侵毒圈内的人'
+    if(CountOf(Duquan_Locations))
+    {
+        foreach(Vector duquan! in Duquan_Locations){
+            SetStatus(Status: Status.Hacked,Duration: 1,Player: PlayersWithinRadius(Center: duquan,Radius: 5,Team: Team.Team2,LOSCheck: RadiusLOS.Surfaces),Assister: null);
+        }
+        Wait(1);
+        LoopIfConditionIsTrue();
+    }
+
+
+
+    rule: '夹腿调试中'
+    Event.OngoingPlayer
+    Team.Team1
+    Player.All
+    if(IsButtonHeld(HostPlayer(),Button.Interact))
+    {
+        Current_Boss.Skills[0].Trigger(boss: Current_Boss.Entity,target: null);
+    }
+
+    playervar Any bot_target_array;
+    playervar Any bot_target_player;
+
+    rule: '机器人-寻找有效目标'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if(IsDummyBot() && HasSpawned() && IsAlive())
+    {
+
+        EventPlayer().bot_target_array = FilteredArray(AllLivingPlayers(OppositeTeamOf(TeamOf(EventPlayer()))),
+                EventPlayer() != ArrayElement() && HasSpawned(ArrayElement()) && !IsDummyBot(ArrayElement())
+                && IsInLineOfSight(EventPlayer(), ArrayElement(), Barriers: BarrierLOS.NoBarriersBlock));
+        
+        if(CountOf(EventPlayer().bot_target_array) > 0){
+            EventPlayer().bot_target_player = FirstOf(SortedArray(EventPlayer().bot_target_array, DistanceBetween(EventPlayer(),
+                    ArrayElement())));
+        }
+        Wait(1,WaitBehavior.AbortWhenFalse);
+        LoopIfConditionIsTrue();
+    }
+
+    playervar Number bot_ballistic_velocity = -0.003;
+    playervar Number bot_aiming_accuracy = 0;
+
+    void botFacing(Player p)'sub 机器人开始朝向'{
+        StartFacing(
+            p, 
+            DirectionTowards(
+                EyePosition(p), 
+                EyePosition(p.bot_target_player) 
+                + Down() * DistanceBetween(p, p.bot_target_player) * 0.010 
+                + VelocityOf(p.bot_target_player) 
+                * (DistanceBetween(p, p.bot_target_player) * p.bot_ballistic_velocity + 0.200) 
+                + DirectionFromAngles(
+                    HorizontalFacingAngleOf(p) 
+                    + RandomReal(
+                        DistanceBetween(p, p.bot_target_player) * AbsoluteValue(p.bot_aiming_accuracy) * -1, 
+                        DistanceBetween(p, p.bot_target_player) * AbsoluteValue(p.bot_aiming_accuracy)
+                    ),
+                    VerticalFacingAngleOf(p) 
+                    + RandomReal(
+                        DistanceBetween(p, p.bot_target_player) * AbsoluteValue(p.bot_aiming_accuracy) * 0.250 * -1, 
+                        DistanceBetween(p, p.bot_target_player) * AbsoluteValue(p.bot_aiming_accuracy) * 0.250
+                    )
+                ) * 1
+            ), 
+            1000,
+            Relative: Relative.ToWorld,
+            FacingRev.DirectionAndTurnRate
+        );
+    }
+
+    void MonkeyAi(Player bossEntity)'sub MonkeyAi'{
+        botFacing(bossEntity);
+        while(CountOf(bossEntity.bot_target_array) > 0){
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+                if(DistanceBetween(EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) < 9 || !IsFiringPrimary(
+                    bossEntity)){
+                        StartHoldingButton(bossEntity, Button.PrimaryFire);
+                        StopHoldingButton(bossEntity,Button.SecondaryFire);
+                        
+                    }
+                else{
+                    StartHoldingButton(bossEntity, Button.SecondaryFire);
+                    StopHoldingButton(bossEntity,Button.PrimaryFire);
+                }
+
+                if(DistanceBetween(EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) < 3){
+                        PressButton(bossEntity,Button.Melee);
+                    }
+
+                if(DistanceBetween(EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) < 40 && (DistanceBetween(
+                    EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) > 9 || AbsoluteValue(YOf(PositionOf(
+                    bossEntity)) - YOf(EyePosition(bossEntity.bot_target_player))) > 2) || IsUsingUltimate(bossEntity)){
+                        PressButton(bossEntity, Button.Ability1);
+                    }
+                
+                if(UltimateChargePercent(bossEntity) == 100){
+                        PressButton(bossEntity, Button.Ability1);
+                        Wait(0.500, WaitBehavior.IgnoreCondition);
+                        PressButton(bossEntity, Button.Ultimate);
+                        Wait(0.500, WaitBehavior.IgnoreCondition);
+                        PressButton(bossEntity, Button.Ability1);
+                    }
+        }
+        StopHoldingButton(bossEntity, Button.PrimaryFire);
+        StopHoldingButton(bossEntity, Button.SecondaryFire);
+        PressButton(bossEntity, Button.Reload);
+    }
+
+    void PoisionPigAi(Player bossEntity)'sub PoisionPig'{
+        botFacing(bossEntity);
+        while(CountOf(bossEntity.bot_target_array) > 0){
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+                if(DistanceBetween(EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) < 9 || !IsFiringPrimary(
+                    bossEntity)){
+                        StartHoldingButton(bossEntity, Button.PrimaryFire);
+                    }
+                else{
+                    if(!IsUsingUltimate(bossEntity)){
+                        StopHoldingButton(bossEntity,Button.PrimaryFire);
+                    }
+                    
+                }
+
+                if(!IsUsingUltimate(bossEntity)&&DistanceBetween(EyePosition(bossEntity), EyePosition(bossEntity.bot_target_player)) < 3){
+                        PressButton(bossEntity,Button.Melee);
+                    }
+
+                if(!IsUsingUltimate(bossEntity)){
+                    MinWait();
+                        PressButton(bossEntity, Button.Ability1);
+                    WaitUntil(!IsUsingAbility1(),1);
+                    }
+            
+
+                if(RandomInteger(0,1)==0){
+                    PressButton(bossEntity,Button.Reload);
+                }
+        }
+        StopHoldingButton(bossEntity, Button.PrimaryFire);
+        PressButton(bossEntity, Button.Reload);
+    }
+
+    void NextBossPhase(Player boss)'boss切换阶段'{
+        boss.bot_State++;
+        MinWait();
+        BigMessage(AllLivingPlayers(),<'Boss进入<0>阶段，新增技能！',boss.bot_State>);
+        RefreshBossTexts(GetBossByEntity(boss));
+    }
+
+    Boss GetBossByEntity(Any entity) 'sub根据实体获取boss数据'{
+        foreach(Boss boss! in BossPool){
+            if (boss.Entity == entity) {
+                return boss;
+            }
+        }
+        SmallMessage(Header: '获取boss失败');
+        return null;
+    }
+
+    playervar Number RebirthCount;
+    rule: '死亡玩家复活'
+    Event.OngoingPlayer
+    Team.Team2
+    Player.All
+    if(!IsAlive()&&HasSpawned())
+    {
+        RebirthCount = 10+NumberOfLivingPlayers();
+        while(RebirthCount>0 && !IsAlive()){
+            RebirthCount--;
+            
+            SmallMessage(VisibleTo: EventPlayer(),<'等待<0>复活...',RebirthCount>);
+            Wait(1,WaitBehavior.IgnoreCondition);
+        }
+        Respawn();
+    }
+
+    rule: '失败'
+    Event.OnDeath
+    Team.Team2
+    Player.All
+    if(IsTrueForAll(AllPlayers(Team.Team2),IsDead(ArrayElement())))
+    {
+        Wait(1,WaitBehavior.AbortWhenFalse);
+        DeclareTeamVictory(Team.Team1);
+    }
+
+    rule: '胜利'
+    Event.OnDeath
+    Team.Team1
+    Player.All
+    if(isBoss && NumberOfPlayers(Team.Team2)==0)
+    {
+        Wait(2,WaitBehavior.AbortWhenFalse);
+        DeclareTeamVictory(Team.Team2);
+    }
+
+    rule: '广告'
+    {
+        CreateHudText(Text: '',Location: Location.Top);
+    }
+
+    rule: '诱惑'
+    {
+        //CreateInWorldText(Header: <'在6min内击杀boss解锁下一关\n\n当前耗时<0>min<1>s\n\n长按互动切换第三人称\n\n这是作者新图的boss部分\n有兴趣的朋友可以加我v关注后续\n19112803825',RoundToInteger(TotalTimeElapsed()/60,Rounding.Down),RoundToInteger(TotalTimeElapsed()%60,Rounding.Down)>,Position: Vector(0,15,30),Scale: 3,Clipping: Clipping.DoNotClip);
+    }
+
+    rule: '快速进游戏'
+    if(IsAssemblingHeroes())
+    {
+        SetMatchTime(5);
+    }
+    playervar Boss Parent_Boss;
+    class Skill_XinDongXiangYing : BossSkill {
+
+        public constructor() 
+        {
+            Name = <'<0>心动响应',IconString(Icon.Happy)>;
+            Description = '破坏球在主人圈内时，会周期性地释放弹幕';
+            Cooldown = 2;
+        }
+        
+        // 覆盖条件检查
+        public override Boolean CanTrigger(Player boss) {
+            return DistanceBetween(boss,Parent_Boss.Entity)<=10;
+        }
+        
+        // 实现效果
+        public virtual override void OnActive(Player boss, Player target) {
+            
+        }
+    }
+    playervar Boolean Ready=false;
+    rule: '准备开始'
+    {
+        //CreateInWorldText(Header: <'长按下蹲准备开始<0>/<1>\n<2>',CountOf(FilteredArray(AllLivingPlayers(),ArrayElement().Ready)),CountOf(AllPlayers(Team.Team2).Filter(t=>HasSpawned(t))),LocalPlayer().Ready?'你已准备':'你还未准备'>,Position: Vector(0,10,0),Scale: 3,Clipping: Clipping.DoNotClip,VisibleTo: NumberOfPlayers(Team.Team1)==0?AllPlayers():null);
+    }
+
+    rule: 'My Player Rule'
+    Event.OngoingPlayer
+    Team.All
+    Player.All
+    if(IsButtonHeld(EventPlayer(),Button.Crouch))
+    {
+        Wait(1,WaitBehavior.AbortWhenFalse);
+        Ready = true;
+    }

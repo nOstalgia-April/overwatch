@@ -1,0 +1,364 @@
+
+globalvar Vector[] nodes_location;
+globalvar define nodes_link;
+globalvar define nodes_basic_distance;
+globalvar define distance_preset;
+globalvar define prev_node_preset;
+globalvar define nodes_index_preset;
+globalvar define checking_nodes;
+globalvar define for_1;
+globalvar define for_2;
+playervar define p_nodes_basic_distance;
+playervar define start;
+playervar define end;
+playervar define path;
+playervar define now_groups;
+playervar define p_for_1;
+playervar define now;
+playervar define visited;
+playervar define now_weight;
+playervar define nodes_distance;
+playervar define now_ID;
+playervar define unvisited_nodes_distance;
+playervar define nodes_preset_now;
+playervar define is_first_iteration;
+playervar define maybe_distance;
+playervar define p_nodes_location;
+playervar define p_nodes_link;
+playervar define current;
+
+rule: "铁阪节点"
+{
+nodes_location = [];
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-31.290, 4.550, 39.807));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-16.279, 6.500, 39.847));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-5.221, 8.500, 44.289));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-6.166, 10.500, 34.596));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-11.134, 10.551, 30.036));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-8.087, 10.549, 26.945));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(1.377, 7.549, 21.287));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-1.349, 6.390, 17.047));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-18.548, 6.389, 28.763));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-31.655, 6.389, 31.343));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-44.665, 6.549, 33.206));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-46.938, 6.551, 23.636));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-13.292, 11.049, 19.126));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-6.143, 6.391, 12.208));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-14.892, 6.554, 16.419));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-19.007, 6.389, 9.551));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-11.718, 6.412, 4.259));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-3.138, 6.55, -7.425));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-18.857, 6.401, 5.647));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-28.181, 6.549, 21.746));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-27.681, 6.391, 14.610));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-52.338, 8.549, 30.984));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-54.125, 8.550, 9.823));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-48.976, 8.549, 9.416));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-51.312, 9.550, 3.457));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-54.546, 9.549, -1.917));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-49.097, 9.550, -1.921));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-50.950, 9.550, -7.525));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-50.835, 11.549, -13.038));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-25.336, 8.551, 9.252));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-27.676, 10.549, 2.481));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-19.347, 10.55, -4.126));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-19.564, 10.549, -9.575));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-30.795, 11.442, -9.139));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-44.277, 11.55, -12.613));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-41.065, 6.389, 9.838));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-41.037, 7.549, -6.545));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-37.735, 7.553, -22.837));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-36.786, 7.549, -36.927));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-37.382, 6.397, 6.624));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-35.447, 6.391, -14.324));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-21.048, 6.390, -12.974));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-28.142, 6.390, -3.294));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-30.376, 7.105, -8.964));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-7.838, 6.551, -15.830));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-2.463, 6.549, 8.341));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(7.648, 7.246, 8.326));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(11.751, 9.551, 1.479));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(3.309, 6.551, -9.988));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-2.024, 6.550, -13.651));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-39.958, 7.55, -15.285));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-58.609, 11.549, -14.503));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-57.234, 11.549, -23.874));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-56.951, 11.55, -35.874));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-50.9, 11.549, -36.586));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-50.398, 13.5, -27.583));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-52.027, 13.624, -24.327));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-43.254, 13.5, -21.076));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-44.324, 11.55, -35.959));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-40.466, 10.55, -29.658));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-35.818, 10.547, -29.414));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-21.072, 10.550, -26.188));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-21.842, 10.549, -19.463));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-11.877, 10.561, -34.012));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-0.602, 9.549, -46.427));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-9.527, 10.594, -30.879));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-12.894, 8.551, -25.437));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-7.327, 6.550, -19.952));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-7.069, 6.549, -29.373));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-11.953, 6.550, -33.415));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-16.072, 6.551, -27.655));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-22.544, 6.5, -30.631));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-32.521, 7.55, -43.923));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-29.732, 8.549, -36.95));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-30.307, 7.549, -48.414));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-26.348, 6.391, -45.107));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-42.474, 9.549, -51.589));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-34.693, 8.083, -50.797));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-14.789, 7.578, -52.39));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-9.133, 7.55, -49.368));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(6.421, 8.550, -41.327));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(13.849, 8.551, -34.815));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(9.808, 7.550, -25.364));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(8.661, 6.551, -13.110));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(4.352, 6.549, -13.160));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(4.445, 7.549, -24.975));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(2.319, 7.550, -36.445));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-2.283, 5.474, -31.382));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-15.217, 5.500, -43.304));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-23.030, 7.551, -35.503));
+ModifyVariable(nodes_location, Operation.AppendToArray, Vector(-15.754, 6.5, 43.598));
+}
+
+rule: "铁阪路径"
+{
+    nodes_link[0] = [1, 9];
+    nodes_link[1] = [0, 8, 90];
+    nodes_link[2] = [3, 90];
+    nodes_link[3] = [2, 4];
+    nodes_link[4] = [3, 5];
+    nodes_link[5] = [4, 6, 12];
+    nodes_link[6] = [5, 7];
+    nodes_link[7] = [6, 8, 13];
+    nodes_link[8] = [1, 7, 9, 19];
+    nodes_link[9] = [0, 8, 10, 11, 19];
+    nodes_link[10] = [9, 11, 19, 21];
+    nodes_link[11] = [9, 10, 12];
+    nodes_link[12] = [5, 11];
+    nodes_link[13] = [7, 14, 16, 45];
+    nodes_link[14] = [13, 15];
+    nodes_link[15] = [14, 16, 18, 20];
+    nodes_link[16] = [13, 15, 17, 18];
+    nodes_link[17] = [16, 44, 48, 49];
+    nodes_link[18] = [15, 16, 29];
+    nodes_link[19] = [8, 9, 10, 20];
+    nodes_link[20] = [15, 19, 35, 39];
+    nodes_link[21] = [10, 22, 23];
+    nodes_link[22] = [21, 24];
+    nodes_link[23] = [21, 24, 35];
+    nodes_link[24] = [22, 23, 25, 26];
+    nodes_link[25] = [24, 27];
+    nodes_link[26] = [24, 27];
+    nodes_link[27] = [25, 26, 28, 36];
+    nodes_link[28] = [27, 34, 51];
+    nodes_link[29] = [18, 30];
+    nodes_link[30] = [29, 31];
+    nodes_link[31] = [30, 32];
+    nodes_link[32] = [31, 33];
+    nodes_link[33] = [32, 34];
+    nodes_link[34] = [28, 33, 57];
+    nodes_link[35] = [20, 23, 36, 39];
+    nodes_link[36] = [27, 35, 39, 50];
+    nodes_link[37] = [38, 40, 50, 62];
+    nodes_link[38] = [37, 72, 73];
+    nodes_link[39] = [20, 35, 36, 40, 42, 43];
+    nodes_link[40] = [37, 39, 41, 50];
+    nodes_link[41] = [40, 42, 43, 44];
+    nodes_link[42] = [39, 41, 43];
+    nodes_link[43] = [39, 41, 42];
+    nodes_link[44] = [17, 41, 49, 67];
+    nodes_link[45] = [13, 46];
+    nodes_link[46] = [45, 47];
+    nodes_link[47] = [46, 48];
+    nodes_link[48] = [17, 47, 49, 83, 84];
+    nodes_link[49] = [17, 44, 48, 84, 87];
+    nodes_link[50] = [36, 37, 40];
+    nodes_link[51] = [28, 52];
+    nodes_link[52] = [51, 53, 56];
+    nodes_link[53] = [52, 54];
+    nodes_link[54] = [53, 55, 58, 76];
+    nodes_link[55] = [54, 56, 57];
+    nodes_link[56] = [52, 55, 57];
+    nodes_link[57] = [34, 55, 56];
+    nodes_link[58] = [54, 59];
+    nodes_link[59] = [58, 60];
+    nodes_link[60] = [59, 61, 73];
+    nodes_link[61] = [60, 62, 63];
+    nodes_link[62] = [37, 61];
+    nodes_link[63] = [61, 64, 65];
+    nodes_link[64] = [63, 79, 80];
+    nodes_link[65] = [63, 66];
+    nodes_link[66] = [65, 67];
+    nodes_link[67] = [44, 66, 68];
+    nodes_link[68] = [67, 69];
+    nodes_link[69] = [68, 70, 71];
+    nodes_link[70] = [71, 69];
+    nodes_link[71] = [69, 70, 89];
+    nodes_link[72] = [38, 74, 75, 77, 89];
+    nodes_link[73] = [38, 60];
+    nodes_link[74] = [72, 75, 77, 78];
+    nodes_link[75] = [72, 74, 88];
+    nodes_link[76] = [54, 77];
+    nodes_link[77] = [72, 74, 76];
+    nodes_link[78] = [74, 79];
+    nodes_link[79] = [64, 78, 88];
+    nodes_link[80] = [64, 81, 86];
+    nodes_link[81] = [80, 82];
+    nodes_link[82] = [81, 83, 85];
+    nodes_link[83] = [48, 82, 84];
+    nodes_link[84] = [48, 49, 83, 85];
+    nodes_link[85] = [82, 84, 86];
+    nodes_link[86] = [80, 85, 87];
+    nodes_link[87] = [49, 86, 88];
+    nodes_link[88] = [75, 79, 87, 89];
+    nodes_link[89] = [71, 72, 88];
+    nodes_link[90] = [1, 2];
+}
+
+rule: "初始化"
+{
+    distance_preset = [];
+    prev_node_preset = [];
+    nodes_index_preset = [];
+    for (for_1 = 0; CountOf(nodes_location); 1)
+    {
+        ModifyVariable(distance_preset, Operation.AppendToArray, 9999);
+        ModifyVariable(prev_node_preset, Operation.AppendToArray, -1);
+        ModifyVariable(nodes_index_preset, Operation.AppendToArray, for_1);
+    }
+    nodes_basic_distance = [];
+    for (for_1 = 0; CountOf(nodes_location); 1)
+    {
+        nodes_basic_distance[for_1] = [];
+        checking_nodes = nodes_link[for_1];
+        for (for_2 = 0; CountOf(checking_nodes); 1)
+        {
+            ModifyVariable(nodes_basic_distance[for_1], Operation.AppendToArray, DistanceBetween(nodes_location[for_1], nodes_location[checking_nodes[for_2]]));
+        }
+    }
+}
+
+rule: "沿路径移动"
+Event.OngoingPlayer
+// if (IsDummyBot(EventPlayer()) == true)
+if (HasSpawned(EventPlayer()) == true)
+if (IsButtonHeld(EventPlayer(), Button.Crouch) == true)
+{
+    // Teleport(EventPlayer(), start);
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+    StartThrottleInDirection(EventPlayer(), DirectionTowards(EyePosition(EventPlayer()), FirstOf(path)), 1, Relative.ToWorld, ThrottleBehavior.ReplaceExistingThrottle, ThrottleRev.DirectionAndMagnitude);
+}
+
+rule: "移除路径中已到达的节点"
+Event.OngoingPlayer
+// if (IsDummyBot(EventPlayer()) == true)
+if (HasSpawned(EventPlayer()) == true)
+if (CountOf(path) > 0)
+if (DistanceBetween(EyePosition(EventPlayer()), Vector(XOf(FirstOf(path)), YOf(EyePosition(EventPlayer())), ZOf(FirstOf(path)))) < 1)
+{
+    ModifyVariable(path, Operation.RemoveFromArrayByIndex, 0);
+    if (CountOf(path) == 0)
+    {
+        StopThrottleInDirection(EventPlayer());
+    }
+}
+
+void Dijsktra() "Dijsktra 最短路径模块Dijstra"
+{
+    while (true)
+    {
+        Wait(0.025, WaitBehavior.IgnoreCondition);
+        if (is_first_iteration == true)
+        {
+            now = start;
+            now_ID = IndexOfArrayValue(p_nodes_location, now);
+            is_first_iteration = false;
+        }
+        else
+        {
+            unvisited_nodes_distance = FilteredArray(nodes_distance, visited[IndexOfArrayValue(nodes_distance, ArrayElement())] == 0);
+            if (CountOf(unvisited_nodes_distance) == 0)
+            {
+                Abort();
+            }
+            now_ID = IndexOfArrayValue(nodes_distance, FirstOf(SortedArray(unvisited_nodes_distance, ArrayElement())));
+            now = p_nodes_location[now_ID];
+        }
+        visited[now_ID] = 1;
+        now_groups = p_nodes_link[now_ID];
+        for (p_for_1 = 0; CountOf(now_groups); 1)
+        {
+            if (visited[now_groups[p_for_1]] == 0)
+            {
+                now_weight = p_nodes_basic_distance[now_ID][p_for_1];
+                maybe_distance = nodes_distance[now_ID] + now_weight;
+                if (maybe_distance < nodes_distance[now_groups[p_for_1]])
+                {
+                    nodes_distance[now_groups[p_for_1]] = maybe_distance;
+                    nodes_preset_now[now_groups[p_for_1]] = now_ID;
+                }
+            }
+        }
+        if (visited[IndexOfArrayValue(p_nodes_location, end)] == 1)
+        {
+            Abort();
+        }
+    }
+}
+
+void PathFinding() "PathFinding 玩家初始化寻路，即将调用最短路径模块"
+{
+    p_nodes_location = nodes_location;
+    p_nodes_link = nodes_link;
+    visited = MappedArray(p_nodes_location, 0);
+    nodes_distance = MappedArray(p_nodes_location, 9999);
+    nodes_distance[IndexOfArrayValue(p_nodes_location, start)] = 0;
+    nodes_preset_now = MappedArray(p_nodes_location, -1);
+    is_first_iteration = true;
+    p_nodes_basic_distance = nodes_basic_distance;
+    Dijsktra();
+    GeneratePath();
+}
+
+void GeneratePath() "GeneratePath 生成路径图"
+{
+    path = [];
+    current = end;
+    while (current != start)
+    {
+        ModifyVariable(path, Operation.AppendToArray, current);
+        current = p_nodes_location[nodes_preset_now[IndexOfArrayValue(p_nodes_location, current)]];
+    }
+    ModifyVariable(path, Operation.AppendToArray, start);
+    path = SortedArray(path, CurrentArrayIndex() * -1);
+    for (p_for_1 = 0; CountOf(path) - 1; 1)
+    {
+        CreateBeamEffect(AllPlayers(Team.All), BeamType.GrappleBeam, path[p_for_1], path[p_for_1 + 1], Color.SkyBlue, EffectRev.VisibleTo);
+    }
+}
+globalvar define testStart;
+globalvar define testEnd;
+rule: '测试'
+if(IsButtonHeld(HostPlayer(),Button.Ultimate))
+{
+
+    testStart = FirstOf(nodes_location.Sort(t=>DistanceBetween(HostPlayer(),t)));
+    testEnd = RandomValueInArray(nodes_location);
+        CreateIcon(Position: testStart,Icon: Icon.ArrowRight,Reevaluation: IconRev.VisibleToPositionAndColor);
+    CreateIcon(Position: testEnd,Icon: Icon.ArrowDown,Reevaluation: IconRev.VisibleToPositionAndColor);
+    CreateDummyBot(Slot: -1,Position: testStart);
+}
+rule: '机器人测试'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot()&&HasSpawned())
+{
+    CreateIcon(Position: EventPlayer(),Icon: Icon.Happy,Reevaluation: IconRev.VisibleToPositionAndColor);
+    start=testStart;
+    end=testEnd;
+    PathFinding();
+}

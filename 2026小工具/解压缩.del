@@ -1,0 +1,100 @@
+globalvar String Dictionary = "0123456789~!@#$%^&*_+[];',./{}:|<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ=`¡¢£¤¥¦§©ª¬®¯°±²³µ¿ØĀāĂăĄąĆćĈĉĊċČčĎďĐđĒē";
+globalvar String[] _Input = ["【s退出按钮∞4∞∑&'∞4∞1∞【0】∞sX∞s∞1】∞【s区域一按钮∞0∞1∞4∞1∞【0】∞s【区域一】∞s进入区域一，扫荡怪物∞0】∞【s区域二按钮∞0∞0∞4∞1∞【0】∞s【区域二】∞s进入区域二，扫荡怪物∞0】","【s区域三按钮∞0∞​​Ω1∞4∞1∞【0】∞s【区域三】∞s进入区域三，扫荡怪物∞0】∞【s身上装备0∞​​Ω3∞∑!¤∞3∞1∞【1】∞s【装备0】∞s∞0】∞【s身上装备1∞​​Ω3∞1∞3∞1∞【1】∞s【装备1】∞s∞0】","【s身上装备2∞​​Ω3∞∑3Ĉ∞3∞1∞【1】∞s【装备2】∞s∞0】∞【s身上装备3∞​​Ω3∞∑​​Ω3Ĉ∞3∞1∞【1】∞s【装备3】∞s∞0】∞【s身上装备4∞​​Ω3∞∑​​Ω!¤∞3∞1∞【1】∞s【装备4】∞s∞0】"];
+String NEGATIVE_SIGN : '​​Ω';
+String FLOAT_SIGN : '∑';
+String DIVIDE_SIGN : '∞';
+String VECTOR_SEPARATOR : '∫';
+String Left_BRACE : '【';
+String RIGHT_BRACE : '】';
+
+Any[] Decompress(String[] compressed_datas!)'' {
+    Any[] output! = [];
+    foreach(String compressed_data! in compressed_datas) {
+        String[] items! = split_with_braces(compressed_data);
+        foreach(String item! in items) {
+            output[output.Length] = Decompress_Item(item);
+            MinWait();
+        }
+        //MinWait();
+    }
+    return output;
+}
+
+recursive Any Decompress_Item(String item!)'' {
+    // 先检查是否是完整的嵌套列表（以[开头和]结尾）
+    if(item.CharAt(0) == Left_BRACE && item.CharAt(item.Length-1) == RIGHT_BRACE) {
+        Any[] nested! = [];
+        String inner! = item.Slice(1, item.Length-2);
+        String[] sub_items! = split_with_braces(inner);
+        foreach(String sub_item! in sub_items) {
+            nested[nested.Length] = Decompress_Item(sub_item);
+        }
+        return nested;
+    }
+    // 如果不是嵌套列表，再检查其他类型
+    switch(item.CharAt(0)) {
+        case 's':
+            return item.Slice(1, 999); // 返回字符串部分
+        case 'v':
+            String[] parts! = item.Slice(1, item.Length-1).Split(VECTOR_SEPARATOR);
+            Number x! = GetNumber(parts[0]);
+            Number y! = GetNumber(parts[1]);
+            Number z! = GetNumber(parts[2]);
+            return Vector(x, y, z);
+        default:
+            return GetNumber(item); // 返回数字部分
+    }
+}
+
+
+Number GetNumber(String input!)'' {
+    Boolean is_negative! = input.Contains(NEGATIVE_SIGN);
+    Boolean is_float! = input.Contains(FLOAT_SIGN);
+    // 解析绝对值
+    input = input.Replace(NEGATIVE_SIGN, "").Replace(FLOAT_SIGN, "").Replace(" ", "");
+    Number num! = 0;
+    for (Number i! = 0; i < input.Length; i++) {
+        String char! = input.CharAt(i);
+        num = num * 128 + Dictionary.IndexOf(char);
+    }
+    
+    // 应用符号和浮点处理
+    if (is_float) num /= 1000.0;
+    if (is_negative) num = -num;
+    
+    return num;
+}
+
+String[] split_with_braces(String input!)'' {
+    String[] result! = [];
+    String current! = "";
+    Number brace_level! = 0;
+    for (Number i! = 0; i < input.Length; i++) {
+        String char! = input.CharAt(i);
+        if (char == Left_BRACE) {
+            brace_level++;
+            current = current + char;
+        } else if (char == RIGHT_BRACE) {
+            brace_level--;
+            current = current + char;
+        } else if (char == DIVIDE_SIGN && brace_level == 0) {
+            result += current;
+            current = "";
+        } else {
+            current = current + char;
+        }
+    }
+    if (current != "") {
+        result += current;
+    }
+    return result;
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(),Button.Reload))
+{
+    Teleport(EventPlayer(),EyePosition()+10*FacingDirectionOf());
+}

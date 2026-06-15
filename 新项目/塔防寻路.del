@@ -1,0 +1,510 @@
+import '解压缩.del';
+import '塔防怪物.del';
+Vector CorePos : TD_nodes[33];
+// =========================
+// 全局数据与压缩常量占位
+// =========================
+globalvar Vector[] TD_nodes;
+globalvar Any[] TD_links;
+globalvar Any[][] TD_paths;
+globalvar Number TD_nodeCount;
+globalvar Boolean TD_ready = false;
+
+globalvar String[] TD_nodes_compressed = [
+"v∑​​Ω1Ĉx∫∑aJ∫∑2tē∞v∑​​Ωē;∫∑p¯∫∑2ue∞v∑​​Ωf°∫∑Fr∫∑2¢1∞v∑​​Ωn]∫∑V4∫∑2$b∞v∑​​ΩZĒ∫∑Vu∫∑1¿X∞v∑​​ΩC;∫∑Vs∫∑1VE∞v∑~ª∫∑xđ∫∑1de","v∑​​Ω~I∫∑oĊ∫∑15;∞v∑​​Ω1^Ĉ∫∑oĉ∫∑1©£∞v∑​​Ω1ċe∫∑oĉ∫∑1Ĉă∞v∑​​Ω2¤č∫∑q[∫∑23t∞v∑​​Ω2Ă¢∫∑q;∫∑1vX∞v∑​​Ω²Ā∫∑Zg∫∑1[t∞v∑​​Ωmē∫∑oċ∫∑§n","v∑​​ΩĈj∫∑q.∫∑10a∞v∑​​Ω1+C∫∑oĉ∫∑NS∞v∑​​Ω£J∫∑p@∫∑>a∞v∑​​Ω'F∫∑q]∫∑​​Ωx1∞v∑​​Ω1_g∫∑p1∫∑j%∞v∑​​Ω1¤[∫∑q[∫∑1gĆ∞v∑​​Ω1`>∫∑oċ∫∑Ć*","v∑​​Ω3'Ć∫∑F°∫∑1Ć8∞v∑​​Ω3dā∫∑F±∫∑P§∞v∑​​Ω2ĒT∫∑F°∫∑ML∞v∑​​Ω3^Ą∫∑NR∫∑/1∞v∑​​Ω3h*∫∑NQ∫∑​​Ω$đ∞v∑​​Ω2ēM∫∑NR∫∑​​Ω%1∞v∑​​Ω3$6∫∑NR∫∑​​Ωx°","v∑​​Ω3#_∫∑¢}∫∑​​Ω°Ă∞v∑​​Ω1IČ∫∑F²∫∑Lb∞v∑​​Ω1`{∫∑Vs∫∑_o∞v∑​​Ω1;_∫∑Vt∫∑​​Ω<:∞v∑​​Ω1'Ā∫∑Vs∫∑​​ΩN²∞v∑​​Ω1ĄO∫∑¡p∫∑​​ΩKq","v∑​​Ω2¡ĉ∫∑¢:∫∑​​Ω¬I∞v∑​​Ω2Dµ∫∑oĉ∫∑PĂ∞v∑​​Ω2DQ∫∑xđ∫∑​​Ωq&∞v∑​​Ω2d²∫∑y1∫∑​​Ω1ps∞v∑​​Ω2|p∫∑xđ∫∑​​Ω2<C∞v∑​​Ω2b6∫∑ođ∫∑q©","v∑​​Ω2+ċ∫∑oċ∫∑​​ΩăĈ∞v∑​​Ω1bv∫∑oĊ∫∑​​Ω°l∞v∑​​Ω1£Ă∫∑oĊ∫∑​​Ω,¦∞v∑​​Ω1āj∫∑uE∫∑​​ΩJ4∞v∑​​ΩA:∫∑q;∫∑​​ΩďZ∞v∑​​Ω_|∫∑q[∫∑E[∞v∑y©∫∑vR∫∑E6","v∑£²∫∑NS∫∑!K∞v∑,ā∫∑q;∫∑​​ΩR4∞v∑​​Ω%³∫∑q]∫∑​​Ω¿W∞v∑​​Ω2v]∫∑xĒ∫∑​​Ωċs∞v∑​​Ω3Mą∫∑¢}∫∑​​Ωąe∞v∑​​Ω3C*∫∑¢}∫∑​​Ω1xF","v∑​​Ω3zċ∫∑¢:∫∑​​Ω2'?∞v∑​​Ω3#X∫∑¢}∫∑​​Ω2}¿∞v∑​​Ω39¦∫∑µz∫∑​​Ω1=C∞v∑​​Ω3]y∫∑¿v∫∑​​Ω1B7∞v∑​​Ω2UĊ∫∑µz∫∑​​Ω1bX∞v∑​​Ω2¢b∫∑¢:∫∑​​Ω2'ċ","v∑​​Ω2z*∫∑Vt∫∑​​Ω1²¢∞v∑​​Ω2;¿∫∑Vq∫∑​​Ω1°±∞v∑​​Ω1bT∫∑Vt∫∑​​Ω1PP∞v∑​​Ω1hV∫∑Vs∫∑​​Ω1'7∞v∑​​Ω¤°∫∑VE∫∑​​Ω29¤∞v∑​​Ω4¢∫∑NQ∫∑​​Ω2¿£","v∑​​ΩNu∫∑V¬∫∑​​Ω1ą|∞v∑​​Ω¯¦∫∑F²∫∑​​Ω1J¥∞v∑​​Ωw|∫∑q]∫∑​​Ω1/Ą∞v∑​​Ωu}∫∑q[∫∑​​Ω1°A∞v∑​​Ω¥o∫∑q]∫∑​​Ω257∞v∑​​ΩđL∫∑q;∫∑​​Ω1`7","v∑​​Ω1n^∫∑p¯∫∑​​Ω1ăe∞v∑​​Ω1Ē9∫∑xĒ∫∑​​Ω2=_∞v∑​​Ω1³b∫∑F°∫∑​​Ω2<Z∞v∑​​Ω1Ā®∫∑xđ∫∑​​Ω2Ď:∞v∑​​Ω1QĀ∫∑oċ∫∑​​Ω2©q∞v∑​​Ω2O¿∫∑NQ∫∑​​Ω3_5","v∑​​Ω2%5∫∑C_∫∑​​Ω3@ā∞v∑​​ΩćI∫∑y.∫∑​​Ω3,d∞v∑​​ΩKk∫∑xĒ∫∑​​Ω31`∞v∑p[∫∑F±∫∑​​Ω2Fă∞v∑Ā,∫∑F²∫∑​​Ω2%ē∞v∑PT∫∑xĒ∫∑​​Ω1J+∞v∑GY∫∑q;∫∑​​Ω±t","v∑?0∫∑q[∫∑​​Ω±³∞v∑?¥∫∑xđ∫∑​​Ω1G%∞v∑*%∫∑xĒ∫∑​​Ω2{¥∞v∑​​Ω&Ø∫∑h¬∫∑​​Ω1ĉ]∞v∑​​ΩĊą∫∑hĐ∫∑​​Ω2Vf∞v∑​​Ω1qĊ∫∑xē∫∑​​Ω2[m∞v∑​​Ωď~∫∑p¯∫∑2XR"];
+
+globalvar String[] TD_links_compressed = [
+    "【1∞9】∞【0∞8∞¢】∞【3∞¢】∞【2∞4】∞【3∞5】∞【4∞6∞@】∞【5∞7】∞【6∞8∞#】∞【1∞7∞9∞_】∞【0∞8∞~∞!∞_】∞【9∞!∞_∞[】∞【9∞~∞@】∞【5∞!】∞【7∞$∞^∞k】∞【#∞%】∞【$∞^∞*∞+】",
+    "【#∞%∞&∞*】∞【^∞j∞n∞o】∞【%∞^∞}】∞【8∞9∞~∞+】∞【%∞_∞a∞e】∞【~∞]∞;】∞【[∞'】∞【[∞'∞a】∞【]∞;∞,∞.】∞【'∞/】∞【'∞/】∞【,∞.∞{∞b】∞【/∞?∞q】∞【*∞:】∞【}∞|】∞【:∞<】",
+    "【|∞>】∞【<∞?】∞【{∞>∞w】∞【+∞;∞b∞e】∞【/∞a∞e∞p】∞【d∞f∞p∞B】∞【c∞L∞M】∞【+∞a∞b∞f∞h∞i】∞【c∞e∞g∞p】∞【f∞h∞i∞j】∞【e∞g∞i】∞【e∞g∞h】∞【&∞g∞o∞G】∞【#∞l】",
+    "【k∞m】∞【l∞n】∞【&∞m∞o∞W∞X】∞【&∞j∞n∞X∞=】∞【b∞c∞f】∞【{∞r】∞【q∞s∞v】∞【r∞t】∞【s∞u∞x∞P】∞【t∞v∞w】∞【r∞u∞w】∞【?∞u∞v】∞【t∞y】∞【x∞z】∞【y∞A∞M】∞【z∞B∞C】",
+    "【c∞A】∞【A∞D∞E】∞【C∞S∞T】∞【C∞F】∞【E∞G】∞【j∞F∞H】∞【G∞I】∞【H∞J∞K】∞【K∞I】∞【I∞J∞¡】∞【d∞N∞O∞Q∞¡】∞【d∞z】∞【L∞O∞Q∞R】∞【L∞N∞`】∞【t∞Q】∞【L∞N∞P】∞【N∞S】",
+    "【D∞R∞`】∞【D∞U∞Z】∞【T∞V】∞【U∞W∞Y】∞【n∞V∞X】∞【n∞o∞W∞Y】∞【V∞X∞Z】∞【T∞Y∞=】∞【o∞Z∞`】∞【O∞S∞=∞¡】∞【K∞L∞`】∞【1∞2】"
+];
+
+// =========================
+// 寻路状态（玩家上下文）
+// =========================
+enum TowerPF_Mode {
+    CoreThreat,
+    PlayerHunt,
+    Patrol
+}
+
+playervar Number[] td_path;
+playervar Vector td_destination;
+playervar TowerPF_Mode td_mode = TowerPF_Mode.Patrol;
+playervar Any td_context;
+playervar Number td_stepLimit = 9999;
+playervar Boolean td_patrolRandom = false;
+playervar Number td_patrolMinDistance = 8;
+playervar Number td_patrolStepLimitOverride = 4;
+playervar Number td_lockCounter = 0;
+playervar Boolean td_inCombat = false;
+
+// =========================
+// 初始化流程
+// =========================
+void TowerPF_Init() {
+    if (TD_ready) return;
+    TD_nodes = Decompress(TD_nodes_compressed);
+    Wait(1);
+    TD_links = Decompress(TD_links_compressed);
+    TD_nodeCount = CountOf(TD_nodes);
+    TD_PrecomputePaths();
+    TD_InitSpawnPaths();
+    TD_ready = true;
+    //InitEffects();
+}
+
+void InitEffects(){
+    define idx = 0;
+    while(idx < CountOf(TD_nodes))
+    {
+        CreateEffect(
+            Type: Effect.Sphere,
+            Position: EvaluateOnce(TD_nodes[idx]),
+            Radius: 0.5
+        );
+        CreateInWorldText(
+            Header: EvaluateOnce(idx),
+            Position: EvaluateOnce(TD_nodes[idx]),
+            Scale: 2
+        );
+        idx += 1;
+        MinWait();
+    }
+}
+
+Boolean TowerPF_IsReady() {
+    return TD_ready;
+}
+
+void TD_PrecomputePaths() {
+    TD_paths = [];
+    define WaitCount = 0; // 等待计数器，防止服务器过载（不变）
+    for (define i = 0; TD_nodeCount; 1) {
+        TD_paths[i] = MappedArray(TD_nodes, []);
+    }
+
+    for (define start = 0; TD_nodeCount; 1) {
+        define dist = MappedArray(TD_nodes, 9999);
+        define visited = MappedArray(TD_nodes, 0);
+        define pred = MappedArray(TD_nodes, -1);
+        dist[start] = 0;
+
+        while (true) {
+            define pool = FilteredArray(dist, visited[IndexOfArrayValue(dist, ArrayElement())] == 0);
+            if (CountOf(pool) == 0) break;
+            define current = IndexOfArrayValue(dist, FirstOf(SortedArray(pool, ArrayElement())));
+            visited[current] = 1;
+            define nbs = TD_links[current];
+            for (define idx = 0; CountOf(nbs); 1) {
+                define neighbor = nbs[idx];
+                define alt = dist[current] + DistanceBetween(TD_nodes[current], TD_nodes[neighbor]);
+                if (alt < dist[neighbor]) {
+                    dist[neighbor] = alt;
+                    pred[neighbor] = current;
+                }
+            }
+                    if (WaitCount >= 50) // 每 20 次循环等待一帧（不变）
+                    {
+                        WaitCount = 0;
+                        MinWait();
+                    }
+                    else
+                    {
+                        WaitCount += 1;
+                    }
+        }
+
+        for (define end = 0; TD_nodeCount; 1) {
+            if (dist[end] == 9999 || end == start) continue;
+            define path = [];
+            define cursor = end;
+            while (cursor != start && cursor != -1) {
+                ModifyVariable(path, Operation.AppendToArray, cursor);
+                cursor = pred[cursor];
+            }
+            if (cursor != start) continue;
+            path = path.Sort(v => -1 * path.IndexOf(v));
+            TD_paths[start][end] = path;
+        }
+        MinWait();
+    }
+}
+
+// =========================
+// 基础工具函数
+// =========================
+Number TowerPF_NearestNode(in Vector point) {
+    if (!TD_ready) return -1;
+    return IndexOfArrayValue(TD_nodes, FirstOf(SortedArray(TD_nodes, DistanceBetween(ArrayElement(), point))));
+}
+
+Number TowerPF_Nearest_Visible_Node(in Vector point){
+    if (!TD_ready) return -1;
+    define InsightNodes = TD_nodes.Filter(t=>IsInLineOfSight(t,point,BarrierLOS.NoBarriersBlock));
+    if (InsightNodes.Length==0){
+        return IndexOfArrayValue(TD_nodes, FirstOf(SortedArray(TD_nodes, DistanceBetween(ArrayElement(), point))));
+    }else{
+        return IndexOfArrayValue(TD_nodes, FirstOf(SortedArray(TD_nodes.Filter(t=>IsInLineOfSight(t,point,BarrierLOS.NoBarriersBlock)), DistanceBetween(ArrayElement(), point))));
+    }
+    
+}
+
+Vector TowerPF_NodePosition(in Number nodeIndex) {
+    return TD_nodes[nodeIndex];
+}
+
+Vector TowerPF_RandomDistantNode(in Vector origin, in Number minDistance) {
+    define candidates = FilteredArray(TD_nodes, DistanceBetween(ArrayElement(), origin) >= minDistance);
+    return CountOf(candidates) == 0 ? RandomValueInArray(TD_nodes) : RandomValueInArray(candidates);
+}
+
+Number[] TowerPF_GetSpawnPath(in Number routeIndex){
+    return SpawnRoutes[routeIndex].PathNodes;
+}
+
+Vector TowerPF_GetSpawnPos(in Number routeIndex){
+    return SpawnRoutes[routeIndex].SpawnPoint;
+}
+
+Boolean TowerPF_PatrolPickNext() {
+    define target = TowerPF_RandomDistantNode(PositionOf(), td_patrolMinDistance);
+    td_mode = TowerPF_Mode.Patrol;
+    td_context = [];
+    td_patrolRandom = true;
+    return TD_PathTo(target, td_patrolStepLimitOverride, PositionOf());
+}
+
+Boolean TowerPF_StartRandomPatrol(in Number minDistance = 8, in Number stepLimit = 4) {
+    td_patrolMinDistance = minDistance;
+    td_patrolStepLimitOverride = stepLimit;
+    td_patrolRandom = true;
+    return TowerPF_PatrolPickNext();
+}
+
+Boolean TowerPF_HasPath() {
+    return CountOf(td_path) > 0;
+}
+
+Vector TowerPF_CurrentWaypoint() {
+    return TowerPF_HasPath() ? TowerPF_NodePosition(td_path[0]) : td_destination;
+}
+
+void TowerPF_ConsumeWaypoint() {
+    if (TowerPF_HasPath()) {
+        ModifyVariable(td_path, Operation.RemoveFromArrayByIndex, 0);
+    }
+}
+
+void TowerPF_UpdateFacing() {
+    if(TowerPF_HasPath()){
+        StartFacing(
+            EventPlayer(),
+            DirectionTowards(
+                EyePosition(),
+                Vector(
+                    XOf(TowerPF_CurrentWaypoint()),
+                    YOf(EyePosition()),
+                    ZOf(TowerPF_CurrentWaypoint())
+                )
+            ),
+            1000,
+            Relative.ToWorld,
+            FacingRev.DirectionAndTurnRate
+        );
+    }
+}
+
+//路径渲染
+void RenderPath(in Number[] path){
+    if(CountOf(path) == 0){
+        return;
+    }
+    if(CountOf(path) == 1){
+        CreateIcon(
+            Position: EvaluateOnce(TD_nodes[path[0]]),
+            Icon: Icon.ArrowDown,
+            IconColor: Color.Aqua,
+            ShowWhenOffscreen: true
+        );
+        return;
+    }
+    for (define i = 0; i < CountOf(path) - 1; i += 1){
+        CreateBeamEffect(
+            BeamType: BeamType.JunkratTrapChainBeam,
+            StartPosition: TD_nodes[path[i]],
+            EndPosition: TD_nodes[path[i+1]],
+            Reevaluation: EffectRev.Color
+        );
+    }
+}
+
+// =========================
+// 路径计算核心
+// =========================
+Boolean TD_PathTo(Vector end, Number maxSteps, Vector start) '寻路核心函数'{
+    if (!TD_ready) return false;
+    define startNode = TowerPF_Nearest_Visible_Node(start);
+    define endNode = TowerPF_Nearest_Visible_Node(end);
+    if (startNode == -1 || endNode == -1) return false;
+
+    define nodes = TD_paths[startNode][endNode];
+    if (CountOf(nodes) == 0) {
+        if (IsInLineOfSight(start, end)) {
+            td_path = [];
+            ModifyVariable(td_path, Operation.AppendToArray, endNode);
+            td_destination = end;
+            td_stepLimit = maxSteps;
+            return true;
+        }
+        return false;
+    }
+
+    td_path = maxSteps < CountOf(nodes) ? ArraySlice(nodes, 0, maxSteps) : nodes;
+    //RenderPath(td_path);
+    td_destination = end;
+    td_stepLimit = maxSteps;
+    return true;
+}
+
+Boolean TowerPF_CalculateTo(in Vector end, in Number maxSteps, in Vector start) {
+    return TD_PathTo(end, maxSteps, start);
+}
+
+// =========================
+// 模式包装 API
+// =========================
+Boolean TowerPF_NavigateToCore(in Vector corePosition = CorePos, in Number maxSteps = 9999) {
+    td_mode = TowerPF_Mode.CoreThreat;
+    td_context = corePosition;
+    td_patrolRandom = false;
+    return TD_PathTo(corePosition, maxSteps, PositionOf());
+}
+
+Boolean TowerPF_NavigateToPlayer(in Player target, in Number maxSteps = 9999) {
+    if (!IsAlive(target)) return false;
+    td_mode = TowerPF_Mode.PlayerHunt;
+    td_context = target;
+    td_patrolRandom = false;
+    return TD_PathTo(PositionOf(target), maxSteps, PositionOf());
+}
+
+Boolean TowerPF_NavigateToNodeSet(in Vector[] nodeSet!, in Number maxSteps = 9999) {
+    if (CountOf(nodeSet) == 0) return false;    
+    td_mode = TowerPF_Mode.Patrol;
+    td_context = nodeSet;
+    td_patrolRandom = false;
+    return TD_PathTo(RandomValueInArray(nodeSet), maxSteps, PositionOf());
+}
+
+Boolean TowerPF_Recalculate(Number maxSteps = 9999) '根据当前寻路模式重新计算'{
+    switch (td_mode) {
+        case TowerPF_Mode.CoreThreat:
+            return TD_PathTo(td_context, maxSteps, PositionOf());
+        case TowerPF_Mode.PlayerHunt:
+            if ((!IsAlive(td_context)||td_context==null)||(IsAlive(td_context)&&!TD_PathTo(PositionOf(td_context), maxSteps, PositionOf()))){
+                td_context = AllLivingPlayers(Team.Team2).Random();
+            }
+            return TD_PathTo(PositionOf(td_context), maxSteps, PositionOf());
+        case TowerPF_Mode.Patrol:
+            if (td_patrolRandom)
+            {
+                return TowerPF_PatrolPickNext();
+            }
+            if (CountOf(td_context) == 0) return false;
+            return TD_PathTo(RandomValueInArray(td_context), maxSteps, PositionOf());
+        default:
+            return false;
+    }
+}
+
+// =========================
+// 状态辅助
+// =========================
+TowerPF_Mode TowerPF_PathMode() {
+    return td_mode;
+}
+
+Any TowerPF_PathContext() {
+    return td_context;
+}
+
+Number TowerPF_PathLength() {
+    return CountOf(td_path);
+}
+
+Number TowerPF_StepLimit() {
+    return td_stepLimit;
+}
+
+// =========================
+// 运动控制
+// =========================
+rule: "TD MoveAlongPath"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TD_ready)
+if(TowerPF_HasPath())
+if(HasSpawned(EventPlayer()))
+if(IsAlive())
+{
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+    StopForcingThrottle();
+    TowerPF_UpdateFacing();
+    StartThrottleInDirection(
+        Player: EventPlayer(),
+        Direction: DirectionTowards(PositionOf(EventPlayer()), TowerPF_CurrentWaypoint()),
+        Magnitude: 1,
+        Relative: Relative.ToWorld,
+        Behavior: ThrottleBehavior.ReplaceExistingThrottle,
+        Reevaluation: ThrottleRev.DirectionAndMagnitude
+    );
+}
+define waypoint : TowerPF_CurrentWaypoint();
+define flatWaypoint : Vector(
+    XOf(waypoint),
+    YOf(PositionOf(EventPlayer())),
+    ZOf(waypoint)
+);
+Number StuckSpeedThrottle : 0.01*DefaultSpeedPct*3.5;
+rule: "TD HandleStuckAgents"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(TD_ready)
+if(!td_inCombat)
+if(HasSpawned(EventPlayer()))
+if(IsAlive())
+if(SpeedOf(EventPlayer()) <= StuckSpeedThrottle)
+{
+    Wait(2, WaitBehavior.AbortWhenFalse);
+    AbortIf(
+        IsDead(EventPlayer()) ||
+        HasStatus(EventPlayer(), Status.Frozen) ||
+        HasStatus(EventPlayer(), Status.Stunned) ||
+        HasStatus(EventPlayer(), Status.Asleep) ||
+        HasStatus(EventPlayer(), Status.KnockedDown) ||
+        HasStatus(EventPlayer(), Status.Rooted)
+    );
+    td_lockCounter += 1;
+    PressButton(EventPlayer(), Button.Jump);
+    define threshold : RandomInteger(1, 2);
+    if(td_lockCounter > threshold)
+    {
+        td_lockCounter = 0;
+        if(TowerPF_HasPath()&&(CountOf(td_path)>1))
+        {
+            define targetNode : td_path[0];
+            Teleport(EventPlayer(), TD_nodes[targetNode]);
+        }
+        else
+        {
+            
+            //StopThrottleInDirection();
+            //防止卡在原点
+            TowerPF_Recalculate();
+        }
+    }
+    LoopIfConditionIsTrue();
+}
+define Deviation_height : (YOf(waypoint)-YOf(PositionOf())).Abs();
+define Deviation_hasLine : IsInLineOfSight(EyePosition(), waypoint);
+rule: "TD HandlePathDeviation"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(TD_ready)
+if(!td_inCombat)
+if(TowerPF_HasPath())
+if(IsAlive())
+if(Deviation_height > 2 || !Deviation_hasLine)
+{
+    Wait(1,WaitBehavior.AbortWhenFalse);
+    TowerPF_Recalculate();
+    LoopIfConditionIsTrue();
+}
+
+rule: "TD ConsumeReachedWaypoint"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(TD_ready)
+if(TowerPF_HasPath())
+if(HasSpawned(EventPlayer()))
+if(IsAlive())
+if(DistanceBetween(PositionOf(EventPlayer()), flatWaypoint) < 1)
+{
+        TowerPF_ConsumeWaypoint();
+        if (td_mode == TowerPF_Mode.PlayerHunt){
+            TowerPF_Recalculate();
+        }
+        if(!TowerPF_HasPath())
+        {
+            if(td_patrolRandom)
+            {
+                if(!TowerPF_PatrolPickNext())
+                {
+                    StopThrottleInDirection(EventPlayer());
+                }
+            }   
+            else
+            {
+                if(DistanceBetween(PositionOf(EventPlayer()), td_destination) > 1)
+                {
+                    if(!TowerPF_Recalculate(TowerPF_StepLimit()))
+                    {
+                        StopThrottleInDirection(EventPlayer());
+                    }
+                }
+                else
+                {
+                    StopThrottleInDirection(EventPlayer());
+                }
+            }
+        }
+        Wait(1);
+        LoopIfConditionIsTrue();
+}
+
+// =========================
+// 测试辅助规则（开发期）
+// =========================
+
+void TD_InitSpawnPaths(){
+    define coreIndex = 33;
+    SpawnRoutes = [];
+    for(define i = 0; i < PathStarts.Length; i += 1){
+        define startIndex = PathStarts[i];
+        define route = new SpawnRoute();
+        route.ID = i;
+        route.StartIndex = startIndex;
+        route.SpawnPoint = TD_nodes[startIndex];
+        route.PathNodes = TD_paths[startIndex][coreIndex];
+        route.BeamHandles = [];
+        SpawnRoutes += route;
+    }
+}
+
+class SpawnRoute{
+    public Number ID;
+    public Number StartIndex;
+    public Vector SpawnPoint;
+    public Number[] PathNodes;
+    public Any[] BeamHandles;
+}
+
+Number[] PathStarts : [0, 79, 21, 83];
+globalvar SpawnRoute[] SpawnRoutes;
+
+void TowerPF_EnterCombat(){
+    td_inCombat = true;
+    td_path = [];
+    StopThrottleInDirection();
+}

@@ -1,0 +1,303 @@
+variables
+{
+	player:
+		101: bot_target_array
+		106: bot_being_attack
+		107: bot_target_player
+}
+
+subroutines
+{
+	74: soldier76
+	103: Winston
+}
+
+rule("sub Winston")
+{
+	event
+	{
+		Subroutine;
+		Winston;
+	}
+
+	actions
+	{
+		While(Count Of(Event Player.bot_target_array) > 0);
+			Wait(0.500, Ignore Condition);
+			If(Distance Between(Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) < 9 || !Is Firing Primary(
+				Event Player));
+				Start Holding Button(Event Player, Button(Primary Fire));
+				Stop Holding Button(Event Player, Button(Secondary Fire));
+			Else;
+				Start Holding Button(Event Player, Button(Secondary Fire));
+				Stop Holding Button(Event Player, Button(Primary Fire));
+			End;
+			If(Distance Between(Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) < 40 && (Distance Between(
+				Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) > 15 || Absolute Value(Y Component Of(Position Of(
+				Event Player)) - Y Component Of(Eye Position(Event Player.bot_target_player))) > 2));
+				Press Button(Event Player, Button(Ability 1));
+			End;
+			If(Event Player.bot_being_attack == True && Is On Ground(Event Player));
+				Press Button(Event Player, Button(Ability 2));
+			End;
+			If(Ultimate Charge Percent(Event Player) == 100 && Ability Cooldown(Event Player, Button(Ability 1)) == 0 && Distance Between(
+				Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) <= 5);
+				Press Button(Event Player, Button(Ability 1));
+				Wait(0.500, Ignore Condition);
+				Press Button(Event Player, Button(Ultimate));
+				Wait(0.500, Ignore Condition);
+				Press Button(Event Player, Button(Ability 1));
+			End;
+		End;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Press Button(Event Player, Button(Reload));
+	}
+}
+
+rule("sub soldier：76")
+{
+	event
+	{
+		Subroutine;
+		soldier76;
+	}
+
+	actions
+	{
+		While(Count Of(Event Player.bot_target_array) > 0);
+			Wait(0.500, Ignore Condition);
+			Press Button(Event Player, Button(Primary Fire));
+			If(Health(Event Player.bot_target_player) < 50);
+				Press Button(Event Player, Button(Secondary Fire));
+			End;
+			If(Normalized Health(Event Player) < 0.500);
+				Press Button(Event Player, Button(Ability 2));
+			End;
+			If(Ultimate Charge Percent(Event Player) == 100 && Distance Between(Eye Position(Event Player), Eye Position(
+				Event Player.bot_target_player)) <= 30);
+				Press Button(Event Player, Button(Ultimate));
+			End;
+		End;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Press Button(Event Player, Button(Reload));
+		Press Button(Event Player, Button(Ability 1));
+	}
+}
+
+variables
+{
+	player:
+		101: bot_target_array
+		106: bot_being_attack
+		107: bot_target_player
+}
+
+subroutines
+{
+	74: soldier76
+	77: Pharah
+	103: Winston
+}
+
+rule("sub Winston")
+{
+	event
+	{
+		Subroutine;
+		Winston;
+	}
+
+	actions
+	{
+		While(Count Of(Event Player.bot_target_array) > 0);
+			Wait(0.500, Ignore Condition);
+			If(Distance Between(Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) < 9 || !Is Firing Primary(
+				Event Player));
+				Start Holding Button(Event Player, Button(Primary Fire));
+				Stop Holding Button(Event Player, Button(Secondary Fire));
+			Else;
+				Start Holding Button(Event Player, Button(Secondary Fire));
+				Stop Holding Button(Event Player, Button(Primary Fire));
+			End;
+			If(Distance Between(Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) < 40 && (Distance Between(
+				Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) > 15 || Absolute Value(Y Component Of(Position Of(
+				Event Player)) - Y Component Of(Eye Position(Event Player.bot_target_player))) > 2));
+				Press Button(Event Player, Button(Ability 1));
+			End;
+			If(Event Player.bot_being_attack == True && Is On Ground(Event Player));
+				Press Button(Event Player, Button(Ability 2));
+			End;
+			If(Ultimate Charge Percent(Event Player) == 100 && Ability Cooldown(Event Player, Button(Ability 1)) == 0 && Distance Between(
+				Eye Position(Event Player), Eye Position(Event Player.bot_target_player)) <= 5);
+				Press Button(Event Player, Button(Ability 1));
+				Wait(0.500, Ignore Condition);
+				Press Button(Event Player, Button(Ultimate));
+				Wait(0.500, Ignore Condition);
+				Press Button(Event Player, Button(Ability 1));
+			End;
+		End;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Press Button(Event Player, Button(Reload));
+	}
+}
+
+rule("sub soldier：76")
+{
+	event
+	{
+		Subroutine;
+		soldier76;
+	}
+
+	actions
+	{
+		While(Count Of(Event Player.bot_target_array) > 0);
+			Wait(0.500, Ignore Condition);
+			Press Button(Event Player, Button(Primary Fire));
+			If(Health(Event Player.bot_target_player) < 50);
+				Press Button(Event Player, Button(Secondary Fire));
+			End;
+			If(Normalized Health(Event Player) < 0.500);
+				Press Button(Event Player, Button(Ability 2));
+			End;
+			If(Ultimate Charge Percent(Event Player) == 100 && Distance Between(Eye Position(Event Player), Eye Position(
+				Event Player.bot_target_player)) <= 30);
+				Press Button(Event Player, Button(Ultimate));
+			End;
+		End;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Press Button(Event Player, Button(Reload));
+		Press Button(Event Player, Button(Ability 1));
+	}
+}
+
+rule("┗---------[Pharah]")
+{
+	event
+	{
+		Subroutine;
+		Pharah;
+	}
+
+	actions
+	{
+		While(Event Player.bot_target_array > 0);
+			Wait(1, Ignore Condition);
+			Press Button(Event Player, Button(Ability 2));
+			Press Button(Event Player, Button(Primary Fire));
+			If(Ultimate Charge Percent(Event Player) == 100 && Distance Between(Eye Position(Event Player), Event Player.bot_target_player)
+				<= 15);
+				Press Button(Event Player, Button(Ultimate));
+			End;
+		End;
+	}
+}
+
+rule("┗---------[Jump & crouch]法鸡")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Event Player.bot_target_array > 0;
+	}
+
+	actions
+	{
+		If(Is On Ground(Event Player) == True);
+			Stop Holding Button(Event Player, Button(Jump));
+			Press Button(Event Player, Button(Ability 1));
+		Else;
+			Start Holding Button(Event Player, Button(Jump));
+			Wait(Random Real(0.200, 0.500), Ignore Condition);
+			Stop Holding Button(Event Player, Button(Jump));
+			Wait(0.300, Ignore Condition);
+		End;
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+variables
+{
+	player:
+		101: bot_target_array
+		107: bot_target_player
+}
+
+subroutines
+{
+	81: Tracer
+}
+
+rule("sub Tracer")
+{
+	event
+	{
+		Subroutine;
+		Tracer;
+	}
+
+	actions
+	{
+		While(Count Of(Event Player.bot_target_array) > 0);
+			Press Button(Event Player, Button(Ability 1));
+			Start Holding Button(Event Player, Button(Primary Fire));
+			Wait(0.500, Ignore Condition);
+			If(Normalized Health(Event Player) < 0.500);
+				Press Button(Event Player, Button(Ability 2));
+			End;
+			If(Ultimate Charge Percent(Event Player) == 100 && Distance Between(Eye Position(Event Player), Eye Position(
+				Event Player.bot_target_player)) <= 10);
+				Press Button(Event Player, Button(Ultimate));
+			End;
+		End;
+		Stop Holding Button(Event Player, Button(Primary Fire));
+		Press Button(Event Player, Button(Reload));
+		Press Button(Event Player, Button(Ability 1));
+	}
+}
+
+variables
+{
+	player:
+		10: bot_targetArray
+		11: bot_targetPlayer
+}
+
+rule("机器人-寻找有效目标")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.bot_targetArray = Filtered Array(All Living Players(Opposite Team Of(Team Of(Event Player))),
+			Event Player != Current Array Element && Has Spawned(Current Array Element) && !Is Dummy Bot(Current Array Element)
+			&& Is In Line of Sight(Event Player, Current Array Element, Barriers Do Not Block LOS));
+		If(Count Of(Event Player.bot_targetArray) > 0);
+			Event Player.bot_targetPlayer = First Of(Sorted Array(Event Player.bot_targetArray, Distance Between(Event Player,
+				Current Array Element) * Normalized Health(Current Array Element)));
+		End;
+		Wait(1, Abort When False);
+		Loop If Condition Is True;
+	}
+}

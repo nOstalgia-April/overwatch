@@ -1,0 +1,28 @@
+globalvar define All_Players_All_Teams;
+playervar define Cast_Spell;
+playervar define Spell_Value1;
+playervar define Spell_Effect1;
+playervar define Spell_Value2;
+playervar define Spell_Value3;
+playervar define Spell_Value4;
+
+rule: "19 Cast Storm"
+Event.OngoingPlayer
+if (Cast_Spell == 19)
+{
+    Spell_Value1 = PositionOf(EventPlayer());
+    Spell_Value2 = 50 * Normalize(FacingDirectionOf(EventPlayer()) + WorldVectorOf(Forward(), EventPlayer(), LocalVector.Rotation)) + EventPlayer();
+    ChaseVariableAtRate(Spell_Value1, Spell_Value2, 15, RateChaseReevaluation.DestinationAndRate);
+    CreateBeamEffect(LocalPlayer(), BeamType.BadBeam, Spell_Value3 + 100 * Up(), Spell_Value3, Color.SkyBlue, EffectRev.VisibleToPositionAndRadius);
+    Spell_Effect1 = LastCreatedEntity();
+    while (Spell_Value1 != Spell_Value2)
+    {
+        Spell_Value4 = 2.5 * DirectionFromAngles(RandomReal(0, 360), false) + Up();
+        Spell_Value3 = RayCastHitPosition(Spell_Value1 + Spell_Value4, Spell_Value1 + Spell_Value4 + 100 * Down(), null, EventPlayer(), true);
+        Damage(RemoveFromArray(PlayersWithinRadius(Spell_Value3, 2.5, OppositeTeamOf(TeamOf(EventPlayer())), RadiusLOS.Off), EventPlayer()), EventPlayer(), 100);
+        PlayEffect(All_Players_All_Teams, PlayEffect.BadExplosion, Color.SkyBlue, Spell_Value3, 3);
+        PlayEffect(All_Players_All_Teams, PlayEffect.BastionTankCannonExplosionSound, false, Spell_Value3, 100);
+        Wait(0.1, WaitBehavior.IgnoreCondition);
+    }
+    ResetSpell();
+}

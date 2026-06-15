@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Menu Canvas Helper</title>
+    <style>
+        * { box-sizing: border-box; font-family: "Segoe UI", "Microsoft Yahei", sans-serif; }
+        body {
+            margin: 0;
+            background: #1b1c1d;
+            color: #f0f0f0;
+        }
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+        canvas {
+            flex: 1;
+            background: #282a36;
+            cursor: none;
+        }
+        .panel {
+            width: 340px;
+            padding: 16px;
+            background: #202124;
+            border-left: 1px solid #444;
+            overflow-y: auto;
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #a0a0a0;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #1f2227;
+            color: #f0f0f0;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+        select {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #1f2227;
+            color: #f0f0f0;
+        }
+        button {
+            margin-top: 12px;
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background: #3f51b5;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button.secondary {
+            background: #5c6bc0;
+        }
+        .status {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #ccc;
+            white-space: pre-line;
+        }
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <canvas id="canvas" width="1200" height="720"></canvas>
+    <div class="panel">
+        <h2>按钮属性</h2>
+        <div class="hint">快捷键：N 创建、Delete 删除、箭头微调、Ctrl+S 导出</div>
+        <label>ID
+            <input type="number" id="field-id" readonly>
+        </label>
+        <label>PosX
+            <input type="number" step="0.05" id="field-posx">
+        </label>
+        <label>PosY
+            <input type="number" step="0.05" id="field-posy">
+        </label>
+        <label>Scale
+            <select id="field-scale">
+                <option value="2">2 (Small)</option>
+                <option value="3">3 (Medium)</option>
+                <option value="4">4 (Big)</option>
+            </select>
+        </label>
+        <label>Label
+            <input type="text" id="field-label">
+        </label>
+        <label>HoverLabel
+            <textarea id="field-hover"></textarea>
+        </label>
+        <label>默认颜色 (ColorPreset)
+            <input type="text" id="field-color" value="ColorPreset.White">
+        </label>
+        <label>ofMenuActives (逗号分隔)
+            <input type="text" id="field-menus" placeholder="例如: MenuActive.SkillMenu">
+        </label>
+        <label>Kind
+            <input type="text" id="field-kind" value="MenuButtonKind.SkillNode">
+        </label>
+        <label>Params (JSON)
+            <input type="text" id="field-params" placeholder="[SkillID, SkillHero]">
+        </label>
+        <label>
+            <input type="checkbox" id="field-interactable"> Interactable
+        </label>
+        <button id="btn-export">导出为 JSON</button>
+        <button class="secondary" id="btn-import">从 JSON 导入</button>
+        <textarea id="io-area" style="margin-top:12px; min-height:120px;" placeholder="导出结果会显示在这里，或粘贴 JSON 点击导入"></textarea>
+        <div class="status" id="status"></div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+canvas.width = 1200;
+canvas.height = 750;
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const fieldMap = {
+    id: document.getElementById('field-id'),
+    posx: document.getElementById('field-posx'),
+    posy: document.getElementById('field-posy'),
+    scale: document.getElementById('field-scale'),
+    label: document.getElementById('field-label'),
+    hover: document.getElementById('field-hover'),
+    color: document.getElementById('field-color'),
+    menus: document.getElementById('field-menus'),
+    kind: document.getElementById('field-kind'),
+    params: document.getElementById('field-params'),
+    interactable: document.getElementById('field-interactable')
+};
+const SNAP_STEP = 0.1;
+const buttons = [];
+let selectedId = null;
+let hoverId = null;
+let pointerPos = {x: 0, y: 0};
+const viewport = {minX: -4, maxX: 4, minY: -2.5, maxY: 2.5};
+let isDragging = false;
+let dragOffset = {x: 0, y: 0};
+
+function worldToCanvas(x, y) {
+    const px = (x - viewport.minX) / (viewport.maxX - viewport.minX) * canvas.width;
+    const py = (1 - (y - viewport.minY) / (viewport.maxY - viewport.minY)) * canvas.height;
+    return {x: px, y: py};
+}
+
+function canvasToWorld(x, y) {
+    const wx = viewport.minX + (x / canvas.width) * (viewport.maxX - viewport.minX);
+    const wy = viewport.minY + (1 - y / canvas.height) * (viewport.maxY - viewport.minY);
+    return {x: wx, y: wy};
+}
+
+function snapValue(value) {
+    return Math.round(value / SNAP_STEP) * SNAP_STEP;
+}
+
+function createButtonAt(worldPos) {
+    const id = buttons.length > 0 ? buttons[buttons.length - 1].ID + 1 : 0;
+    const data = {
+        ID: id,
+        PosX: snapValue(worldPos.x),
+        PosY: snapValue(worldPos.y),
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: ['MenuActive.SkillMenu'],
+        Label: '按钮' + id,
+        HoverLabel: '',
+        DefaultColor: 'ColorPreset.White',
+        Kind: 'MenuButtonKind.SkillNode',
+        Params: '[0, SkillHero.All]'
+    };
+    buttons.push(data);
+    selectButton(id);
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    for (let x = Math.ceil(viewport.minX); x <= viewport.maxX; x++) {
+        const p1 = worldToCanvas(x, viewport.minY);
+        const p2 = worldToCanvas(x, viewport.maxY);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+    for (let y = Math.ceil(viewport.minY); y <= viewport.maxY; y++) {
+        const p1 = worldToCanvas(viewport.minX, y);
+        const p2 = worldToCanvas(viewport.maxX, y);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    buttons.forEach(btn => {
+        const pos = worldToCanvas(btn.PosX, btn.PosY);
+        const size = btn.Scale * 10;
+        ctx.fillStyle = (btn.ID === selectedId) ? '#ffb74d' : '#607d8b';
+        ctx.fillRect(pos.x - size, pos.y - size, size * 2, size * 2);
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(pos.x - size, pos.y - size, size * 2, size * 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(btn.Label || ('ID ' + btn.ID), pos.x + size + 4, pos.y);
+});
+
+    const cursor = worldToCanvas(pointerPos.x, pointerPos.y);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cursor.x - 10, cursor.y);
+    ctx.lineTo(cursor.x + 10, cursor.y);
+    ctx.moveTo(cursor.x, cursor.y - 10);
+    ctx.lineTo(cursor.x, cursor.y + 10);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = '#ccc';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(`鼠标: (${pointerPos.x.toFixed(2)}, ${pointerPos.y.toFixed(2)})`, 10, 18);
+}
+
+function selectButton(id) {
+    selectedId = id;
+    const btn = buttons.find(b => b.ID === id);
+    if (btn) {
+        fieldMap.id.value = btn.ID;
+        fieldMap.posx.value = btn.PosX.toFixed(1);
+        fieldMap.posy.value = btn.PosY.toFixed(1);
+        fieldMap.scale.value = btn.Scale;
+        fieldMap.label.value = btn.Label;
+        fieldMap.hover.value = btn.HoverLabel;
+        fieldMap.color.value = btn.DefaultColor;
+        fieldMap.menus.value = btn.ofMenuActives.join(',');
+        fieldMap.kind.value = btn.Kind;
+        fieldMap.params.value = btn.Params;
+        fieldMap.interactable.checked = !!btn.Interactable;
+    }
+    render();
+}
+
+function updateSelectedFromFields() {
+    const btn = buttons.find(b => b.ID === selectedId);
+    if (!btn) return;
+    btn.PosX = snapValue(parseFloat(fieldMap.posx.value) || 0);
+    btn.PosY = snapValue(parseFloat(fieldMap.posy.value) || 0);
+    fieldMap.posx.value = btn.PosX.toFixed(1);
+    fieldMap.posy.value = btn.PosY.toFixed(1);
+    btn.Scale = parseInt(fieldMap.scale.value, 10) || 2;
+    btn.Label = fieldMap.label.value;
+    btn.HoverLabel = fieldMap.hover.value;
+    btn.DefaultColor = fieldMap.color.value;
+    btn.ofMenuActives = fieldMap.menus.value.split(',').map(s => s.trim()).filter(Boolean);
+    btn.Kind = fieldMap.kind.value;
+    btn.Params = fieldMap.params.value || '[]';
+    btn.Interactable = fieldMap.interactable.checked;
+    render();
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const world = canvasToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let closest = null;
+    let minDist = Infinity;
+    buttons.forEach(btn => {
+        const dx = btn.PosX - world.x;
+        const dy = btn.PosY - world.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDist && dist < 0.4) {
+            minDist = dist;
+            closest = btn;
+        }
+    });
+    if (closest) {
+        selectButton(closest.ID);
+        isDragging = true;
+        dragOffset = {x: closest.PosX - world.x, y: closest.PosY - world.y};
+    } else {
+        selectButton(null);
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+
+canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const world = canvasToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    pointerPos = world;
+    if (isDragging && selectedId !== null) {
+        const btn = buttons.find(b => b.ID === selectedId);
+        if (btn) {
+            btn.PosX = snapValue(world.x + dragOffset.x);
+            btn.PosY = snapValue(world.y + dragOffset.y);
+            fieldMap.posx.value = btn.PosX.toFixed(1);
+            fieldMap.posy.value = btn.PosY.toFixed(1);
+        }
+    }
+    render();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    if (e.key.toLowerCase() === 'n') {
+        createButtonAt(pointerPos);
+        render();
+    } else if (e.key === 'Delete') {
+        const idx = buttons.findIndex(b => b.ID === selectedId);
+        if (idx !== -1) {
+            buttons.splice(idx, 1);
+            selectedId = null;
+            render();
+        }
+    } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        const btn = buttons.find(b => b.ID === selectedId);
+        if (btn) {
+            const step = e.shiftKey ? 0.1 : 0.05;
+            if (e.key === 'ArrowUp') btn.PosY += step;
+            if (e.key === 'ArrowDown') btn.PosY -= step;
+            if (e.key === 'ArrowLeft') btn.PosX -= step;
+            if (e.key === 'ArrowRight') btn.PosX += step;
+            btn.PosX = snapValue(btn.PosX);
+            btn.PosY = snapValue(btn.PosY);
+            selectButton(btn.ID);
+        }
+    } else if (e.key.toLowerCase() === 's' && e.ctrlKey) {
+        e.preventDefault();
+        exportJson();
+    }
+});
+
+Object.values(fieldMap).forEach(field => {
+    field.addEventListener('input', () => {
+        if (selectedId !== null) {
+            updateSelectedFromFields();
+        }
+    });
+});
+
+document.getElementById('btn-export').addEventListener('click', exportJson);
+document.getElementById('btn-import').addEventListener('click', importJson);
+
+function exportJson() {
+    const output = buttons.map(btn => {
+        const lines = [];
+        lines.push('{');
+        lines.push(`  ID: ${btn.ID},`);
+        lines.push(`  PosX: ${btn.PosX.toFixed(1)},`);
+        lines.push(`  PosY: ${btn.PosY.toFixed(1)},`);
+        lines.push(`  Scale: ${btn.Scale},`);
+        lines.push(`  Interactable: ${btn.Interactable ? 'true' : 'false'},`);
+        lines.push(`  ofMenuActives: [${btn.ofMenuActives.join(', ')}],`);
+        lines.push(`  Label: "${btn.Label.replace(/"/g, '\\"')}",`);
+        lines.push(`  HoverLabel: "${btn.HoverLabel.replace(/"/g, '\\"')}",`);
+        lines.push(`  DefaultColor: ${btn.DefaultColor},`);
+        lines.push(`  Kind: ${btn.Kind},`);
+        lines.push(`  Params: ${btn.Params}`);
+        lines.push('}');
+        return lines.join('\n');
+    }).join(',\n');
+    const area = document.getElementById('io-area');
+    area.value = `[${output}]`;
+    navigator.clipboard?.writeText(output).catch(() => {});
+    statusEl.textContent = '已导出 JSON 并复制到剪贴板（若浏览器允许）。';
+}
+
+function importJson() {
+    try {
+        const area = document.getElementById('io-area');
+        let text = area.value.trim();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (_) {
+            const fixed = text
+                .replace(/([\{\s,])([A-Za-z_][A-Za-z0-9_]*)\s*:/g, '$1"$2":')
+                .replace(/MenuActive\.[A-Za-z0-9_]+/g, m => `"${m}"`)
+                .replace(/MenuButtonKind\.[A-Za-z0-9_]+/g, m => `"${m}"`)
+                .replace(/ColorPreset\.[A-Za-z0-9_]+/g, m => `"${m}"`)
+                .replace(/SkillHero\.[A-Za-z0-9_]+/g, m => `"${m}"`);
+            data = JSON.parse(fixed);
+        }
+        if (Array.isArray(data)) {
+            buttons.length = 0;
+            data.forEach(item => buttons.push(item));
+            selectedId = null;
+            render();
+            statusEl.textContent = '导入成功。';
+        } else {
+            statusEl.textContent = 'JSON 需要是按钮数组。';
+        }
+    } catch (err) {
+        statusEl.textContent = '导入失败: ' + err.message;
+    }
+}
+
+render();
+</script>
+</body>
+</html>

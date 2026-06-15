@@ -1,0 +1,701 @@
+﻿import '解压缩.del';
+import '颜色池.del';
+import '技能树.del';
+// ======================
+// 全局变量声明
+// ======================
+
+// 按钮ID计数器
+globalvar Number uniqueButtonID;
+playervar Number page;
+// 玩家变量声明
+playervar Boolean isInMenu;                  // 玩家是否在菜单中
+playervar MenuActive menuactive;             // 当前激活的菜单类型
+playervar Vector AnchorFacing;               // 玩家进入菜单时的初始朝向
+playervar Number MenuLoop = -1;                   // 当前悬停的按钮ID
+playervar Boolean HoverVisible;              // 悬停文本是否可见
+playervar Boolean isButtonHovered;           // 是否有按钮被悬停
+playervar String HoverText;                  // 悬停文本内容
+playervar String HoverBack;                  // 悬停文本背景
+playervar Number HoverLineCount;             // 悬停文本行数
+
+// ======================
+// 菜单操作函数
+// ======================
+
+/**
+ * 打开指定菜单
+ * @param p 玩家对象，默认为事件玩家
+ * @param name 要打开的菜单类型
+ */
+void OpenMenu(Player p! = EventPlayer(), MenuActive name) 'sub打开菜单' {
+    // 获取当前菜单的所有按钮ID
+    p.MenuButton_IDs_of_MenuActive = ButtonData_Pool_IDs.Filter(t => ButtonData_Pool[t].ofMenuActives.Contains(name));
+    p.menuactive = name;
+    
+    cameraEye = Vector(0,1000,0);
+    cameraLookat = Vector(0,1000,2);
+    
+    StartCamera(p,cameraEye,cameraLookat,20);
+    // 根据菜单类型执行特定操作   注意，我这里没有继承 p玩家的，在后续如果有全局的需求，需要改成in player p
+    switch (name) {
+        case MenuActive.MainMenu:
+            break;
+        case MenuActive.CurrentSkillTreeMenu:
+            OpenCurrentSkillTreeMenu();
+            break;
+        case MenuActive.HeroSkillTreeMenu:
+            OpenHeroSkillTreeMenu();
+            break;
+    }
+    
+
+    // 如果玩家不在菜单中，初始化菜单状态
+    if (!p.isInMenu) {
+        SetFacing(p, Vector(0, 0, 1), Relative.ToPlayer);
+        p.AnchorFacing = DirectionTowards(p.cameraEye,p.cameraLookat);
+        p.isInMenu = true;
+        SetAimSpeed(p, 0.1);
+        SetPrimaryFireEnabled(p, false);
+        SetSecondaryFireEnabled(p, false);
+        DisableHeroHud(p);
+        DisableGameModeHud(p);
+    }
+
+    SetFacing(p, p.AnchorFacing);
+}
+
+/**
+ * 关闭菜单
+ * @param p 玩家对象，默认为事件玩家
+ */
+void CloseMenu(Player p! = EventPlayer())'关闭菜单' {
+    p.isInMenu = false;
+    StopCamera(p);
+    SetAimSpeed(p, 100);
+    SetPrimaryFireEnabled(p, true);
+    SetSecondaryFireEnabled(p, true);
+    EnableHeroHud(p);
+    EnableGameModeHud(p);
+    SetFacing(p, p.AnchorFacing);
+    MinWait();
+}
+
+// ======================
+// 按钮交互相关函数
+// ======================
+
+/**
+ * 获取按钮交互颜色
+ * @param Default 默认颜色
+ * @param Hover 悬停颜色
+ * @param Visible 是否可见
+ */
+Color InteratableColor_Local(in Color Default = Color.White, in Color Hover = Color.Orange, in Boolean Visible = false):
+    (LocalPlayer().MenuLoop == EvaluateOnce(<Color>uniqueButtonID)) || Visible ? Hover : Default;
+
+/**
+ * 更新悬停文本背景
+ */
+void UpdateHoverBack() {
+    HoverLineCount = 1;
+    
+    // 如果悬停文本为空，直接返回
+    if (HoverText == '') {
+        HoverBack = '';
+        return;
+    }
+
+    // 按换行符分割文本获取行数组
+    String[] lines = HoverText.Split("\n");
+    Number rowCount = lines.Length;
+    
+    // 找到最长行的字符数
+    Number colCount = 0;
+    foreach (String line in lines) {
+        if (line.Length > colCount) {
+            colCount = line.Length;
+        }
+    }
+
+    // 构建背景文本
+    String result = '';
+    for (define i = 0; i < rowCount; i++) {
+        for (define j = 0; j < colCount; j++) {
+            result = result + '=';
+        }
+        if (i < rowCount - 1) {
+            result = result + '\n';
+            HoverLineCount++;
+        }
+    }
+
+    HoverBack = result;
+}
+
+// ======================
+// 按钮数据压缩与解压
+// ======================
+
+globalvar String[] ButtonData_to_DeCompress = ["【s退出按钮∞4∞∑&'∞4∞1∞【0∞1∞2∞3】∞sX∞s∞1】"];
+globalvar Any[] ButtonData_DeCompressed = [];
+
+/**
+ * 压缩按钮数据
+ */
+void CompressButtonData() {
+    ButtonData_DeCompressed = Decompress(ButtonData_to_DeCompress);
+    uniqueButtonID = ButtonData_Pool.Length;
+    for (define i = 0; i < ButtonData_DeCompressed.Length * 9; i += 9) {
+        
+        ButtonData_Pool += {
+            ID: uniqueButtonID,
+            PosX: ButtonData_DeCompressed[uniqueButtonID][(i + 1)%9],
+            PosY: ButtonData_DeCompressed[uniqueButtonID][(i + 2)%9],
+            Scale: ButtonData_DeCompressed[uniqueButtonID][(i + 3)%9],
+            Interactable: ButtonData_DeCompressed[uniqueButtonID][(i + 4)%9],
+            ofMenuActives: ButtonData_DeCompressed[uniqueButtonID][(i + 5)%9],
+            Label: ButtonData_DeCompressed[uniqueButtonID][(i + 6)%9],
+            HoverLabel: ButtonData_DeCompressed[uniqueButtonID][(i + 7)%9],
+            DefaultColor: ButtonData_DeCompressed[uniqueButtonID][(i + 8)%9],
+            Kind: ButtonData_DeCompressed[uniqueButtonID][(i + 9)%9],
+            Params: ButtonData_DeCompressed[uniqueButtonID][(i + 10)%9]
+        };
+        uniqueButtonID++;
+    }
+}
+
+// ======================
+// 按钮创建与显示
+// ======================
+
+/**
+ * 创建菜单按钮
+ */
+Number[] SmallButtonIDs:
+    ButtonData_Pool.Filter(t => t.Scale == 2).Map(t => t.ID);
+Number[] MediumButtonIDs:
+    ButtonData_Pool.Filter(t => t.Scale == 3).Map(t => t.ID);
+Number[] BigButtonIDs:
+    ButtonData_Pool.Filter(t => t.Scale == 4).Map(t => t.ID);
+void CreateMenuButton() {
+    define test_count = 0;
+    define i = 0;
+    for (i = 0; i < Min(20,SmallButtonIDs.Length); i++) {
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].Label,
+            Position: MenuButtonPosition_Local(LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].PosX, LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].PosY),
+            Scale: 2,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: (LocalPlayer().MenuLoop==EvaluateOnce(LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].ID))&&LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].Interactable?Color.Orange:Color_Pool[LocalPlayer().Button_LocalPool[SmallButtonIDs[[EvaluateOnce(i)]]].DefaultColor]
+        );
+        test_count++;
+    }
+    for (i = 0; i < Min(20,MediumButtonIDs.Length); i++) {
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].Label,
+            Position: MenuButtonPosition_Local(LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].PosX, LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].PosY),
+            Scale: 3,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: (LocalPlayer().MenuLoop==EvaluateOnce(LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].ID))&&LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].Interactable?Color.Orange:Color_Pool[LocalPlayer().Button_LocalPool[MediumButtonIDs[[EvaluateOnce(i)]]].DefaultColor]
+        );
+        test_count++;
+    }
+    for (i = 0; i < Min(15,BigButtonIDs.Length); i++) {
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].Label,
+            Position: MenuButtonPosition_Local(LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].PosX, LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].PosY),
+            Scale: 4,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: (LocalPlayer().MenuLoop==EvaluateOnce(LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].ID))&&LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].Interactable?Color.Orange:Color_Pool[LocalPlayer().Button_LocalPool[BigButtonIDs[[EvaluateOnce(i)]]].DefaultColor]
+        );
+        test_count++;
+    }
+    CreateHudText(Header: '菜单HUD文本数量'+test_count);
+}
+
+// ======================
+// 游戏规则定义
+// ======================
+
+// 鼠标悬停检测规则
+rule: '钥匙插进去了吗'
+Event.OngoingPlayer
+Team.All
+Player.All
+if (IsAlive())
+if (EventPlayer().isInMenu) {
+    // 每次循环开始时重置悬停状态
+    Wait(0.1, WaitBehavior.AbortWhenFalse);
+    EventPlayer().isButtonHovered = false;
+
+    // 获取当前菜单的所有按钮
+    define buttons = ButtonData_Pool_IDs.Filter(t => ButtonData_Pool[t].ofMenuActives.Contains(EventPlayer().menuactive));
+    
+    // 过滤出鼠标悬停的按钮
+    buttons = buttons.Filter(t => AbsoluteValue(CURSOR_X - ButtonData_Pool[t].PosX) < GetButtonHitBox(t)[0] && AbsoluteValue(CURSOR_Y - ButtonData_Pool[t].PosY) < GetButtonHitBox(t)[1]);
+    buttons = buttons.Sort(t => AbsoluteValue(CURSOR_X - ButtonData_Pool[t].PosX) + AbsoluteValue(CURSOR_Y - ButtonData_Pool[t].PosY));
+    if (buttons.Length > 0) {
+        EventPlayer().MenuLoop = buttons.First;
+        EventPlayer().HoverVisible = Button_LocalPool[MenuLoop].HoverLabel != '';
+        EventPlayer().HoverText = Button_LocalPool[MenuLoop].HoverLabel;
+        EventPlayer().isButtonHovered = true;
+        UpdateHoverBack();
+    }
+
+    if (!EventPlayer().isButtonHovered) {
+        EventPlayer().MenuLoop = -1;
+        EventPlayer().HoverVisible = false;
+    }
+    LoopIfConditionIsTrue();
+}
+
+// 鼠标重置规则
+rule: '重置鼠标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if (isInMenu)
+if (IsButtonHeld(Button: Button.Melee) || IsButtonHeld(Button: Button.PrimaryFire) && (AbsoluteValue(CURSOR_X) > 4.5 || AbsoluteValue(CURSOR_Y) > 2.8)) {
+    SetFacing(Direction: AnchorFacing);
+}
+
+// 按钮点击规则
+rule: "按钮点击"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.PrimaryFire)) {
+    if (EventPlayer().MenuLoop != -1 && Button_LocalPool[MenuLoop].Interactable) {
+        switch(Button_LocalPool[MenuLoop].Kind){
+            case MenuButtonKind.None:
+            break;
+
+            case MenuButtonKind.Exit:
+            CloseMenu();
+            break;
+
+            case MenuButtonKind.SkillNode:
+            SkillNodeClick(Button_LocalPool[MenuLoop]);
+            break;
+        }
+    }
+}
+
+// 悬停文本初始化规则
+rule: "悬停文本初始化" {
+    define offset! = -0.2;
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: (LocalPlayer().HoverBack),
+        Position: (MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL + offset * LocalPlayer().HoverLineCount)),
+        Scale: 3,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Black
+    );
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: (LocalPlayer().HoverText),
+        Position: (MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL + offset * LocalPlayer().HoverLineCount)),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Yellow
+    );
+}
+
+// 指针初始化规则
+rule: "指针初始化" {
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: InputBindingString(Button.PrimaryFire),
+        Position: UpdateEveryFrame(MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL)),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+globalvar MenuButtonName[] ButtonData_Pool_Names;
+void InitializeMenu(){
+    
+    AddCurrentSkillsButtons();
+    AddMainMenuButtons();
+    CompressButtonData();
+    CreateMenuButton();
+    ButtonData_Pool_IDs = ButtonData_Pool.Map(t => t.ID);
+    isMenuInitialized = true;
+}
+
+// 菜单数据同步规则
+rule: '菜单初始化以后，每个玩家获取一份镜像'
+Event.OngoingPlayer
+Team.All
+Player.All
+if (!IsDummyBot())
+if (isMenuInitialized) {
+    Button_LocalPool = ButtonData_Pool;
+}
+
+
+// ======================
+// 光标位置计算
+// ======================
+
+globalvar Number MenuCursorSensibility! = 2;
+
+Number CURSOR_X_LOCAL:
+    HorizontalAngleTowards(LocalPlayer(), LocalPlayer().AnchorFacing + EyePosition(LocalPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_X:
+    HorizontalAngleTowards(EventPlayer(), EventPlayer().AnchorFacing + EyePosition(EventPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_Y_LOCAL:
+    -(VerticalFacingAngleOf(LocalPlayer()) - VerticalAngleFromDirection(LocalPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+Number CURSOR_Y:
+    -(VerticalFacingAngleOf(EventPlayer()) - VerticalAngleFromDirection(EventPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+// ======================
+// 相机位置计算
+// ======================
+playervar Vector cameraEye;
+playervar Vector cameraLookat;
+Vector CameraEye_Local:
+    LocalPlayer().cameraEye;
+
+Vector CameraLookat_Local:
+    CameraEye_Local + DirectionTowards(CameraEye_Local,LocalPlayer().cameraLookat);
+
+Vector CameraEye:
+    cameraEye;
+
+Vector CameraLookat:
+    cameraLookat;
+
+// ======================
+// 按钮碰撞箱计算
+// ======================
+globalvar Number[][] ButtonHitBox = [[0.4, 0.2],[0.4,0.3],[0.6,0.4]];
+Number[] GetButtonHitBox(in Number id):
+    ButtonHitBox[<Number>ButtonData_Pool[id].Scale-2];
+
+// ======================
+// 菜单位置计算
+// ======================
+Vector MenuSmallPosition_Local(in Number PosX, in Number PosY):
+    ((CameraEye_Local + CameraDir_Local * 100) + 1 * MenuFlatBase1_Local * PosX + 1 * MenuFlatBase2_Local * PosY);
+
+Vector MenuBigPosition_Local(in Number PosX, in Number PosY):
+    ((CameraEye_Local + CameraDir_Local * 4) + 0.04 * MenuFlatBase1_Local * PosX + 0.04 * MenuFlatBase2_Local * PosY);
+
+Vector MenuButtonPosition_Local(in Number PosX, in Number PosY):
+    ((CameraEye_Local + CameraDir_Local * 10) + 0.1*MenuFlatBase1_Local * PosX + 0.1*MenuFlatBase2_Local * PosY);
+
+Vector MenuFlatBase1_Local:
+    (-25 * Normalize(CrossProduct(Vector(0, 1, 0), CameraDir_Local)));
+
+Vector MenuFlatBase2_Local:
+    (-25 * Normalize(CrossProduct(CameraDir_Local, MenuFlatBase1_Local)));
+
+Vector CameraDir_Local:
+    DirectionTowards(LocalPlayer().cameraEye,LocalPlayer().cameraLookat);
+
+// ======================
+// 枚举定义
+// ======================
+
+enum MenuActive {
+    MainMenu,
+    CurrentSkillTreeMenu,
+    HeroSkillTreeMenu,
+    PreMenu1,
+    PreMenu2
+}
+
+enum MenuButtonName {
+    ExitButton
+}
+
+enum MenuButtonKind {
+    None,
+    Exit,
+    SkillNode,
+    EnterCurrentSkillTreeMenu,
+    EnterHeroSkillTreeMenu,
+    EnterBotGuide,
+    EnterBossGuide,
+    Agree
+}
+// ======================
+// 数据结构定义
+// ======================
+
+single struct MenuButton_Data {
+    public Number ID;
+    public Number PosX;
+    public Number PosY;
+    public Number Scale;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public String Label;
+    public String HoverLabel;
+    public ColorPreset DefaultColor;
+    public MenuButtonKind Kind;
+    public Any[] Params;
+}
+MenuButton_Data GetButtonData(in Number id){
+    return ButtonData_Pool[id];
+}
+
+
+
+// ======================
+// 全局数据存储
+// ======================
+
+globalvar MenuButton_Data[] ButtonData_Pool = [];
+globalvar Number[] ButtonData_Pool_IDs;
+globalvar Boolean isMenuInitialized = false;
+playervar MenuButton_Data[] Button_LocalPool;
+playervar Number[] MenuButton_IDs_of_MenuActive = [];
+
+rule: 'HUD遮盖防掉帧'
+{
+    for(define Counter = 0;Counter<11;Counter++){
+    CreateHudText(Text: '    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n 
+    ',Location: Location.Top,Header: '',SortOrder: 999999);
+    }
+}
+
+globalvar MenuButton_Data[] MainMenu_Bns = [
+    {
+    ID: 13,
+    PosX: 0.0,
+    PosY: 1.8,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "按钮0",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.None,
+    Params: ['休息时间']
+    },
+    {
+    ID: 14,
+    PosX: 2.0,
+    PosY: 1.0,
+    Scale: 3,
+    Interactable: true,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "通用技能树",
+    HoverLabel: "使用金币兑换通用技能增幅",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.EnterCurrentSkillTreeMenu,
+    Params: []
+    },
+    {
+    ID: 15,
+    PosX: 0.0,
+    PosY: 0.7,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "准备",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 16,
+    PosX: -2.0,
+    PosY: 1.0,
+    Scale: 3,
+    Interactable: false,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "怪物图鉴（待制作）",
+    HoverLabel: "学习可能会出现的怪物类型",
+    DefaultColor: ColorPreset.Gray,
+    Kind: MenuButtonKind.EnterBotGuide,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 17,
+    PosX: 2.0,
+    PosY: 0.0,
+    Scale: 3,
+    Interactable: false,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "英雄技能树",
+    HoverLabel: "通过挑战Boss获得的稀有资源\n升级英雄独有技能树",
+    DefaultColor: ColorPreset.Gray,
+    Kind: MenuButtonKind.EnterBossGuide,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 18,
+    PosX: -2.0,
+    PosY: 0.0,
+    Scale: 3,
+    Interactable: true,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "Boss图鉴（待制作）",
+    HoverLabel: "查看 挑战Boss 和 关底Boss",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 19,
+    PosX: 0.0,
+    PosY: -1.0,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.MainMenu],
+    Label: "选择挑战Boss(待制作)",
+    HoverLabel: "在下一关中，加入挑战Boss",
+    DefaultColor: ColorPreset.Gray,
+    Kind: MenuButtonKind.None,
+    Params: [0, SkillHero.All]
+    }];
+
+globalvar MenuButton_Data[] PreMenu1BNs = [
+    {
+    ID: 0,
+    PosX: 0.0,
+    PosY: 1.6,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu1],
+    Label: "倒计时",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 1,
+    PosX: 0.0,
+    PosY: 0.6,
+    Scale: 3,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu1],
+    Label: "当前选择的Boss",
+    HoverLabel: "在接下来的一关\n会额外添加进来的挑战Boss\n击败可以升级独有技能树",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 2,
+    PosX: -1.0,
+    PosY: -0.3,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu1],
+    Label: "赞成",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 3,
+    PosX: 1.0,
+    PosY: -0.3,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu1],
+    Label: "反对",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    }
+];
+globalvar MenuButton_Data[] PreMenu2BNs = [
+    {
+    ID: 0,
+    PosX: 0.0,
+    PosY: 1.7,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu2],
+    Label: "倒计时",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 1,
+    PosX: 0.0,
+    PosY: 1.2,
+    Scale: 3,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu2],
+    Label: "选择跳关吗？",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 2,
+    PosX: -1.0,
+    PosY: -0.4,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu2],
+    Label: "赞成",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 3,
+    PosX: 1.0,
+    PosY: -0.4,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu2],
+    Label: "反对",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    },
+    {
+    ID: 4,
+    PosX: 0.0,
+    PosY: 0.4,
+    Scale: 4,
+    Interactable: true,
+    ofMenuActives: [MenuActive.PreMenu2],
+    Label: "下一个关底Boss",
+    HoverLabel: "",
+    DefaultColor: ColorPreset.White,
+    Kind: MenuButtonKind.SkillNode,
+    Params: [0, SkillHero.All]
+    }
+];
+
+void AddMainMenuButtons(){
+    foreach(MenuButton_Data d in MainMenu_Bns){
+        ButtonData_Pool += d;
+    }
+}

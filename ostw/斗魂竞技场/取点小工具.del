@@ -1,0 +1,17 @@
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld())
+{
+    Teleport(EventPlayer(),EyePosition()+10*FacingDirectionOf());
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Crouch))
+{
+    LogToInspector(PositionOf());
+}

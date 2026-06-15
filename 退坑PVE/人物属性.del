@@ -1,0 +1,154 @@
+﻿enum Quality{
+    average,
+    rare,
+    epic,
+    legend
+}
+globalvar Color[][] Quaility_Color = [
+    [CustomColor(255, 255, 181, 255),CustomColor(255, 255, 181,100)],
+    [CustomColor(66, 176, 255, 255),CustomColor(66, 176, 255,100)],
+    [CustomColor(210, 126, 247, 255),CustomColor(210, 126, 247,100)]
+];
+
+
+enum ShuxingType {
+    Attack,
+    Speed,
+    HealBoost,
+    Health,
+    Reduction,
+    Drain,
+    Armor,
+    Shields
+}
+
+globalvar String[] ShuxingNames = [
+'造成伤害',
+'移动速度',
+'造成治疗',
+'生命值',
+'伤害抵抗',
+'吸血',
+'护甲值',
+'护盾值'
+];
+
+class Shuxing{
+    public ShuxingBase Attack;
+    public ShuxingBase Speed;
+    public ShuxingBase HealBoost;
+    public ShuxingBase Drain;
+    public ShuxingBase Armor;
+    public ShuxingBase Health;
+    public ShuxingBase Shields;
+    public ShuxingBase Reduction;
+
+    public constructor(){
+        Attack = new ShuxingBase();
+        Speed = new ShuxingBase();
+        HealBoost = new ShuxingBase();
+        Drain = new ShuxingBase();
+        Armor = new ShuxingBase();
+        Health = new ShuxingBase();
+        Shields = new ShuxingBase();
+        Reduction = new ShuxingBase();
+    }
+
+    ShuxingBase ResolveBase(ShuxingType type){
+        switch(type){
+            case ShuxingType.Attack: return Attack;
+            case ShuxingType.Speed: return Speed;
+            case ShuxingType.HealBoost: return HealBoost;
+            case ShuxingType.Health: return Health;
+            case ShuxingType.Reduction: return Reduction;
+            case ShuxingType.Drain: return Drain;
+            case ShuxingType.Armor: return Armor;
+            case ShuxingType.Shields: return Shields;
+            default: return null;
+        }
+    }
+}
+class ShuxingBase{
+    public Number AbsBonus;
+    public Number PctBonus;
+    public Number BaseValue;
+
+    Number RealShuxing():
+        BaseValue+AbsBonus;
+
+
+    Number VirtualShuxing():
+        RealShuxing()*(1+PctBonus/100);
+}
+rule: '持续赋值属性实现'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    AddHealthPoolToPlayer(HealthType: HealthType.Armor,Player: EventPlayer(),MaxHealth: shuxing.Armor.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Shields,Player: EventPlayer(),MaxHealth: shuxing.Shields.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Health,Player: EventPlayer(),MaxHealth: shuxing.Health.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+}
+void RevShuxing(Player p! = EventPlayer())'sub属性持续赋值' {
+    SetMoveSpeed(p,p.shuxing.Speed.VirtualShuxing()); 
+    SetDamageDealt(p,p.shuxing.Attack.VirtualShuxing());
+    SetDamageReceived(p,Max(20,100*100/(100+shuxing.Reduction)));
+    SetHealingDealt(p,p.shuxing.HealBoost.VirtualShuxing());
+}
+playervar Number last_halfsec_Damaged;
+rule: '吸血效果实现'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+{
+    Heal(EventPlayer(),EventPlayer(),(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt)-last_halfsec_Damaged)*shuxing.Drain.VirtualShuxing()/100);
+
+    last_halfsec_Damaged = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt);
+    
+    Wait(0.2);
+    LoopIfConditionIsTrue();
+}
+
+playervar Shuxing shuxing = new Shuxing();
+
+void ApplySingleModifier(Player player, ShuxingModifier modifier)'sub应用属性更新' {
+    ShuxingBase target = player.shuxing.ResolveBase(modifier.Type);
+
+    if(target == null){
+        return;
+    }
+
+    target.AbsBonus += modifier.AbsBonus;
+    target.PctBonus += modifier.PctBonus;
+}
+
+enum EquipPart{
+    helmet,
+    armour,
+    weapon,
+    boots,
+    amulet
+}
+globalvar String EquipmentTextGear;
+single struct  Equipment {
+    public String Name;
+    public EquipPart Part;
+    public Quality Quality;
+    public ShuxingModifier[] Modifiers;
+}
+
+// 属性修改器定义
+class ShuxingModifier {
+    public ShuxingType Type;
+    public Number AbsBonus;
+    public Number PctBonus;
+    
+    public constructor(ShuxingType type, Number absBonus = 0, Number pctBonus = 0) {
+        Type = type;
+        AbsBonus = absBonus;
+        PctBonus = pctBonus;
+    }
+}
+
+globalvar Equipment[] Equip_Pool;

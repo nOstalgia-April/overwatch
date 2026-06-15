@@ -1,0 +1,7981 @@
+
+
+变量
+{
+    全局:
+        0: nodes_location
+        1: nodes_link
+        7: nodes_basic_distance
+        15: equipment_DEScr
+        19: equipment_name
+        21: attribute_pool
+        22: equipment_pool
+        23: equipment_color_pool
+        24: equipment_color
+		25: equipment_Name
+		26: equipment_Shuxing
+        27: Shuxing_DEScr
+        29: MenuBottonCoordinate
+        31: Menu_BottonAllay
+        32: MenuBottonHeight
+        33: MenuBottonWidth
+        35: Shuxing_Name
+        36: RoomLayer
+        42: RoomAll
+        49: GameState
+        50: Timestart
+        51: CurrentRoom
+        60: EXP_for
+        61: EXP_stacks
+        62: EXP_location
+        64: Quitting_Locations // Added from part2
+        65: Quitting_percent_stage // Added from part2
+        66: Quitting_stage // Added from part2
+        67: Cage_Large // Added from part2
+        68: nodes_distance // Added from part2
+        69: nodes_preset_now // Added from part2
+        70: for_1 // Added from part2
+        71: for_2 // Added from part2
+        72: now_groups // Added from part2
+        73: leveladd // Added from part3
+        74: for_leveladd // Added from part3
+        75: spawnlist // Added from part3
+        76: for_spawnlist // Added from part3
+		77: boss
+		90: Spawnlist_now
+
+    玩家:
+		0: nodes_link
+		1: visited
+		2: nodes_distance
+		3: nodes_preset_now
+		4: is_first_iteration
+		5: nodes_basic_distance
+		6: now_ID
+		7: unvisited_nodes_distance
+		8: now_groups
+		9: for_1
+		10: now_weight
+		11: maybe_distance
+		12: start
+		13: end
+		14: path
+		15: current
+		16: now
+		17: nodes_location
+		18: Damage_Image_ID
+		19: slot_equipped_ID_temp
+		22: Shuxing
+		23: Shuxing_Tickets
+		28: MenuActive
+		30: slot_word
+		31: _ToxicCount_SWDMB
+		32: MenuLoop
+		33: _ToxicCap_SWDMB
+		34: MenuCameraNow
+		35: MenuFlatBase1
+		36: MenuFlatBase2
+		37: MenuCursorSensibility
+		38: MenuCursorVisable
+		39: AnchorFacing
+		40: AnchorPos
+		41: CanInteract
+		42: MenuBottonCoordinate
+		43: MenuPage
+		44: bags_show4
+		45: _PlagueCount_WYMSDXZ
+		46: bags_the1
+		47: level
+		48: _Hurt_RYDJ
+		49: TF_Point
+		50: slot_Shuxingadd_for
+		51: slot_nowShuxing
+		52: Pathing_Bool
+		53: Tracing_target
+		54: BNXX_shift_round
+		55: _Count_Duomianshou
+		56: _hurt_EMEC
+		60: OK
+		61: slot_for
+		62: tickets
+		63: Draw_Result
+		64: Draw_pool
+		65: Used_Ticket_ID
+		66: Draw_type
+		67: bags
+		68: slot_equipped
+		69: slot_size
+		70: slot_unlocked
+		72: Draw_Choosing_ID
+		73: the_slot
+		74: for_slots
+		78: the_holding_equipment
+		79: Damage_list
+		80: EXP_ID
+		81: tp_for
+		82: tp_location
+		87: for1
+		88: for2
+		89: TT_heal_for
+		100: Mutant_draw
+		101: LoadingVisable1
+		102: LoadingVisable2
+		103: DefeatVisable3
+		104: _ID_Lingminbufa
+		105: _PoolID_Zhanhouyudun
+		106: _Bool_Handizhanchui
+		107: _Bool_Yaoguang
+		108: _Draw_Bingyuhuozhige
+		109: _stacks_Lueduozhezhijian
+		110: _count_Fengbaozhiyan
+		111: _originAgility_Youyingtuxi
+		112: _stacks_Bumiezhiwo
+		113: _originArmor_Shuanghunbihu
+		114: _originSpellResist_Shuanghunbihu
+		115: bot_ballistic_velocity
+		116: bot_aming_accuracy
+		117: update_timer
+		118: bot_targetArray
+		119: bot_targetPlayer
+		120: bot_state
+		121: bot_name
+		122: bot_wenzi_The1
+		123: _boss_Mengsichuo_Shift_Position
+		124: _boss_Mengsichuo_Pop_for
+		125: DamageImage_RollPosition_1cixing
+		126: DamageImage_Group
+		127: revive_time
+
+}
+
+子程序
+{
+    0: Agility
+    2: Draw_attribute
+    3: Draw_equipment
+    5: Path_Dijstra
+    6: Dijstra
+    7: Start_Dijstra
+    9: slot_word_
+    22: Shuxing
+    34: LoadingCartoon
+    35: DefeatCartoon
+    36: VictoryCartoon
+    37: Plyaer_Restart
+    40: MenuOpen
+    41: MenuClose
+    42: MenuBase
+    43: bot_facing_update // Added from part3
+	44: ThirdPerson
+	50: GZLB
+	51: JSTBA
+	52: WZHS
+	53: MYL
+	54: MJ
+	55: SS
+	65: Sub65
+	66: Winston
+	67: YG_type_bool
+}
+规则("规则297")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		按钮被按下(主机玩家, 按钮(主要攻击模式)) == 1;
+		按钮被按下(主机玩家, 按钮(辅助攻击模式)) == 1;
+	}
+
+	动作
+	{
+		等待(1, 当为“假”时中止);
+		生成机器人(英雄(安娜), 队伍2, -1, 主机玩家, 矢量(0, 0, 0));
+		生成机器人(英雄(安娜), 队伍2, -1, 主机玩家, 矢量(0, 0, 0));
+		生成机器人(英雄(安娜), 队伍2, -1, 主机玩家, 矢量(0, 0, 0));
+	}
+}
+
+规则("规则300")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	动作
+	{
+		为玩家添加生命池(事件玩家, 护甲, 较小(最大生命值(事件玩家),100)*(全局.RoomLayer+1), 真, 真);
+	}
+}
+
+规则("禁用查看器录制")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		禁用查看器录制;
+	}
+}
+
+规则("优化-平均负载HUD")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+
+	动作
+	{
+		创建HUD文本(所有玩家(所有队伍), 服务器负载平均值, 空, 空, 右边, 0, 颜色(白色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		创建HUD文本(所有玩家(所有队伍), 服务器负载峰值, 空, 空, 右边, 0, 颜色(黄色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		创建HUD文本(所有玩家(所有队伍), 服务器负载, 空, 空, 右边, 0, 颜色(橙色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+	}
+}
+规则("优化-开始游戏")
+{
+    事件
+    {
+        持续 - 全局;
+    }
+
+    条件
+    {
+        游戏正在进行中 == 假;
+        玩家数量(队伍2) >= 2;
+    }
+
+    动作
+    {
+        开始游戏模式;
+    }
+}
+规则("初始化--关闭隐藏各种")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 1;
+	}
+
+	动作
+	{
+		等待(0.500, 无视条件);
+		关闭游戏预设复生模式(事件玩家);
+		关闭游戏预设计分模式;
+		关闭游戏预设通告模式;
+		关闭游戏预设完成条件;
+		关闭游戏预设音乐模式;
+		隐藏消灭提示(事件玩家);
+		禁用 隐藏姓名板(事件玩家, 所有玩家(所有队伍));
+		隐藏游戏模式地图UI(事件玩家);
+		隐藏游戏模式HUD(事件玩家);
+		等待(99999, 无视条件);
+	}
+}
+规则("优化-缩短选英雄时间 3s")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		正在集结英雄 == 真;
+	}
+
+	动作
+	{
+		设置比赛时间(3);
+	}
+}
+规则("优化 提示重置鼠标 100")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[100] = 数组(0.800, 0.700);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive > 0 && 真), 自定义字符串("按下{0}重置光标", 输入绑定字符串(按钮(近身攻击))), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[100]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[100]) * 本地玩家.MenuFlatBase2, 2, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+规则("优化-机器人死亡重置")
+{
+	事件
+	{
+		玩家阵亡;
+		队伍1;
+		全部;
+	}
+
+	动作
+	{
+		等待(1, 当为“假”时中止);
+		移除机器人(队伍1, 栏位(事件玩家));
+		如条件为“真”则循环;
+	}
+}
+规则("优化-怪物被近战眩晕")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件技能 == 按钮(近身攻击);
+	}
+
+	动作
+	{
+		设置状态(事件玩家, 空, 击倒, 1);
+		等待(5, 无视条件);
+	}
+}
+规则("子程序 第三人称")
+{
+	事件
+	{
+		子程序;
+		ThirdPerson;
+	}
+
+	动作
+	{
+		开始镜头(事件玩家, 射线命中位置(地图矢量(矢量(0, 0.450 + Y方向分量(眼睛位置(事件玩家) - 事件玩家), 0.100), 事件玩家, 旋转并转换), 地图矢量(矢量(0, 0.500 + Y方向分量(眼睛位置(事件玩家) - 事件玩家),
+		0), 事件玩家, 旋转并转换) + 面朝方向(事件玩家) * -3, 空, 事件玩家, 假), 地图矢量(矢量(0, 0.350 + Y方向分量(眼睛位置(事件玩家) - 事件玩家), 0), 事件玩家, 旋转并转换) + 面朝方向(事件玩家)
+		* 10, 10000);
+	}
+}
+
+规则("——————属性——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+规则("优化-伤害数字跳动-初始化空数组")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	动作
+	{
+		事件玩家.DamageImage_Group = 空数组;
+		事件玩家.Damage_list = 空数组;
+		事件玩家.Damage_Image_ID = 空数组;
+	}
+}
+
+规则("队伍1-伤害文本创建")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.Damage_list) > 0;
+	}
+
+	动作
+	{
+		If(数组包含(数组(自定义字符串("攻击"),自定义字符串("法强")), 事件玩家.Damage_list[0]));
+			事件玩家.DamageImage_Group = 数组(自定义字符串(""),事件伤害+事件玩家.Damage_list[1],事件玩家.Damage_list[2]);//前缀//伤害数值//颜色
+		Else If(字符串包含(事件玩家.Damage_list[0], 自定义字符串("装备")));
+			事件玩家.DamageImage_Group = 数组(截取字符串(事件玩家.Damage_list[0], 2, 787),事件玩家.Damage_list[1],事件玩家.Damage_list[2]);//前缀//伤害数值//颜色
+		End;
+		事件玩家.DamageImage_RollPosition_1cixing = 矢量(随机实数(-1.200, 1.200), 随机实数(-1, 1), 随机实数(-0.800, 0.800));
+		创建地图文本(攻击方, 自定义字符串("{0}{1}",事件玩家.DamageImage_Group[0],事件玩家.DamageImage_Group[1]), 眼睛位置(事件玩家) + 事件玩家.DamageImage_RollPosition_1cixing, 较大(较小(
+			3.400, (事件玩家.DamageImage_Group[1] * 0.100) ^ 0.200), 1), 根据表面截取, 可见, 事件玩家.Damage_list[2], 默认可见度);
+		修改玩家变量(事件玩家, Damage_Image_ID, 添加至数组, 上一个文本ID);
+		If(数量(事件玩家.Damage_Image_ID) > 3);
+		消除地图文本(首个(事件玩家.Damage_Image_ID));
+		修改玩家变量(事件玩家, Damage_Image_ID, 根据索引从数组中移除, 0);
+		End;
+		播放效果(攻击方, 有害爆炸, 事件暴击 ? 颜色(红色) : 颜色(白色), 眼睛位置(被攻击方) + 事件玩家.DamageImage_RollPosition_1cixing, 0.100);
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		等待(0.05, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("双方-状态文本创建")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.Damage_list) > 0;
+		字符串包含(事件玩家.Damage_list[0], 自定义字符串("装备")) == 真;
+	}
+
+	动作
+	{
+		事件玩家.DamageImage_Group = 数组(截取字符串(事件玩家.Damage_list[0], 2, 787),事件玩家.Damage_list[1],事件玩家.Damage_list[2]);//前缀//数值//颜色
+		事件玩家.DamageImage_RollPosition_1cixing = 矢量(随机实数(-0.7, 0.7), 随机实数(0.3, 1.2), 随机实数(0.6, 1.2));
+		创建地图文本(所在队伍(事件玩家) == 队伍1 ? 所有玩家(所有队伍) : 事件玩家, 自定义字符串("{0}{1}",事件玩家.DamageImage_Group[0],事件玩家.DamageImage_Group[1]), 逐帧更新(眼睛位置(事件玩家) + 单次赋值(事件玩家.DamageImage_RollPosition_1cixing) - 矢量(0, 较小(0.4,0.4*(单次赋值(总计消耗时间)-总计消耗时间)), 0)), 2, 不要截取, 可见和位置, 事件玩家.Damage_list[2], 默认可见度);
+		修改玩家变量(事件玩家, Damage_Image_ID, 添加至数组, 上一个文本ID);
+		If(数量(事件玩家.Damage_Image_ID) > 3);
+		消除地图文本(首个(事件玩家.Damage_Image_ID));
+		修改玩家变量(事件玩家, Damage_Image_ID, 根据索引从数组中移除, 0);
+		End;
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		修改玩家变量(事件玩家, Damage_list, 根据索引从数组中移除, 0);
+		等待(0.05, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+规则("文本-自动删除")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.Damage_Image_ID) >= 1;
+	}
+
+	动作
+	{
+		等待(数量(事件玩家.Damage_Image_ID) > 随机整数(2, 4) ? 0.016 : 1, 无视条件);
+		消除地图文本(首个(事件玩家.Damage_Image_ID));
+		修改玩家变量(事件玩家, Damage_Image_ID, 根据索引从数组中移除, 0);
+		如条件为“真”则循环;
+	}
+}
+
+规则("左上角属性HUD")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2),
+		空,
+		空, 
+		自定义字符串("{0}等级Lv.{1}/10  \r\n\r\n攻击 {2}",自定义字符串("{0} {1}", 英雄图标字符串(所用英雄(本地玩家)), 图标字符串(火焰)), 本地玩家.level, 
+			自定义字符串("{0}     法强 {1}\r\n生命 {2}",
+			 本地玩家.Shuxing[0], 本地玩家.Shuxing[1],
+			自定义字符串("{0}     护甲 {1}\r\n魔抗 {2}",
+				 本地玩家.Shuxing[2], 本地玩家.Shuxing[3],
+				自定义字符串("{0}     敏捷 {1}\r\n————\r\n剩余复活次数{2}                                                                                                        ",
+					 本地玩家.Shuxing[4], 本地玩家.Shuxing[5],自定义字符串("{0}{1}",技能图标字符串(英雄(天使), 按钮(终极技能)),本地玩家.revive_time)))))
+					 , 左边, -999, 颜色(白色), 颜色(白色), 本地玩家.level < 5?颜色(白色):(本地玩家.level < 10 ? 颜色(蓝色):颜色(橙色)), 可见，字符串和颜色, 默认可见度);
+	}
+}
+
+规则("玩家变量初始化 生命池 全局变量初始化（属性名）")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		等待(1, 无视条件);
+		根据条件跳过(所在队伍(事件玩家) == 队伍1, 1);
+		//0"攻击"
+		//1"法强"
+		//2"生命"
+		//3"护甲"
+		//4"魔抗"
+		//5"敏捷"
+		事件玩家.Shuxing = 数组(0,0,0,0,0,0);
+		为玩家添加生命池(事件玩家, 生命值, 100 + 35 * 事件玩家.Shuxing[2], 真, 真);
+		全局.Shuxing_Name = 数组(自定义字符串("攻击"), 自定义字符串("法强"), 自定义字符串("生命"), 自定义字符串("护甲"), 自定义字符串("魔抗"), 自定义字符串("敏捷"));
+		全局.Shuxing_DEScr = 数组(自定义字符串("增加左右键的伤害"),自定义字符串("增加原生技能的伤害"),自定义字符串("获得额外生命值"),自定义字符串("抵抗敌人的左右键攻击"),自定义字符串("抵抗敌人的技能伤害"),自定义字符串("增加移动速度"));
+		等待(99999, 无视条件);
+	}
+}
+
+规则("攻击力")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		数组包含(数组(按钮(主要攻击模式), 按钮(辅助攻击模式), 按钮(近身攻击)), 事件技能) == 真;
+	}
+
+	动作
+	{
+		If(所在队伍(被攻击方) == 队伍1);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("攻击"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 事件伤害+事件伤害 * (((1 + 事件玩家.Shuxing[0])^0.5)) * (1-(被攻击方.Shuxing[3] / (15 + 被攻击方.Shuxing[3]))));
+		End;
+		If(事件暴击 == 1);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(255, 60, 60, 255));
+		Else;
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(162, 60, 60, 255));
+		End;
+		伤害(被攻击方, 事件玩家, 事件伤害 * ((1 + 事件玩家.Shuxing[0])^0.5) * (1-(被攻击方.Shuxing[3] / (15 + 被攻击方.Shuxing[3]))));
+	}
+}
+
+规则("法术强度")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		数组包含(数组(按钮(技能1), 按钮(技能2), 按钮(终极技能), 按钮(蹲下), 按钮(跳跃)), 事件技能) == 真;
+	}
+
+	动作
+	{
+		If(所在队伍(被攻击方) == 队伍1);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("法强"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 事件伤害+事件伤害 * ((1 + 事件玩家.Shuxing[1])^0.5) * (1-(被攻击方.Shuxing[4] / (15 + 被攻击方.Shuxing[4]))));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(49, 120, 244, 255));
+		End;
+		伤害(被攻击方, 事件玩家, 事件伤害 * ((1 + 事件玩家.Shuxing[1])^0.5) * (1-(被攻击方.Shuxing[4] / (15 + 被攻击方.Shuxing[4]))));
+	}
+}
+
+规则("护甲")
+{
+	事件
+	{
+		玩家受到伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		(事件技能 == 按钮(主要攻击模式) || 事件技能 == 按钮(辅助攻击模式) || 事件技能 == 按钮(近身攻击)) == 真;
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, 事件伤害 * (事件玩家.Shuxing[3] / (15 + 事件玩家.Shuxing[3])));
+	}
+}
+
+规则("魔抗")
+{
+	事件
+	{
+		玩家受到伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		数组包含(数组(按钮(技能1), 按钮(技能2), 按钮(终极技能), 按钮(蹲下), 按钮(跳跃)), 事件技能) == 真;
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, 事件伤害 * (事件玩家.Shuxing[4] / (10 + 事件玩家.Shuxing[4])));
+	}
+}
+
+规则("子程序Agility——敏捷赋值")
+{
+	事件
+	{
+		子程序;
+		Agility;
+	}
+
+	动作
+	{
+		设置移动速度(事件玩家, 100 + 200 * (事件玩家.Shuxing[5] / (事件玩家.Shuxing[5] + 10)));
+	}
+}
+
+规则("——————菜单——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("关闭hud")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	动作
+	{
+		隐藏游戏模式HUD(事件玩家);
+		隐藏游戏模式地图UI(事件玩家);
+	}
+}
+
+规则("菜单 钥匙插进去了吗")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive >= 1;
+		禁用 事件玩家.MenuActive <= 5;
+	}
+
+	动作
+	{
+
+		For 玩家变量(事件玩家, MenuPage, 0, 数量(全局.Menu_BottonAllay[事件玩家.MenuActive]), 1);
+			If(绝对值(水平朝向角度(事件玩家) / 事件玩家.MenuCursorSensibility - 首个(全局.MenuBottonCoordinate[事件玩家.MenuLoop]))
+				< 全局.MenuBottonWidth[事件玩家.MenuActive] && 绝对值(垂直朝向角度(事件玩家) / 事件玩家.MenuCursorSensibility - 最后(
+				全局.MenuBottonCoordinate[事件玩家.MenuLoop])) < 全局.MenuBottonHeight[事件玩家.MenuActive]);
+				中断;
+			End;
+			事件玩家.MenuLoop = 全局.Menu_BottonAllay[事件玩家.MenuActive][事件玩家.MenuPage];
+		End;
+		等待(0.025, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("初始化 Width 1-4")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonWidth[1] = 0.300;
+		全局.MenuBottonHeight[1] = 0.100;
+		全局.MenuBottonWidth[2] = 0.100;
+		全局.MenuBottonHeight[2] = 0.030;
+		全局.MenuBottonWidth[3] = 0.600;
+		全局.MenuBottonHeight[3] = 0.500;
+		全局.MenuBottonWidth[4] = 0.100;
+		全局.MenuBottonHeight[4] = 0.050;
+		全局.MenuBottonWidth[5] = 0.600;
+		全局.MenuBottonHeight[5] = 0.500;
+	}
+}
+
+规则("重置指针")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(近身攻击)) == 1;
+		事件玩家.MenuActive > 0;
+	}
+
+	动作
+	{
+		设置朝向(事件玩家, 矢量(0, 0, 1), 至地图);
+	}
+}
+
+规则("打开菜单 子程序MenuOpen")
+{
+	事件
+	{
+		子程序;
+		MenuOpen;
+	}
+
+	动作
+	{
+		调用子程序(MenuBase);
+		设置瞄准速度(事件玩家, 0.500);
+		禁用 设置瞄准速度(事件玩家, 10);
+		事件玩家.MenuCursorSensibility = 5;
+		事件玩家.MenuCursorVisable = 0;
+		事件玩家.AnchorPos = 所选位置(事件玩家);
+		事件玩家.AnchorFacing = 面朝方向(事件玩家);
+		隐藏英雄HUD(事件玩家);
+		事件玩家.MenuBottonCoordinate = 全局.MenuBottonCoordinate;
+		开始限制阈值(事件玩家, 0, 0, 0, 0, 0, 0);
+		等待(0.100, 无视条件);
+		设置朝向(事件玩家, 矢量(0, 0, 1), 至地图);
+		开始镜头(事件玩家, 首个(事件玩家.MenuCameraNow), 最后(事件玩家.MenuCameraNow), 25);
+		事件玩家.MenuCursorVisable = 1;
+		事件玩家.CanInteract = 1;
+		禁用按钮(事件玩家, 按钮(主要攻击模式));
+		禁用按钮(事件玩家, 按钮(辅助攻击模式));
+		禁用按钮(事件玩家, 按钮(装填));
+		禁用按钮(事件玩家, 按钮(跳跃));
+		禁用按钮(事件玩家, 按钮(技能2));
+		禁用按钮(事件玩家, 按钮(技能1));
+		禁用按钮(事件玩家, 按钮(蹲下));
+		可用按钮(事件玩家, 按钮(终极技能));
+		设置状态(事件玩家, 空, 相移, 9999);
+		取消与玩家的移动碰撞(事件玩家);
+	}
+}
+
+规则("关闭菜单 子程序MenuClose")
+{
+	事件
+	{
+		子程序;
+		MenuClose;
+	}
+
+	动作
+	{
+		事件玩家.MenuCursorVisable = 0;
+		事件玩家.MenuActive = 0;
+		停止限制阈值(事件玩家);
+		停止镜头(事件玩家);
+		显示英雄HUD(事件玩家);
+		设置朝向(事件玩家, 事件玩家.AnchorFacing, 至地图);
+		等待(0.100, 无视条件);
+		可用按钮(事件玩家, 按钮(主要攻击模式));
+		可用按钮(事件玩家, 按钮(辅助攻击模式));
+		可用按钮(事件玩家, 按钮(跳跃));
+		可用按钮(事件玩家, 按钮(蹲下));
+		可用按钮(事件玩家, 按钮(技能1));
+		可用按钮(事件玩家, 按钮(技能2));
+		可用按钮(事件玩家, 按钮(终极技能));
+		可用按钮(事件玩家, 按钮(装填));
+		清除状态(事件玩家, 相移);
+		开启与玩家的移动碰撞(事件玩家);
+		设置瞄准速度(事件玩家, 100);
+	}
+}
+
+规则("求基底 子程序MenuBase")
+{
+	事件
+	{
+		子程序;
+		MenuBase;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(首个(事件玩家.MenuCameraNow), 首个(事件玩家.MenuCameraNow) + 方向(首个(事件玩家.MenuCameraNow), 最后(事件玩家.MenuCameraNow)));
+		"基底1"
+		事件玩家.MenuFlatBase1 = 矢量积(上, 方向(首个(事件玩家.MenuCameraNow), 最后(事件玩家.MenuCameraNow)));
+		"基底1"
+		事件玩家.MenuFlatBase1 = 归一化(事件玩家.MenuFlatBase1);
+		"基底1"
+		事件玩家.MenuFlatBase2 = 矢量积(事件玩家.MenuFlatBase1, 方向(首个(事件玩家.MenuCameraNow), 最后(事件玩家.MenuCameraNow)));
+		"基底2"
+		事件玩家.MenuFlatBase2 = 归一化(事件玩家.MenuFlatBase2);
+	}
+}
+
+规则("按钮归组")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.Menu_BottonAllay[1] = 数组(101, 102, 2, 3, 4, 5, 6, 7, 8, 41, 42, 43, 44, 空);
+		全局.Menu_BottonAllay[2] = 数组(101, 102, 9, 10, 11, 12, 13, 14, 15, 16, 20, 空);
+		全局.Menu_BottonAllay[3] = 数组(101, 102, 18, 19, 空);
+		全局.Menu_BottonAllay[4] = 数组(22, 23, 24, 25, 26, 27, 28, 29, 30, 101, 102, 空);
+		全局.Menu_BottonAllay[5] = 数组(101, 102, 50, 51, 52, 53, 54, 空);
+	}
+}
+
+规则("（1~5）101")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"切换按钮 - 1"
+		全局.MenuBottonCoordinate[101] = 数组(-1, 0);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive >= 1 && 当前数组元素.MenuActive <= 5), 自定义字符串(">>"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[101]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[101]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == 101 ? 颜色(红色) : 颜色(白色), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("（1~5）102")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"切换按钮 - 1"
+		全局.MenuBottonCoordinate[102] = 数组(1, 0);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive >= 1 && 当前数组元素.MenuActive <= 5), 自定义字符串("<<"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[102]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[102]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == 102 ? 颜色(红色) : 颜色(白色), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+规则("1-2")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[2] = 数组(0.600, -0.400);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("——————————"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[2]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[2]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("∧∧∧"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[2]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[2]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == 2 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("1-201")//提示玩家去拖拽
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[201] = 数组(-0.600, -0.4);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("长按装备后拖拽\r\n进入装备槽"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[201]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[201]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("1-3")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[3] = 数组(0.600, 0.400);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("————————"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[3]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[3]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("∨∨∨"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[3]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[3]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == 3 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+
+规则("Click1-3 下")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 1;
+		事件玩家.MenuLoop == 3;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		"下翻"
+			事件玩家.bags_show4 = 较小(事件玩家.bags_show4 + 3, 数量(事件玩家.bags) - 3);
+		End;
+	}
+}
+
+规则("Click1-2 上")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 1;
+		事件玩家.MenuLoop == 2;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			事件玩家.bags_show4 = 较大(0, 事件玩家.bags_show4 - 3);
+	}
+}
+
+规则("Click1-456 选中/取消")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 1;
+		数组包含(数组(4, 5, 6), 事件玩家.MenuLoop) == 真;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		
+		If(事件玩家.MenuLoop == 4);
+			If(事件玩家.bags_the1 == 事件玩家.bags[事件玩家.bags_show4]);
+				If(对任意为“真”(事件玩家.slot_equipped, 数组包含(当前数组元素, 事件玩家.bags_the1)) == 0); //前提是这个装备还没有被分配
+				事件玩家.the_holding_equipment = 事件玩家.bags_the1;
+				Else;
+				小字体信息(事件玩家, 自定义字符串("若想要更改装备在装备槽的位置，请点击卸载按钮"));
+				End;
+			Else;
+				事件玩家.bags_the1 = 事件玩家.bags[事件玩家.bags_show4 + 0];
+			End;
+		Else If(事件玩家.MenuLoop == 5);
+			If(事件玩家.bags_the1 == 事件玩家.bags[1 + 事件玩家.bags_show4]);
+				If(对任意为“真”(事件玩家.slot_equipped, 数组包含(当前数组元素, 事件玩家.bags_the1)) == 0); //前提是这个装备还没有被分配
+				事件玩家.the_holding_equipment = 事件玩家.bags_the1;
+				Else;
+				小字体信息(事件玩家, 自定义字符串("若想要更改装备在装备槽的位置，请点击卸载按钮"));
+				End;
+			Else;
+				事件玩家.bags_the1 = 事件玩家.bags[事件玩家.bags_show4 + 1];
+			End;
+		
+		Else If(事件玩家.MenuLoop == 6);
+			If(事件玩家.bags_the1 == 事件玩家.bags[2 + 事件玩家.bags_show4]);
+				If(对任意为“真”(事件玩家.slot_equipped, 数组包含(当前数组元素, 事件玩家.bags_the1)) == 0); //前提是这个装备还没有被分配
+				事件玩家.the_holding_equipment = 事件玩家.bags_the1;
+				Else;
+				小字体信息(事件玩家, 自定义字符串("若想要更改装备在装备槽的位置，请点击卸载按钮"));
+				End;
+			Else;
+				事件玩家.bags_the1 = 事件玩家.bags[事件玩家.bags_show4 + 2];
+			End;
+		End;
+	}
+}
+
+规则("Drag1-drop当没有按左键的时候 进入slot/重置holding_equipment")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) != 真;
+		事件玩家.MenuActive == 1;
+		事件玩家.the_holding_equipment != 0;
+	}
+
+	动作
+	{
+		If(事件玩家.MenuLoop == 41);
+			If(事件玩家.slot_size[0] == 5);
+				小字体信息(事件玩家, 自定义字符串("错误：该等级装备槽槽位已满"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else If(5-事件玩家.slot_size[0] < 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))]);
+				小字体信息(事件玩家, 自定义字符串("错误：槽位容量不够塞下这件装备"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else;
+				事件玩家.slot_equipped[0] = 添加至数组(事件玩家.slot_equipped[0], 事件玩家.the_holding_equipment);
+				事件玩家.slot_size[0] += 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))];
+				小字体信息(事件玩家, 自定义字符串("添加 {0} 到装备槽 1 成功！！", 事件玩家.the_holding_equipment));
+				事件玩家.the_holding_equipment = 0;
+				播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			End;
+		Else If(事件玩家.MenuLoop == 42);
+			If(事件玩家.slot_size[1] == 4);
+				小字体信息(事件玩家, 自定义字符串("错误：该等级装备槽槽位已满"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else If(4-事件玩家.slot_size[1] < 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))]);
+				小字体信息(事件玩家, 自定义字符串("错误：槽位容量不够塞下这件装备"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else;
+				事件玩家.slot_equipped[1] = 添加至数组(事件玩家.slot_equipped[1], 事件玩家.the_holding_equipment);
+				小字体信息(事件玩家, 自定义字符串("添加 {0} 到装备槽 2 成功！！", 事件玩家.the_holding_equipment));
+				事件玩家.slot_size[1] += 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))];
+				事件玩家.the_holding_equipment = 0;
+				播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			End;
+		Else If(事件玩家.MenuLoop == 43);
+			If(事件玩家.slot_size[2] == 3);
+				小字体信息(事件玩家, 自定义字符串("错误：该等级装备槽槽位已满"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else If(3-事件玩家.slot_size[2] < 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))]);
+				小字体信息(事件玩家, 自定义字符串("错误：槽位容量不够塞下这件装备"));
+				播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else;
+				事件玩家.slot_equipped[2] = 添加至数组(事件玩家.slot_equipped[2], 事件玩家.the_holding_equipment);
+				事件玩家.slot_size[2] += 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.the_holding_equipment))];
+				小字体信息(事件玩家, 自定义字符串("添加 {0} 到装备槽 3 成功！！", 事件玩家.the_holding_equipment));
+				事件玩家.the_holding_equipment = 0;
+				播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			End;
+		Else;
+			事件玩家.the_holding_equipment = 0;
+		End;
+		调用子程序(slot_word_);
+	}
+}
+
+规则("1-4")//第0个装备
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[4] = 数组(0.700, -0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.bags[当前数组元素.bags_show4 + 0] != 0), 自定义字符串("{1}{0}", 本地玩家.bags[本地玩家.bags_show4 + 0], 本地玩家.bags_the1 == 本地玩家.bags[本地玩家.bags_show4 + 0]?图标字符串(箭头：向右):自定义字符串("")),
+		本地玩家.the_holding_equipment == 本地玩家.bags[本地玩家.bags_show4 + 0] && 按钮被按下(本地玩家, 按钮(主要攻击模式))
+		?
+			逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2)
+		:
+			最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[4]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[4])
+			* 本地玩家.MenuFlatBase2
+		,4, 不要截取, 可见，位置，字符串和颜色,
+		自定义颜色
+		(
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 0]))][0], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 0]))][1], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 0]))][2], 
+		对任意为“真”(本地玩家.slot_equipped, 数组包含(当前数组元素, 本地玩家.bags[本地玩家.bags_show4 + 0])) == 真 
+		? 
+		255
+		:
+		150
+		)
+		,默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-5")//第1个装备
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[5] = 数组(0.700, 0);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.bags[当前数组元素.bags_show4 + 1] != 0), 自定义字符串("{1}{0}", 本地玩家.bags[本地玩家.bags_show4 + 1], 本地玩家.bags_the1 == 本地玩家.bags[本地玩家.bags_show4 + 1]?图标字符串(箭头：向右):自定义字符串("")),
+		本地玩家.the_holding_equipment == 本地玩家.bags[本地玩家.bags_show4 + 1] && 按钮被按下(本地玩家, 按钮(主要攻击模式))
+		?
+			逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2)
+		:
+			最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[5]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[5])
+			* 本地玩家.MenuFlatBase2
+		,4, 不要截取, 可见，位置，字符串和颜色,
+		自定义颜色
+		(
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 1]))][0], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 1]))][1], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 1]))][2], 
+		对任意为“真”(本地玩家.slot_equipped, 数组包含(当前数组元素, 本地玩家.bags[本地玩家.bags_show4 + 1])) == 真 
+		? 
+		255
+		:
+		150
+		)
+		,默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-6")//第2个装备
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[6] = 数组(0.700, 0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.bags[当前数组元素.bags_show4 + 2] != 0), 自定义字符串("{1}{0}", 本地玩家.bags[本地玩家.bags_show4 + 2], 本地玩家.bags_the1 == 本地玩家.bags[本地玩家.bags_show4 + 2]?图标字符串(箭头：向右):自定义字符串("")),
+		本地玩家.the_holding_equipment == 本地玩家.bags[本地玩家.bags_show4 + 2] && 按钮被按下(本地玩家, 按钮(主要攻击模式))
+		?
+			逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2)
+		:
+			最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[6]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[6])
+			* 本地玩家.MenuFlatBase2
+		,4, 不要截取, 可见，位置，字符串和颜色,
+		自定义颜色
+		(
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 2]))][0], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 2]))][1], 
+		全局.equipment_color_pool[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags[本地玩家.bags_show4 + 2]))][2], 
+		对任意为“真”(本地玩家.slot_equipped, 数组包含(当前数组元素, 本地玩家.bags[本地玩家.bags_show4 + 2])) == 真 
+		? 
+		255
+		:
+		150
+		)
+		,默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-7")//装备描述
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[7] = 数组(0.1, 0);
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.bags_the1 != 0), 自定义字符串("//\r\n   {0}\r\n\r\n//", 全局.equipment_DEScr[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags_the1))][数组值的索引(全局.equipment_name[已过滤的数组(数组(0, 1, 2), 数组包含(全局.equipment_name[当前数组元素], 本地玩家.bags_the1))], 本地玩家.bags_the1)]), 空, 空, 顶部, -999, 颜色(白色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.bags_the1 == 0), 自定义字符串("\r\n\r\n{0}\r\n\r\n//",自定义字符串("在局内达到对应等级激活对应装备组\r\n左键选中，长按拖拽\r\n\r\n根据现有装备\r\n请发挥创造力build你的装备槽吧！")), 空, 空, 顶部, -999, 颜色(白色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+	}
+}
+
+规则("1-8")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[8] = 数组(0, -0.600);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1 && 当前数组元素.MenuActive <= 4), 自定义字符串("x装备槽x"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[8]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[8]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("1-41")//装备槽1
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[41] = 数组(-0.200, -0.2);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1), 本地玩家.slot_word[0],
+		 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[41]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[41])
+			* 本地玩家.MenuFlatBase2, 3, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(220, 239, 245, (本地玩家.MenuLoop == 41 && 按钮被按下(本地玩家, 按钮(主要攻击模式)) && 本地玩家.the_holding_equipment != 0)?150: 255), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-42")//装备槽2
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[42] = 数组(-0.200, 0.05);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1), 本地玩家.slot_word[1],
+		 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[42]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[42])
+			* 本地玩家.MenuFlatBase2, 3, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(110, 198, 232, (本地玩家.MenuLoop == 42 && 按钮被按下(本地玩家, 按钮(主要攻击模式)) && 本地玩家.the_holding_equipment != 0)?150: 255), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-43")//装备槽3
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[43] = 数组(-0.200, 0.3);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1), 本地玩家.slot_word[2],
+		 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[43]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[43])
+			* 本地玩家.MenuFlatBase2, 3, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(241, 127, 55, (本地玩家.MenuLoop == 43 && 按钮被按下(本地玩家, 按钮(主要攻击模式)) && 本地玩家.the_holding_equipment != 0)?150: 255), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("1-44")//卸载按钮
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[44] = 数组(0.7, 0.6);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 1  && 当前数组元素.bags_the1 != 0), 自定义字符串("从装备槽上卸载"),
+		 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[44]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[44])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, 本地玩家.MenuLoop == 44?颜色(黄色):颜色(白色), 默认可见度);
+		等待(0.050, 无视条件);
+	}
+}
+
+规则("Click1-44 卸载")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 1;
+		事件玩家.MenuLoop == 44;
+	}
+
+	动作
+	{
+		
+		
+		If(对任意为“真”(事件玩家.slot_equipped, 数组包含(当前数组元素, 事件玩家.bags_the1)) != 1);
+			播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("该装备还未安装在装备槽之中！无法卸载！"));
+		Else;
+			播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			事件玩家.slot_equipped_ID_temp = 已过滤的数组(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 事件玩家.bags_the1));
+			事件玩家.slot_equipped[事件玩家.slot_equipped_ID_temp] = 已过滤的数组(事件玩家.slot_equipped[事件玩家.slot_equipped_ID_temp], 当前数组元素 != 事件玩家.bags_the1);
+			事件玩家.slot_size[事件玩家.slot_equipped_ID_temp] -= 数组(1,2,3)[已过滤的数组(数组(0,1,2), 数组包含(全局.equipment_name[当前数组元素], 事件玩家.bags_the1))];
+			播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("已卸载装备{0}", 事件玩家.bags_the1));
+			调用子程序(slot_word_);
+		End;
+	}
+}
+
+规则("1-自动触发一次slot_word_")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 1;
+	}
+
+	动作
+	{
+		调用子程序(slot_word_);
+	}
+}
+
+规则("1-子程序slot_word_  不断更新装备槽文本")
+{
+	事件
+	{
+		子程序;
+		slot_word_;
+	}
+
+	动作
+	{
+		For 玩家变量(事件玩家, for1, 0, 数量(事件玩家.slot_equipped), 1);
+			事件玩家.slot_word[事件玩家.for1] = 自定义字符串("{0}lv{1}.{2}--\r\n\r",截取字符串(自定义字符串("~~~"), 0, 事件玩家.for1),较大(1, 5*事件玩家.for1),自定义字符串("[{0}/{1}]",事件玩家.slot_size[事件玩家.for1], 数组(5,4,3)[事件玩家.for1]));	
+			For 玩家变量(事件玩家, for2, 0, 数量(事件玩家.slot_equipped[事件玩家.for1]), 1);
+				事件玩家.slot_word[事件玩家.for1] = 自定义字符串("{0} /{1},",事件玩家.slot_word[事件玩家.for1],事件玩家.slot_equipped[事件玩家.for1][事件玩家.for2]);	
+			End;
+		End;
+	}
+}
+
+规则("Click（1~5）-101 右翻")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuLoop == 101;
+		事件玩家.MenuActive >= 1;
+		事件玩家.MenuActive <= 5;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		If(事件玩家.MenuActive == 5);
+			事件玩家.MenuActive = 1;
+		Else;
+			事件玩家.MenuActive += 1;
+		End;
+		等待(0.250, 无视条件);
+	}
+}
+
+规则("Click（1~5）-102 左翻")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuLoop == 102;
+		事件玩家.MenuActive >= 1;
+		事件玩家.MenuActive <= 5;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		If(事件玩家.MenuActive == 1);
+			事件玩家.MenuActive = 4;
+		Else;
+			事件玩家.MenuActive += -1;
+		End;
+		等待(0.250, 无视条件);
+	}
+}
+
+规则("2-9")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[9] = 数组(0, -0.600);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("x属性面板x"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[9]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[9]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("2-10")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[10] = 数组(0, -0.400);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("——————{0}{1}——————", 英雄图标字符串(所用英雄(本地玩家)),
+			本地玩家), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[10]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[10])
+			* 本地玩家.MenuFlatBase2, 3, 不要截取, 可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("2-11")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[11] = 数组(0.350, -0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("攻击：{0}", 本地玩家.Shuxing[0], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[11]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[11])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 11 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 11), 自定义字符串("增加左右键的伤害", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-12")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[12] = 数组(-0.350, -0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("法强：{0}", 本地玩家.Shuxing[1], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[12]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[12])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 12 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 12), 自定义字符串("增加原生技能的伤害", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-13")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[13] = 数组(0.350, 0);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("生命：{0}", 本地玩家.Shuxing[2], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[13]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[13])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 13 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 13), 自定义字符串("获得额外生命值", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-14")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[14] = 数组(-0.350, 0);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("护甲：{0}", 本地玩家.Shuxing[3], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[14]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[14])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 14 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 14), 自定义字符串("抵抗敌人的左右键攻击", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-15")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[15] = 数组(0.350, 0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("魔抗：{0}", 本地玩家.Shuxing[4], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[15]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[15])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 15 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 15), 自定义字符串("抵抗敌人的技能伤害", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-16")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{	
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[16] = 数组(-0.350, 0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("敏捷：{0}", 本地玩家.Shuxing[5], 本地玩家), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[16]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[16])
+			* 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,  本地玩家.MenuLoop == 16 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuLoop == 16), 自定义字符串("增加移动速度", 空, 本地玩家), 逐帧更新(最后(
+			本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(210, 172, 233, 255), 默认可见度);
+	}
+}
+
+规则("2-17")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[17] = 数组(0, 0.400);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 2 && 当前数组元素.MenuActive <= 4), 自定义字符串("—————"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[17]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[17]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("2-20")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[20] = 数组(0.300, 0.600);
+	}
+}
+
+规则("Cam1")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 1;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(矢量(6.022, 10.930, -43.188), 矢量(4.661, 10.923, -43.366));//狐狸 配置
+		调用子程序(MenuBase);
+	}
+}
+
+规则("Cam2")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 2;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(眼睛位置(事件玩家) + 3 * 面朝方向(事件玩家), 眼睛位置(事件玩家));
+		调用子程序(MenuBase);
+	}
+}
+
+规则("Cam3")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 3;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(矢量(-18.125, 23.667, -3.250), 矢量(-19.109, 23.401, -4.500));//塔顶准备
+		调用子程序(MenuBase);
+	}
+}
+
+规则("Cam4")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 4;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(矢量(-60.295, 13.812, -27.380), 矢量(-61.186, 13.748, -27.396));//cam4 抽奖
+		调用子程序(MenuBase);
+	}
+}
+
+规则("Cam5")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.MenuActive == 5;
+	}
+
+	动作
+	{
+		事件玩家.MenuCameraNow = 数组(矢量(-49.269, 14.288, -2.062), 矢量(-48.738, 14.259, -2.062));// 小姐姐 准备
+		调用子程序(MenuBase);
+	}
+}
+
+规则("3-21")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[21] = 数组(0, 0.500);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 3 && 当前数组元素.MenuActive <= 4), 自定义字符串("↑{0}准备！", 输入绑定字符串(按钮(主要攻击模式))), 最后(
+			本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[21]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[21])
+			* 本地玩家.MenuFlatBase2, 2, 不要截取, 可见，位置，字符串和颜色, 颜色(白色), 默认可见度);
+	}
+}
+规则("3-18")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[18] = 数组(0, -0.600);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 3 && 当前数组元素.MenuActive <= 4), 自定义字符串("x集结界面x"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[18]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[18]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("3-19")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[19] = 数组(0, 0.200);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 3 && 当前数组元素.MenuActive <= 4), 自定义字符串(
+			"[\r\n         {0}\r\n                            ]\r\n          {1}", 本地玩家.OK == 0 ? 自定义字符串("未准备") : 自定义字符串("已准备"), 自定义字符串(
+			"{0}/{1}", 数量(已过滤的数组(所有玩家(队伍2), 当前数组元素.OK == 1)), 玩家数量(队伍2))), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[19])
+			* 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[19]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,
+			本地玩家.MenuLoop == 19 || 本地玩家.OK == 1 ? 颜色(绿色) : ((数量(本地玩家.bags) > 0 && 对全部为“真”(本地玩家.slot_equipped, 数量(当前数组元素) == 0)) ? 颜色(红色) : 颜色(灰色)), 默认可见度);
+	}
+}
+
+规则("3-103")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[103] = 数组(-0.700, 0.100);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 3 && 当前数组元素.MenuActive <= 4), 自定义字符串("在游戏过程中\r\n解锁撤离点\r\n蹲下拾取经验池\r\n均可升级，解锁对应等级装备",
+			输入绑定字符串(按钮(主要攻击模式))), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[103]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[103]) * 本地玩家.MenuFlatBase2, 2, 不要截取, 可见，位置，字符串和颜色, 颜色(黄色), 默认可见度);
+	}
+}
+
+规则("3-104")//提示玩家去分配装备
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[104] = 数组(0, -0.45);
+		创建地图文本(数量(本地玩家.bags) > 0 && 对全部为“真”(本地玩家.slot_equipped, 数量(当前数组元素) == 0) ? 已过滤的数组(所有玩家(所有队伍),当前数组元素.MenuActive == 3):空, 自定义字符串("（你还没有分配你的装备！！！）"), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[104]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[104]) * 本地玩家.MenuFlatBase2, 2, 不要截取, 可见，位置，字符串和颜色, 颜色(红色), 默认可见度);
+	}
+}
+
+规则("4-22")//普通抽奖券
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[22] = 数组(0.6, -0.4);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("{1}普通券 x {0}",本地玩家.tickets[0],本地玩家.Used_Ticket_ID == 0?图标字符串(箭头：向右):自定义字符串("")), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[22]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[22]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色,自定义颜色(220, 239, 245,  本地玩家.MenuLoop == 22 || 本地玩家.Used_Ticket_ID == 0 ? 255 : 150), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 本地玩家.MenuLoop == 22), 自定义字符串("能抽取普通装备池/属性池\r\n通过普通关奖励"), 逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取,
+			可见，位置，字符串和颜色, 颜色(亮紫色), 默认可见度);
+	}
+}
+
+规则("4-23")//稀有抽奖券
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[23] = 数组(0, -0.4);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("{1}稀有券 x {0}",本地玩家.tickets[1],本地玩家.Used_Ticket_ID == 1?图标字符串(箭头：向右):自定义字符串("")), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[23]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[23]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(110, 198, 232,  本地玩家.MenuLoop == 23 || 本地玩家.Used_Ticket_ID == 1 ? 255 : 150), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 本地玩家.MenuLoop == 23), 自定义字符串("能抽取稀有装备池/属性池\r\n通过稀有关奖励"), 逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取,
+			可见，位置，字符串和颜色, 颜色(亮紫色), 默认可见度);
+	}
+}
+
+规则("4-24")//传奇抽奖券
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[24] = 数组(-0.6, -0.4);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("{1}传奇券 x {0}",本地玩家.tickets[2],本地玩家.Used_Ticket_ID == 2?图标字符串(箭头：向右):自定义字符串("")), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[24]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[24]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(241, 127, 55,  本地玩家.MenuLoop == 24 || 本地玩家.Used_Ticket_ID == 2 ? 255 : 150), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 本地玩家.MenuLoop == 24 ), 自定义字符串("能抽取传奇装备池/属性池\r\n通过传奇关奖励"), 逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取,
+			可见，位置，字符串和颜色, 颜色(亮紫色), 默认可见度);
+	}
+}
+
+规则("4-25")//装备抽奖
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[25] = 数组(0.3, -0.1);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("{0}装备抽奖",技能图标字符串(英雄(安娜), 按钮(近身攻击))), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[25]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[25]) * 本地玩家.MenuFlatBase2, 3.5, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == 25 ? 颜色(黄色) : 自定义颜色(207, 145, 245, 255), 默认可见度);
+	}
+}
+
+规则("4-26")//属性抽奖
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[26] = 数组(-0.3, -0.1);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("{0}属性抽奖",技能图标字符串(英雄(西格玛), 按钮(技能1))), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[26]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[26]) * 本地玩家.MenuFlatBase2, 3.5, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == 26 ? 颜色(黄色) : 自定义颜色(207, 145, 245, 255), 默认可见度);
+	}
+}
+
+规则("4-27")//神秘商店
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[27] = 数组(0, -0.600);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 当前数组元素.MenuActive <= 4), 自定义字符串("x神秘商店x"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[27]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[27]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("4-28")//奖池1
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[28] = 数组(0.400, 0.2);
+
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4), 自定义字符串("-{0}\r", 本地玩家.Draw_Result[0] == 0 ? 自定义字符串(
+			"（空）") : 本地玩家.Draw_Result[0]), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[28]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[28]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, (本地玩家.MenuLoop == 28 || 本地玩家.Draw_Choosing_ID == 0) && 本地玩家.Draw_Result[0] != 0 ? 颜色(黄色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("4-29")//奖池2
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[29] = 数组(0.4, 0.35);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4), 自定义字符串("-{0}\r", 本地玩家.Draw_Result[1] == 0 ? 自定义字符串(
+			"（空）") : 本地玩家.Draw_Result[1]), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[29]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[29]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, (本地玩家.MenuLoop == 29 || 本地玩家.Draw_Choosing_ID == 1) && 本地玩家.Draw_Result[1] != 0 ? 颜色(黄色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("4-30")//奖池3
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[30] = 数组(0.400, 0.5);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4), 自定义字符串("-{0}\r", 本地玩家.Draw_Result[2] == 0 ? 自定义字符串(
+			"（空）") : 本地玩家.Draw_Result[2]), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[30]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[30]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, (本地玩家.MenuLoop == 30 || 本地玩家.Draw_Choosing_ID == 2) && 本地玩家.Draw_Result[2] != 0 ? 颜色(黄色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("4-31")//分割线1
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[31] = 数组(0, -0.2);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4), 自定义字符串("— — — — — — — — — —"),最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[31]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[31]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, 颜色(白色), 默认可见度);
+	}
+}
+
+规则("4-32")//奖品描述
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[32] = 数组(-0.4, 0.55);
+		//装备
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 本地玩家.Draw_Result[本地玩家.Draw_Choosing_ID] != 0 && 本地玩家.Draw_type == 1),自定义字符串("//\r\n {0}\r\n\r\n/\r\n长按互动确认选择",映射的数组(全局.equipment_pool[本地玩家.Used_Ticket_ID], 当前数组元素[2])
+			[数组值的索引(映射的数组(全局.equipment_pool[本地玩家.Used_Ticket_ID], 当前数组元素[0]), 本地玩家.Draw_Result[本地玩家.Draw_Choosing_ID])]),最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[32]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[32]) * 本地玩家.MenuFlatBase2, 2.5, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(235, 218, 245, 255), 默认可见度);
+		//属性
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4 && 本地玩家.Draw_Result[本地玩家.Draw_Choosing_ID] != 0 && 本地玩家.Draw_type == 2),自定义字符串("//\r\n\r\n {0}\r\n\r\n/\r\n长按互动确认选择",全局.Shuxing_DEScr[数组值的索引(全局.Shuxing_Name, 截取字符串(本地玩家.Draw_Result[本地玩家.Draw_Choosing_ID], 0, 2))]), 最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[32]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[32]) * 本地玩家.MenuFlatBase2, 2.5, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(235, 218, 245, 255), 默认可见度);
+	}
+}
+
+规则("4-33")//分割线2
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.MenuBottonCoordinate[33] = 数组(0, 0.1);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 4), 自定义字符串("——— ———"),最后(本地玩家.MenuCameraNow) + 首个(全局.MenuBottonCoordinate[33]) * 本地玩家.MenuFlatBase1 + 最后(
+			全局.MenuBottonCoordinate[33]) * 本地玩家.MenuFlatBase2, 4, 不要截取, 可见，位置，字符串和颜色, 颜色(白色), 默认可见度);
+	}
+}
+
+规则("5-50")//导航菜单
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[50] = 数组(0, -0.600);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 5), 自定义字符串("x导航菜单x"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[50]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[50]) * 本地玩家.MenuFlatBase2, 4, 不要截取,
+			可见，位置，字符串和颜色, 本地玩家.MenuLoop == -1 ? 颜色(橙色) : 颜色(白色), 默认可见度);
+	}
+}
+
+规则("5-51")//1-配置界面
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[51] = 数组(-0.1, -0.3);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 5), 自定义字符串("/配置界面\r\n  获取装备后需要在这个界面进行战前配备才能使用"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[51]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[51]) * 本地玩家.MenuFlatBase2, 3, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(214, 180, 236, 255), 默认可见度);
+	}
+}
+
+规则("5-52")//2-属性界面
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[52] = 数组(-0.1, -0.05);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 5), 自定义字符串("//属性界面\r\n  用以查看玩家当前的属性（装备的属性在局内才会附加）"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[52]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[52]) * 本地玩家.MenuFlatBase2, 3, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(214, 180, 236, 255), 默认可见度);
+	}
+}
+
+规则("5-53")//3-集结界面
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[53] = 数组(-0.1, 0.2);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 5), 自定义字符串("///集结界面\r\n  当所有玩家配置好了战前准备，才可开始下一关卡"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[53]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[53]) * 本地玩家.MenuFlatBase2, 3, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(214, 180, 236, 255), 默认可见度);
+	}
+}
+
+规则("5-53")//2-属性界面
+{	
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		"确定按钮 - 0"
+		全局.MenuBottonCoordinate[54] = 数组(-0.1, 0.45);
+		创建地图文本(已过滤的数组(所有玩家(所有队伍), 当前数组元素.MenuActive == 5), 自定义字符串("///神秘商店\r\n  角色唯一的提升途径，可以获得装备和属性"), 最后(本地玩家.MenuCameraNow) + 首个(
+			全局.MenuBottonCoordinate[54]) * 本地玩家.MenuFlatBase1 + 最后(全局.MenuBottonCoordinate[54]) * 本地玩家.MenuFlatBase2, 3, 不要截取,
+			可见，位置，字符串和颜色, 自定义颜色(214, 180, 236, 255), 默认可见度);
+	}
+}
+
+规则("Click3-19 准备/取消准备")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 3;
+		事件玩家.MenuLoop == 19;
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		"下翻"
+		禁用 Else If(事件玩家.MenuLoop == 3);
+		If(事件玩家.OK != 1);
+			事件玩家.OK = 1;
+			小字体信息(事件玩家, 自定义字符串("已准备，等待所有人准备即可开始游戏", 英雄图标字符串(所用英雄(事件玩家)), 事件玩家));
+		Else;
+			小字体信息(事件玩家, 自定义字符串("你取消了准备，不要让队友等待太久！", 英雄图标字符串(所用英雄(事件玩家)), 事件玩家));
+			事件玩家.OK = 0;
+		End;
+	}
+}
+
+规则("Click4-22-24")//选中奖券
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 4;
+		事件玩家.MenuLoop >= 22;
+		已重生(事件玩家) == 真;
+		事件玩家.MenuLoop <= 24;
+		事件玩家.Draw_Result == 0;
+	}
+
+	动作
+	{
+
+		If(事件玩家.MenuLoop == 22);
+			事件玩家.Used_Ticket_ID = 0;
+		Else If(事件玩家.MenuLoop == 23);
+			事件玩家.Used_Ticket_ID = 1;
+		Else If(事件玩家.MenuLoop == 24);
+			事件玩家.Used_Ticket_ID = 2;
+		End;
+
+		If(事件玩家.tickets[事件玩家.Used_Ticket_ID] == 0);
+			播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("你没有该种类型的抽奖券了，请闯关获得"));
+		Else;
+			播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("已选中{0}抽奖券",数组(自定义字符串("普通"),自定义字符串("稀有"),自定义字符串("传奇"))[事件玩家.Used_Ticket_ID]));
+		End;
+
+	}
+}
+
+规则("Click4-25")//装备抽奖
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 4;
+		事件玩家.MenuLoop == 25;
+		已重生(事件玩家) == 真;
+		事件玩家.Draw_Result == 0;
+	}
+
+	动作
+	{
+		If(事件玩家.tickets[事件玩家.Used_Ticket_ID] > 0);
+			事件玩家.tickets[事件玩家.Used_Ticket_ID] += -1;
+			播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			调用子程序(Draw_equipment);
+			事件玩家.Draw_type = 1;
+			播放效果(事件玩家, 有益爆炸, 颜色(黄色), 最后(事件玩家.MenuCameraNow), 0.5);
+		Else;
+			播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("该种类型的抽奖券用完了，请重新选择"));
+		End;
+	}
+}
+
+规则("Click4-26")//属性抽奖
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 4;
+		事件玩家.MenuLoop == 26;
+		已重生(事件玩家) == 真;
+		事件玩家.Draw_Result == 0;
+	}
+
+	动作
+	{
+		If(事件玩家.tickets[事件玩家.Used_Ticket_ID] > 0);
+			事件玩家.tickets[事件玩家.Used_Ticket_ID] += -1;
+			播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			调用子程序(Draw_attribute);
+			事件玩家.Draw_type = 2;
+			播放效果(事件玩家, 有益爆炸, 颜色(黄色), 最后(事件玩家.MenuCameraNow), 0.5);
+		Else;
+			播放效果(事件玩家, 负面状态施加声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			小字体信息(事件玩家, 自定义字符串("该种类型的抽奖券用完了，请重新选择"));
+		End;
+	}
+}
+
+规则("Click4-28-30")//选中奖品
+{	
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(主要攻击模式)) == 真;
+		事件玩家.MenuActive == 4;
+		事件玩家.MenuLoop >= 28;
+		已重生(事件玩家) == 真;
+		事件玩家.MenuLoop <= 30;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, “士兵：76”疾跑开始声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+		If(事件玩家.MenuLoop == 28 && 事件玩家.Draw_Result[0] != 0);
+		事件玩家.Draw_Choosing_ID = 0;
+		Else If(事件玩家.MenuLoop == 29 && 事件玩家.Draw_Result[1] != 0);
+		事件玩家.Draw_Choosing_ID = 1;
+		Else If(事件玩家.MenuLoop == 30 && 事件玩家.Draw_Result[2] != 0);
+		事件玩家.Draw_Choosing_ID = 2;
+		End;
+	}
+}
+
+规则("-Click4-28-30")//确认奖品
+{	
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		按钮被按下(事件玩家, 按钮(互动)) == 真;
+		事件玩家.MenuActive == 4;
+		事件玩家.Draw_Result[事件玩家.Draw_Choosing_ID] != 0;
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		等待(0.250, 当为“假”时中止);
+		播放效果(事件玩家, 有益爆炸, 颜色(黄色), 最后(事件玩家.MenuCameraNow), 0.5);
+			If(事件玩家.Draw_type == 1);//说明此次是装备抽签
+				修改玩家变量(事件玩家, bags, 添加至数组, 事件玩家.Draw_Result[事件玩家.Draw_Choosing_ID]);
+				小字体信息(事件玩家, 自定义字符串("已获取 {0}",事件玩家.Draw_Result[事件玩家.Draw_Choosing_ID]));
+				播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			Else If(事件玩家.Draw_type == 2);//说明此次是属性抽签
+				事件玩家.Shuxing[事件玩家.Draw_pool[事件玩家.Draw_Choosing_ID][0]] += 事件玩家.Draw_pool[事件玩家.Draw_Choosing_ID][1];
+				小字体信息(事件玩家, 自定义字符串("已获取 {0}",事件玩家.Draw_Result[事件玩家.Draw_Choosing_ID]));
+				播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 首个(事件玩家.MenuCameraNow), 175);
+			End;
+			等待(0.250, 无视条件);
+			事件玩家.Draw_Result = 0;
+		End;
+	}
+}
+
+规则("创建指针")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建地图文本(已过滤的数组(本地玩家, 当前数组元素.MenuCursorVisable == 1), 自定义字符串("(+)"), 逐帧更新(最后(本地玩家.MenuCameraNow) + 水平朝向角度(本地玩家)
+			/ 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase1 + 垂直朝向角度(本地玩家) / 本地玩家.MenuCursorSensibility * 本地玩家.MenuFlatBase2), 2, 不要截取,
+			可见，位置，字符串和颜色, 颜色(白色), 默认可见度);
+	}
+}
+
+规则("——————流程——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("子程序LoadingCartoon 任务加载镜头")
+{
+	事件
+	{
+		子程序;
+		LoadingCartoon;
+	}
+
+	动作
+	{
+		事件玩家.LoadingVisable1 = 0;
+		持续追踪玩家变量(事件玩家, LoadingVisable1, 1, 5, 终点及持续时间);
+		隐藏英雄HUD(事件玩家);
+		开始镜头(事件玩家, 矢量(14.400, 1, 19), 矢量(14, 1.400, 20), 25);
+		设置状态(事件玩家, 空, 定身, 6);
+		While(事件玩家.LoadingVisable1 < 1);
+			播放效果(所有玩家(所有队伍), “死神”幽灵形态声音, 颜色(白色), 矢量(14, 1.400, 20), 较大(40, 事件玩家.LoadingVisable1 * 170));
+			"plan A"
+			播放效果(所有玩家(所有队伍), “士兵：76”疾跑开始声音, 颜色(白色), 矢量(14, 1.400, 20), 较大(40, 事件玩家.LoadingVisable1 * 170));
+			等待(0.200, 无视条件);
+		End;
+		停止追踪玩家变量(事件玩家, LoadingVisable1);
+		事件玩家.LoadingVisable1 = 0;
+		等待(0.300, 无视条件);
+		事件玩家.LoadingVisable2 = 0;
+		持续追踪玩家变量(事件玩家, LoadingVisable2, 1, 5, 终点及持续时间);
+		停止镜头(事件玩家);
+		播放效果(事件玩家, 莫伊拉消散消失声音, 颜色(白色), 事件玩家, 200);
+		播放效果(事件玩家, 莫伊拉消散消失声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		等待直到 (事件玩家.LoadingVisable2 == 1, 4);
+		停止追踪玩家变量(事件玩家, LoadingVisable2);
+		事件玩家.LoadingVisable2 = 0;
+		显示英雄HUD(事件玩家);
+		设置终极技能充能(事件玩家, 0);
+		调用子程序(ThirdPerson);
+	}
+}
+
+规则("任务加载HUD")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建地图文本(已过滤的数组(所有玩家(队伍2), 当前数组元素.LoadingVisable1 > 0), 自定义字符串("正在加载任务{0}", 截取字符串(自定义字符串("......"), 0, 总计消耗时间 % 6)), 矢量(14, 1.400,
+			20), 4, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(139 + 101 * 本地玩家.LoadingVisable1, 134 + 121 * 本地玩家.LoadingVisable1,
+			130 + 125 * 本地玩家.LoadingVisable1, 255), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(队伍2), 当前数组元素.LoadingVisable2 > 0), 自定义字符串("——————撤离开始——————\n\n                        {0}", 全局.CurrentRoom), 逐帧更新(
+			眼睛位置(本地玩家) + 面朝方向(本地玩家) * 10), 4, 不要截取, 可见，位置，字符串和颜色, 自定义颜色(178, 34, 34, 255 * (1 - 本地玩家.LoadingVisable2)), 默认可见度);
+		创建地图文本(已过滤的数组(所有玩家(队伍2), 当前数组元素.DefeatVisable3 > 0), 自定义字符串("任务失败{0}", 图标字符串(剧毒)), 矢量(14, 1.400, 20), 4, 不要截取, 可见，位置，字符串和颜色, 颜色(
+			红色), 默认可见度);
+	}
+}
+
+规则("子程序 DefeatCartoon")
+{
+	事件
+	{
+		子程序;
+		DefeatCartoon;
+	}
+
+	动作
+	{
+		开始镜头(事件玩家, 矢量(14.400, 1, 19), 矢量(14, 1.400, 20), 25);
+		事件玩家.DefeatVisable3 = 1;
+		等待(3, 无视条件);
+		停止镜头(事件玩家);
+		播放效果(事件玩家, 莫伊拉消散消失声音, 颜色(白色), 事件玩家, 200);
+		播放效果(事件玩家, 莫伊拉消散消失声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		事件玩家.DefeatVisable3 = 0;
+	}
+}
+
+规则("子程序 VictoryCartoon")
+{
+	事件
+	{
+		子程序;
+		VictoryCartoon;
+	}
+
+	动作
+	{
+		等待直到 (在地面上(事件玩家), 1);
+		大字体信息(事件玩家, 自定义字符串("任务胜利！\n\n                        即将返回"));
+		开始镜头(事件玩家, 眼睛位置(事件玩家) + 地图矢量(矢量(-0.500, -0.200, 2), 事件玩家, 旋转), 眼睛位置(事件玩家), 20);
+		播放效果(事件玩家, 有害爆炸, 颜色(白色), 地图矢量(矢量(随机实数(-1, 1), -1, 随机实数(-1, -2)), 事件玩家, 旋转并转换), 1);
+		播放效果(事件玩家, 有害爆炸, 颜色(白色), 地图矢量(矢量(随机实数(-1, 1), -1, 随机实数(-1, -2)), 事件玩家, 旋转并转换), 1);
+		播放效果(事件玩家, 有害爆炸, 颜色(白色), 地图矢量(矢量(随机实数(-1, 1), -1, 随机实数(-1, -2)), 事件玩家, 旋转并转换), 1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		等待(0.300, 无视条件);
+		播放效果(事件玩家, “破坏球”地雷禁区爆炸声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		播放效果(事件玩家, 半藏音初始脉冲声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		播放效果(事件玩家, 半藏音初始脉冲声音, 颜色(白色), 地图矢量(矢量(0, 0, 0), 事件玩家, 旋转并转换), 200);
+		等待(6, 无视条件);
+		复活(事件玩家);
+		传送(事件玩家, 最近的可行走位置(事件玩家));
+		禁用 传送(事件玩家, 上);
+		停止镜头(事件玩家);
+	}
+}
+
+规则("玩家-全准备后")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		
+		(假 || 对全部为“真”(所有玩家(队伍2), 当前数组元素.OK && 已重生(当前数组元素))) == 真;
+		玩家数量(队伍2) > 0;
+	}
+
+	动作
+	{
+			调用子程序(MenuClose);
+			调用子程序(LoadingCartoon);
+			调用子程序(Agility);
+	}
+}
+
+规则("全局-全准备后")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		(假 || 对全部为“真”(所有玩家(队伍2), 当前数组元素.OK && 已重生(当前数组元素))) == 真;
+		总计消耗时间 > 10;
+		玩家数量(队伍2) > 0;
+	}
+
+	动作
+	{
+			全局.CurrentRoom = 0;
+			全局.CurrentRoom = 全局.RoomAll[全局.RoomLayer];
+			全局.GameState = 1; //加载
+			传送(所有玩家(队伍2), 数组随机取值(全局.nodes_location));
+			等待(5, 无视条件);
+			全局.GameState = 2; //关卡
+
+	}
+}
+
+规则("默认那么-杀完所有人以后&&撤离完成开始下一关")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		玩家数量(队伍1) == 0;
+		全局.GameState == 2;
+		玩家数量(队伍2) > 0;
+		全局.Quitting_stage >= 3;
+	}
+
+	动作
+	{
+		等待(3, 当为“假”时中止);
+		全局.RoomLayer += 1;
+		全局.GameState = 3;
+		全局.CurrentRoom = 0;
+	}
+}
+
+
+
+规则("重生 第一次")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		游戏正在进行中 == 真;
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		禁用 等待(3, 无视条件);
+		If(全局.GameState > 0);
+			传送(事件玩家, 数组随机取值(事件玩家.nodes_location));
+		Else;
+			事件玩家.MenuActive = 5;
+			调用子程序(MenuOpen);
+		End;
+		等待(99999, 无视条件);
+	}
+}
+
+
+
+规则("玩家 胜利后 vicory&open")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 3;
+	}
+
+	动作
+	{
+		事件玩家.level = 0;
+		调用子程序(VictoryCartoon);
+		事件玩家.MenuActive = 5;
+		调用子程序(MenuOpen);
+	}
+}
+
+规则("全局 胜利后 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 3;
+	}
+
+	动作
+	{
+		等待(1, 无视条件);
+		全局.GameState = 0;
+		所有玩家(队伍2).OK = 0;
+		全局.Timestart = 90;
+		追踪全局变量频率(Timestart, 0, 1, 速率及最终值);
+	}
+}
+
+规则("全局 胜利后 发放奖励券")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 3;
+	}
+
+	动作
+	{
+		If(全局.RoomLayer % 3 == 1);
+			所有玩家(所有队伍).tickets[0] += 1;
+			小字体信息(所有玩家(所有队伍), 自定义字符串("已发放普通抽奖券"));
+		Else If(全局.RoomLayer % 3 == 2);
+			所有玩家(所有队伍).tickets[1] += 1;
+			小字体信息(所有玩家(所有队伍), 自定义字符串("已发放稀有抽奖券"));
+		Else If(全局.RoomLayer % 3 == 0);
+			所有玩家(所有队伍).tickets[2] += 1;
+			小字体信息(所有玩家(所有队伍), 自定义字符串("已发放传奇抽奖券"));
+		End;
+	}
+}
+
+规则("中途加入的玩家补偿奖励券")
+{
+	事件
+	{
+		玩家加入比赛;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		全局.RoomLayer > 0;
+	}
+
+	动作
+	{
+		事件玩家.tickets[0] = 取整(全局.RoomLayer/3, 上);
+		事件玩家.tickets[1] = 取整(全局.RoomLayer+1/3, 下);
+		事件玩家.tickets[2] = 取整(全局.RoomLayer/3, 下);
+		小字体信息(所有玩家(所有队伍), 自定义字符串("因为你中途加入，我们贴心地为你补发了抽奖券"));
+	}
+}
+
+
+
+
+规则("——————经验池——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("经验初始化，每个玩家")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家.level = 0;
+	}
+}
+
+规则("经验池不断生成-关卡中时")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		数量(全局.EXP_location) <= 数量(所有玩家(队伍2));
+	}
+
+	动作
+	{
+		
+		修改全局变量(EXP_location, 添加至数组, 数组随机取值(全局.nodes_location));
+		修改全局变量(EXP_stacks, 添加至数组, 随机整数(1, 2));
+		等待(随机实数(15, 35), 无视条件);
+		如条件为“真”则循环;
+	}
+
+		
+
+}
+
+规则("经验池初始化，每关开始")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		全局.EXP_location = 空数组;
+		全局.EXP_stacks = 空数组;
+	}
+}
+
+规则("经验池全局初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		For 全局变量(EXP_for, 0, 6, 1);//数量最多6个
+		创建效果(与(全局.GameState == 2, 全局.EXP_location[单次赋值(全局.EXP_for)] != 0) ?所有玩家(所有队伍):空, 环, 颜色(青绿色), 数组中的值(全局.EXP_location, 单次赋值(全局.EXP_for)), 2, 可见，位置和半径);
+		//绿色或橙色经验球球显示
+		创建图标(与(全局.GameState == 2, 全局.EXP_location[单次赋值(全局.EXP_for)] != 0) ?所有玩家(所有队伍):空, 全局.EXP_location[单次赋值(全局.EXP_for)] +矢量(0, 1.5, 0), 火焰, 可见和位置, 全局.EXP_stacks[单次赋值(全局.EXP_for)] >= 2 ?颜色(橙色):颜色(绿色), 假);
+		创建地图文本(与(全局.GameState == 2, 全局.EXP_location[单次赋值(全局.EXP_for)] != 0) ?所有玩家(所有队伍):空, 自定义字符串("{0}",全局.EXP_stacks[单次赋值(全局.EXP_for)])
+		, 全局.EXP_location[单次赋值(全局.EXP_for)] +矢量(0, 1, 0), 1.5, 根据表面截取, 可见，位置和字符串, 颜色(白色), 默认可见度);
+		//图标提示玩家这里有经验矿
+		End;
+	}
+
+}
+
+规则("玩家按蹲拾取升级")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		正在蹲下(事件玩家) == 真;
+		在地面上(事件玩家) == 真;
+		事件玩家.level < 10;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		If(对任意为“真”(全局.EXP_location, 相距距离(当前数组元素, 事件玩家) <= 2) == 真);
+		事件玩家.EXP_ID = 数组值的索引(全局.EXP_location, 首个(已排序的数组(全局.EXP_location, 相距距离(当前数组元素, 事件玩家))));
+		事件玩家.level = 较小(10, 事件玩家.level + 全局.EXP_stacks[事件玩家.EXP_ID]);
+		修改全局变量(EXP_location, 根据索引从数组中移除, 事件玩家.EXP_ID);
+		修改全局变量(EXP_stacks, 根据索引从数组中移除, 事件玩家.EXP_ID);
+		播放效果(事件玩家, 布丽吉塔恢复包护甲声音, 颜色(白色), 所选位置(事件玩家), 150);
+		播放效果(所有玩家(所有队伍), 有益选择效果, 颜色(绿色), 事件玩家, 1);
+		小字体信息(事件玩家, 自定义字符串("升级成功！你目前的等级是{0}",事件玩家.level));
+		设置状态(事件玩家, 空, 击晕, 0.5);
+		End;
+	}
+}
+
+规则("——————撤离点模块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("当前撤离进度HUD全局初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2), 全局.Quitting_percent_stage == 0?自定义字符串("            \r\n      {0}      \r\n",自定义字符串("激活撤离点！")):全局.Quitting_stage == 3?自定义字符串("            \r\n      清扫剩余怪物！      \r\n"):自定义字符串("            \r\n        撤离已激活       \r\n        :{0}%\r\n",全局.Quitting_percent_stage, 全局.Quitting_stage, 3), 全局.CurrentRoom, 自定义字符串("{0}/{1}", 全局.Quitting_stage, 3), 顶部, -1, 颜色(白色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+	}
+}
+
+规则("撤离点特效初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建效果((全局.GameState == 2 && 全局.Quitting_percent_stage > 0 ) ?所有玩家(所有队伍):空, 球体, 颜色(红色), 全局.Quitting_Locations[全局.Quitting_stage], 全局.Cage_Large, 可见，位置和半径);
+		//撤离点
+		创建效果((全局.GameState == 2 && 全局.Quitting_stage <= 2) ?所有玩家(所有队伍):空, 环, 颜色(白色), 全局.Quitting_Locations[全局.Quitting_stage], 4.2, 可见，位置和半径);
+		创建效果((全局.GameState == 2 && 全局.Quitting_stage <= 2) ?所有玩家(所有队伍):空, 球体, 颜色(白色), 全局.Quitting_Locations[全局.Quitting_stage], 4, 可见，位置和半径);
+		//进入环内的互动提示以及进度条提示
+		创建进度条地图文本((全局.GameState == 2 && 全局.Quitting_stage <= 2) ? 已过滤的数组(所有玩家(所有队伍), 相距距离(全局.Quitting_Locations[全局.Quitting_stage], 当前数组元素) <= 4):空, 全局.Quitting_percent_stage, 自定义字符串("待在撤离点之中可以加速撤离"), 眼睛位置(本地玩家) + 10 * 面朝方向(本地玩家) + 地图矢量(矢量(0, -2, 0), 本地玩家, 旋转), 2, 不要截取, 自定义颜色(220 + 0.350 * 全局.Quitting_percent_stage, 20 + 1.450 * 全局.Quitting_percent_stage,
+		60 + -0.600 * 全局.Quitting_percent_stage, 255), 颜色(白色), 可见，值和颜色, 默认可见度);
+		//图标提示玩家这里是撤离点	
+		创建图标(已过滤的数组(所有玩家(所有队伍), (在视线内(全局.Quitting_Locations[全局.Quitting_stage], 眼睛位置(当前数组元素), 屏障不会阻挡视线) != 真) && 全局.GameState == 2 && 全局.Quitting_stage <= 2), 全局.Quitting_Locations[全局.Quitting_stage], 箭头：向下, 可见，位置和颜色, 
+		(取整(总计消耗时间, 上) % 2 == 1)&&(全局.Quitting_percent_stage == 0) ? 颜色(红色) : (全局.Quitting_percent_stage == 0 ? 颜色(蓝色) : 颜色(绿色)),真);
+	}
+}
+
+规则("撤离点重置初始化（every 准备阶段）")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 1;
+	}
+
+	动作
+	{
+		全局.Quitting_Locations[0] = 数组随机取值(全局.nodes_location);
+		全局.Quitting_Locations[1] = 数组随机取值(已过滤的数组(全局.nodes_location, 相距距离(当前数组元素, 全局.Quitting_Locations[0]) >= 40));
+		全局.Quitting_Locations[2] = 数组随机取值(已过滤的数组(全局.nodes_location, 相距距离(当前数组元素, 全局.Quitting_Locations[0]) >= 40 && 相距距离(当前数组元素, 全局.Quitting_Locations[1]) >= 40));
+		全局.Quitting_percent_stage = 0;
+		全局.Quitting_stage = 0;
+	}
+}
+
+规则("撤离点加进度-自动")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		数量(已过滤的数组(所有存活玩家(队伍2), 相距距离(全局.Quitting_Locations[全局.Quitting_stage], 当前数组元素) <= 4)) >= 1;
+		全局.GameState == 2;
+		全局.Quitting_Locations[全局.Quitting_stage] != 0;
+	}
+
+	动作
+	{
+		全局.Cage_Large = 0;
+		持续追踪全局变量(Cage_Large, 200, 2.5, 终点及持续时间);
+		While(全局.Quitting_percent_stage < 100);
+		全局.Quitting_percent_stage += 0.05;
+		等待(0.05, 无视条件);
+		End;
+	}
+}
+
+规则("撤离点加进度-玩家")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		相距距离(全局.Quitting_Locations[全局.Quitting_stage], 事件玩家) <= 4;
+		存活(事件玩家) == 真;
+	}
+
+	动作
+	{
+		全局.Quitting_percent_stage += 0.05*4/较小(玩家数量(队伍2),3);
+		等待(0.05, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+规则("当撤离点被激活的时候触发升级")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.Quitting_percent_stage > 0;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		等待(0.250, 当为“假”时中止);
+		事件玩家.level = 较小(10, 事件玩家.level + 数组(2,3,5)[全局.Quitting_stage]);//根据撤离点顺序加不同的等级
+		播放效果(事件玩家, 状态爆炸声音, 颜色(白色), 所选位置(事件玩家), 150);
+		播放效果(所有玩家(所有队伍), 有益选择效果, 颜色(绿色), 事件玩家, 1);
+		大字体信息(事件玩家, 自定义字符串("当前撤离已开始\r\n  请抵抗来临的怪物！"));
+		小字体信息(事件玩家, 自定义字符串("因为撤离点被激活，等级来到了{0}级",事件玩家.level));
+
+	}
+}
+
+规则("撤离点进度满了就clear切stage")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.Quitting_percent_stage >= 100;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		等待(0.250, 无视条件);
+
+		全局.Quitting_percent_stage = 0;
+		全局.Quitting_stage += 1;
+		播放效果(所有玩家(所有队伍), 半藏音初始脉冲效果, 颜色(队伍2), 全局.Quitting_Locations[全局.Quitting_stage], 1);
+		播放效果(所有玩家(所有队伍), 半藏音初始脉冲效果, 颜色(队伍2), 全局.Quitting_Locations[全局.Quitting_stage], 1);
+		播放效果(所有玩家(所有队伍), 半藏音初始脉冲效果, 颜色(队伍2), 全局.Quitting_Locations[全局.Quitting_stage], 1);
+		播放效果(所有玩家(所有队伍), 半藏音初始脉冲效果, 颜色(队伍2), 全局.Quitting_Locations[全局.Quitting_stage], 1);
+		播放效果(所有玩家(所有队伍), “破坏球”地雷禁区爆炸声音, 颜色(队伍2), 全局.Quitting_Locations[全局.Quitting_stage], 125);
+		If(全局.Quitting_stage == 3);
+		中止;
+		End;
+		等待(0.250, 无视条件);
+		If(全局.Quitting_stage < 2);
+		大字体信息(所有玩家(所有队伍), 自定义字符串("请前往下一个撤离点！\n                       {0}/3", 全局.Quitting_stage));
+		End;
+	}
+}
+
+规则("关卡撤离点加载完成以后，提示")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		玩家数量(队伍2) > 0;
+		全局.Quitting_stage == 3;
+	}
+
+	动作
+	{
+		大字体信息(所有玩家(所有队伍), 自定义字符串("清扫剩下的怪物！！！"));
+	}
+}
+
+规则("——————寻路模块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("铁阪节点")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.nodes_location = 空数组;
+		"//0-9"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-31.290, 4.550, 39.807));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-16.279, 6.500, 39.847));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-5.221, 8.500, 44.289));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-6.166, 10.500, 34.596));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-11.134, 10.551, 30.036));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-8.087, 10.549, 26.945));
+		修改全局变量(nodes_location, 添加至数组, 矢量(1.377, 7.549, 21.287));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-1.349, 6.390, 17.047));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-18.548, 6.389, 28.763));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-31.655, 6.389, 31.343));
+		"//10-19"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-44.665, 6.549, 33.206));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-46.938, 6.551, 23.636));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-13.292, 11.049, 19.126));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-6.143, 6.391, 12.208));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-14.892, 6.554, 16.419));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-19.007, 6.389, 9.551));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-11.718, 6.412, 4.259));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-3.138, 6.550, -7.425));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-18.857, 6.401, 5.647));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-28.181, 6.549, 21.746));
+		"//20-29"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-27.681, 6.391, 14.610));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-52.338, 8.549, 30.984));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-54.125, 8.550, 9.823));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-48.976, 8.549, 9.416));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-51.312, 9.550, 3.457));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-54.546, 9.549, -1.917));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-49.097, 9.550, -1.921));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-50.950, 9.550, -7.525));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-50.835, 11.549, -13.038));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-25.336, 8.551, 9.252));
+		"//30-39"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-27.676, 10.549, 2.481));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-19.347, 10.550, -4.126));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-19.564, 10.549, -9.575));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-30.795, 11.442, -9.139));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-44.277, 11.550, -12.613));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-41.065, 6.389, 9.838));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-41.037, 7.549, -6.545));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-37.735, 7.553, -22.837));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-36.786, 7.549, -36.927));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-37.382, 6.397, 6.624));
+		"//40-49"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-35.447, 6.391, -14.324));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-21.048, 6.390, -12.974));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-28.142, 6.390, -3.294));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-30.376, 7.105, -8.964));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-7.838, 6.551, -15.830));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-2.463, 6.549, 8.341));
+		修改全局变量(nodes_location, 添加至数组, 矢量(7.648, 7.246, 8.326));
+		修改全局变量(nodes_location, 添加至数组, 矢量(11.751, 9.551, 1.479));
+		修改全局变量(nodes_location, 添加至数组, 矢量(3.309, 6.551, -9.988));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-2.024, 6.550, -13.651));
+		"//50-59"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-39.958, 7.550, -15.285));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-58.609, 11.549, -14.503));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-57.234, 11.549, -23.874));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-56.951, 11.550, -35.874));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-50.900, 11.549, -36.586));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-50.398, 13.500, -27.583));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-52.027, 13.624, -24.327));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-43.254, 13.500, -21.076));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-44.324, 11.550, -35.959));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-40.466, 10.550, -29.658));
+		"//60-69"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-35.818, 10.547, -29.414));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-21.072, 10.550, -26.188));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-21.842, 10.549, -19.463));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-11.877, 10.561, -34.012));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-0.602, 9.549, -46.427));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-9.527, 10.594, -30.879));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-12.894, 8.551, -25.437));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-7.327, 6.550, -19.952));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-7.069, 6.549, -29.373));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-11.953, 6.550, -33.415));
+		"//70-79"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-16.072, 6.551, -27.655));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-22.544, 6.500, -30.631));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-32.521, 7.550, -43.923));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-29.732, 8.549, -36.950));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-30.307, 7.549, -48.414));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-26.348, 6.391, -45.107));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-42.474, 9.549, -51.589));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-34.693, 8.083, -50.797));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-14.789, 7.578, -52.390));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-9.133, 7.550, -49.368));
+		"//80-89"
+		修改全局变量(nodes_location, 添加至数组, 矢量(6.421, 8.550, -41.327));
+		修改全局变量(nodes_location, 添加至数组, 矢量(13.849, 8.551, -34.815));
+		修改全局变量(nodes_location, 添加至数组, 矢量(9.808, 7.550, -25.364));
+		修改全局变量(nodes_location, 添加至数组, 矢量(8.661, 6.551, -13.110));
+		修改全局变量(nodes_location, 添加至数组, 矢量(4.352, 6.549, -13.160));
+		修改全局变量(nodes_location, 添加至数组, 矢量(4.445, 7.549, -24.975));
+		修改全局变量(nodes_location, 添加至数组, 矢量(2.319, 7.550, -36.445));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-2.283, 5.474, -31.382));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-15.217, 5.500, -43.304));
+		修改全局变量(nodes_location, 添加至数组, 矢量(-23.030, 7.551, -35.503));
+		"//90-99"
+		修改全局变量(nodes_location, 添加至数组, 矢量(-15.754, 6.500, 43.598));
+	}
+}
+
+规则("铁阪路径")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.nodes_link[0] = 数组(1, 9);
+		全局.nodes_link[1] = 数组(0, 8, 90);
+		全局.nodes_link[2] = 数组(3, 90);
+		全局.nodes_link[3] = 数组(2, 4);
+		全局.nodes_link[4] = 数组(3, 5);
+		全局.nodes_link[5] = 数组(4, 6, 12);
+		全局.nodes_link[6] = 数组(5, 7);
+		全局.nodes_link[7] = 数组(6, 8, 13);
+		全局.nodes_link[8] = 数组(1, 7, 9, 19);
+		全局.nodes_link[9] = 数组(0, 8, 10, 11, 19);
+		全局.nodes_link[10] = 数组(9, 11, 19, 21);
+		全局.nodes_link[11] = 数组(9, 10, 12);
+		全局.nodes_link[12] = 数组(5, 11);
+		全局.nodes_link[13] = 数组(7, 14, 16, 45);
+		全局.nodes_link[14] = 数组(13, 15);
+		全局.nodes_link[15] = 数组(14, 16, 18, 20);
+		全局.nodes_link[16] = 数组(13, 15, 17, 18);
+		全局.nodes_link[17] = 数组(16, 44, 48, 49);
+		全局.nodes_link[18] = 数组(15, 16, 29);
+		全局.nodes_link[19] = 数组(8, 9, 10, 20);
+		全局.nodes_link[20] = 数组(15, 19, 35, 39);
+		全局.nodes_link[21] = 数组(10, 22, 23);
+		全局.nodes_link[22] = 数组(21, 24);
+		全局.nodes_link[23] = 数组(21, 24, 35);
+		全局.nodes_link[24] = 数组(22, 23, 25, 26);
+		全局.nodes_link[25] = 数组(24, 27);
+		全局.nodes_link[26] = 数组(24, 27);
+		全局.nodes_link[27] = 数组(25, 26, 28, 36);
+		全局.nodes_link[28] = 数组(27, 34, 51);
+		全局.nodes_link[29] = 数组(18, 30);
+		全局.nodes_link[30] = 数组(29, 31);
+		全局.nodes_link[31] = 数组(30, 32);
+		全局.nodes_link[32] = 数组(31, 33);
+		全局.nodes_link[33] = 数组(32, 34);
+		全局.nodes_link[34] = 数组(28, 33, 57);
+		全局.nodes_link[35] = 数组(20, 23, 36, 39);
+		全局.nodes_link[36] = 数组(27, 35, 39, 50);
+		全局.nodes_link[37] = 数组(38, 40, 50, 62);
+		全局.nodes_link[38] = 数组(37, 72, 73);
+		全局.nodes_link[39] = 数组(20, 35, 36, 40, 42, 43);
+		全局.nodes_link[40] = 数组(37, 39, 41, 50);
+		全局.nodes_link[41] = 数组(40, 42, 43, 44);
+		全局.nodes_link[42] = 数组(39, 41, 43);
+		全局.nodes_link[43] = 数组(39, 41, 42);
+		全局.nodes_link[44] = 数组(17, 41, 49, 67);
+		全局.nodes_link[45] = 数组(13, 46);
+		全局.nodes_link[46] = 数组(45, 47);
+		全局.nodes_link[47] = 数组(46, 48);
+		全局.nodes_link[48] = 数组(17, 47, 49, 83, 84);
+		全局.nodes_link[49] = 数组(17, 44, 48, 84, 87);
+		全局.nodes_link[50] = 数组(36, 37, 40);
+		全局.nodes_link[51] = 数组(28, 52);
+		全局.nodes_link[52] = 数组(51, 53, 56);
+		全局.nodes_link[53] = 数组(52, 54);
+		全局.nodes_link[54] = 数组(53, 55, 58, 76);
+		全局.nodes_link[55] = 数组(54, 56, 57);
+		全局.nodes_link[56] = 数组(52, 55, 57);
+		全局.nodes_link[57] = 数组(34, 55, 56);
+		全局.nodes_link[58] = 数组(54, 59);
+		全局.nodes_link[59] = 数组(58, 60);
+		全局.nodes_link[60] = 数组(59, 61, 73);
+		全局.nodes_link[61] = 数组(60, 62, 63);
+		全局.nodes_link[62] = 数组(37, 61);
+		全局.nodes_link[63] = 数组(61, 64, 65);
+		全局.nodes_link[64] = 数组(63, 79, 80);
+		全局.nodes_link[65] = 数组(63, 66);
+		全局.nodes_link[66] = 数组(65, 67);
+		全局.nodes_link[67] = 数组(44, 66, 68);
+		全局.nodes_link[68] = 数组(67, 69);
+		全局.nodes_link[69] = 数组(68, 70, 71);
+		全局.nodes_link[70] = 数组(71, 69);
+		全局.nodes_link[71] = 数组(69, 70, 89);
+		全局.nodes_link[72] = 数组(38, 74, 75, 77, 89);
+		全局.nodes_link[73] = 数组(38, 60);
+		全局.nodes_link[74] = 数组(72, 75, 77, 78);
+		全局.nodes_link[75] = 数组(72, 74, 88);
+		全局.nodes_link[76] = 数组(54, 77);
+		全局.nodes_link[77] = 数组(72, 74, 76);
+		全局.nodes_link[78] = 数组(74, 79);
+		全局.nodes_link[79] = 数组(64, 78, 88);
+		全局.nodes_link[80] = 数组(64, 81, 86);
+		全局.nodes_link[81] = 数组(80, 82);
+		全局.nodes_link[82] = 数组(81, 83, 85);
+		全局.nodes_link[83] = 数组(48, 82, 84);
+		全局.nodes_link[84] = 数组(48, 49, 83, 85);
+		全局.nodes_link[85] = 数组(82, 84, 86);
+		全局.nodes_link[86] = 数组(80, 85, 87);
+		全局.nodes_link[87] = 数组(49, 86, 88);
+		全局.nodes_link[88] = 数组(75, 79, 87, 89);
+		全局.nodes_link[89] = 数组(71, 72, 88);
+		全局.nodes_link[90] = 数组(1, 2);
+	}
+}
+
+规则("初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.nodes_distance = 空数组;
+		全局.nodes_preset_now = 空数组;
+		For 全局变量(for_1, 0, 数量(全局.nodes_location), 1);
+			修改全局变量(nodes_distance, 添加至数组, 9999);
+			修改全局变量(nodes_preset_now, 添加至数组, -1);
+		End;
+		全局.nodes_basic_distance = 空数组;
+		For 全局变量(for_1, 0, 数量(全局.nodes_location), 1);
+			全局.nodes_basic_distance[全局.for_1] = 空数组;
+			全局.now_groups = 全局.nodes_link[全局.for_1];
+			For 全局变量(for_2, 0, 数量(全局.now_groups), 1);
+				在索引处修改全局变量(nodes_basic_distance, 全局.for_1, 添加至数组, 
+					相距距离(全局.nodes_location[全局.for_1], 全局.nodes_location[全局.now_groups[全局.for_2]]));
+			End;
+		End;
+	}
+}
+
+规则("子程序 Dijstra 最短路径模块Dijstra")
+{
+    事件
+    {
+        子程序;
+        Dijstra;
+    }
+
+    动作
+    {
+        While(服务器负载平均值 <= 180 && 事件玩家.Pathing_Bool == 1);
+            // 如果是第一次迭代，初始化为起点
+			根据条件中止(服务器负载峰值 > 150);
+            If(事件玩家.is_first_iteration == 真);
+                事件玩家.now = 事件玩家.start;
+                事件玩家.now_ID = 数组值的索引(事件玩家.nodes_location, 事件玩家.now);
+                事件玩家.is_first_iteration = 假;
+            Else;
+                // 选择未标记节点中离出发点最近的
+                事件玩家.unvisited_nodes_distance = 已过滤的数组(事件玩家.nodes_distance, 事件玩家.visited[数组值的索引(事件玩家.nodes_distance, 当前数组元素)] == 0);
+                If(数量(事件玩家.unvisited_nodes_distance) == 0);
+                    中止;
+                End;
+                事件玩家.now_ID = 数组值的索引(事件玩家.nodes_distance, 首个(已排序的数组(事件玩家.unvisited_nodes_distance, 当前数组元素)));
+                事件玩家.now = 事件玩家.nodes_location[事件玩家.now_ID];
+            End;
+
+            // 标记当前节点为已访问
+            事件玩家.visited[事件玩家.now_ID] = 1;
+
+            // 获取当前节点的邻接节点组
+            事件玩家.now_groups = 事件玩家.nodes_link[事件玩家.now_ID];
+
+            // 遍历邻接节点
+            For 玩家变量(事件玩家, for_1, 0, 数量(事件玩家.now_groups), 1);
+                If(事件玩家.visited[事件玩家.now_groups[事件玩家.for_1]] == 0);
+                    // 使用预计算的距离
+                    事件玩家.now_weight = 事件玩家.nodes_basic_distance[事件玩家.now_ID][事件玩家.for_1];
+                    事件玩家.maybe_distance = 事件玩家.nodes_distance[事件玩家.now_ID] + 事件玩家.now_weight;
+                    // 更新距离和前驱节点
+                    If(事件玩家.maybe_distance < 事件玩家.nodes_distance[事件玩家.now_groups[事件玩家.for_1]]);
+                        事件玩家.nodes_distance[事件玩家.now_groups[事件玩家.for_1]] = 事件玩家.maybe_distance;
+                        事件玩家.nodes_preset_now[事件玩家.now_groups[事件玩家.for_1]] = 事件玩家.now_ID;
+                    End;
+                End;
+				If(服务器负载峰值 >= 150);
+				等待(0.016, 无视条件);
+				End;
+            End;
+
+            // 如果终点已被访问，终止
+            If(事件玩家.visited[数组值的索引(事件玩家.nodes_location, 事件玩家.end)] == 1);
+                中止;
+            End;
+			If(服务器负载平均值 >= 150);
+			等待(0.016, 无视条件);
+			End;
+        End;
+    }
+}
+
+
+规则("子程序 Start_Dijstra 玩家初始化寻路，即将调用最短路径模块")
+{
+    事件
+    {
+        子程序;
+        Start_Dijstra;
+    }
+
+    动作
+    {
+        事件玩家.nodes_location = 全局.nodes_location;
+        事件玩家.nodes_link = 全局.nodes_link;
+        事件玩家.visited = 映射的数组(事件玩家.nodes_location, 0); // 所有节点未访问
+        事件玩家.nodes_distance = 映射的数组(事件玩家.nodes_location, 9999); // 所有距离为无穷大
+        事件玩家.nodes_distance[数组值的索引(事件玩家.nodes_location, 事件玩家.start)] = 0; // 起点距离为0
+        事件玩家.nodes_preset_now = 映射的数组(事件玩家.nodes_location, -1); // 前驱节点初始化为-1
+        事件玩家.is_first_iteration = 真; // 标记第一次迭代
+        事件玩家.nodes_basic_distance = 全局.nodes_basic_distance;
+        调用子程序(Dijstra); // 直接调用 Dijstra
+        调用子程序(Path_Dijstra);
+    }
+}
+
+规则("子程序 Path_Dijstra 生成路径图")
+{
+    事件
+    {
+        子程序;
+        Path_Dijstra;
+    }
+
+    动作
+    {
+        事件玩家.path = 空数组;
+        事件玩家.current = 事件玩家.end;
+        While(事件玩家.current != 事件玩家.start);
+            修改玩家变量(事件玩家, path, 添加至数组, 事件玩家.current);
+            事件玩家.current = 事件玩家.nodes_location[事件玩家.nodes_preset_now[数组值的索引(事件玩家.nodes_location, 事件玩家.current)]];
+			等待(0.016, 无视条件);
+        End;
+        修改玩家变量(事件玩家, path, 添加至数组, 事件玩家.start);
+        事件玩家.path = 已排序的数组(事件玩家.path, 当前数组索引 * -1); // 反转路径
+    }
+}
+
+规则("玩家重生自动获取全局点位")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	动作
+	{
+		事件玩家.nodes_location = 全局.nodes_location;
+	}
+}
+
+规则("——————装备&抽奖模块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("玩家初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家.bags = 空数组;
+		//槽位初始化
+
+		事件玩家.slot_equipped = 数组(空数组,空数组,空数组); 
+		事件玩家.slot_size = 数组(0,0,0); 
+		事件玩家.slot_unlocked = 数组(0,0,0); 
+		//抽奖券初始化（初始给两个普通两个稀有券）
+		事件玩家.tickets = 数组(2,2,1);
+		If(事件玩家 == 主机玩家);
+		事件玩家.tickets = 数组(10,10,10);
+		End;
+		等待(99999, 无视条件);
+	}
+}
+
+规则("属性池初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.attribute_pool[0] = 数组(1,3);
+		全局.attribute_pool[1] = 数组(2,4);
+		全局.attribute_pool[2] = 数组(4,6);
+	}
+}
+
+规则("——————装备")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+规则("装备槽0的属性赋值")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.slot_unlocked[0] == 1;
+ 		已重生(事件玩家) == 1;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		If(数量(事件玩家.slot_equipped[0]) > 0);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[0]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[0][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] += 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+			等待直到(全局.GameState == 3, 99999);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[0]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[0][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] -= 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+		End;
+		调用子程序(Agility);
+	}
+}
+
+规则("装备槽1的属性赋值")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.slot_unlocked[1] == 1;
+ 		已重生(事件玩家) == 1;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		If(数量(事件玩家.slot_equipped[1]) > 0);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[1]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[1][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] += 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+			等待直到(全局.GameState == 3, 99999);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[1]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[1][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] -= 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+		End;
+		调用子程序(Agility);
+	}
+}
+
+规则("装备槽0的属性赋值")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.slot_unlocked[0] == 1;
+ 		已重生(事件玩家) == 1;
+		全局.GameState == 2;
+	}
+
+	动作
+	{
+		If(数量(事件玩家.slot_equipped[2]) > 0);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[2]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[2][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] += 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+			等待直到(全局.GameState == 3, 99999);
+			For 玩家变量(事件玩家, slot_for, 0, 数量(事件玩家.slot_equipped[2]), 1);
+				事件玩家.slot_nowShuxing = 全局.equipment_Shuxing[数组值的索引(全局.equipment_Name, 事件玩家.slot_equipped[2][事件玩家.slot_for])];
+				For 玩家变量(事件玩家, slot_Shuxingadd_for, 0, 6, 1);
+					事件玩家.Shuxing[事件玩家.slot_Shuxingadd_for] -= 事件玩家.slot_nowShuxing[事件玩家.slot_Shuxingadd_for];
+					等待(0.016, 无视条件);
+				End;
+				等待(0.016, 无视条件);
+			End;
+		End;
+		调用子程序(Agility);
+	}
+}
+
+规则("装备槽局内HUD")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2), 空, 空, 自定义字符串("\r\n\r\n\r\n\r\n\r\n"), 左边, -998, 颜色(白色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2), 自定义字符串("\r\n     lv1     \r\n"), 自定义字符串(":{0},{1},{2}                                                                                                        ",本地玩家.slot_equipped[0][0],本地玩家.slot_equipped[0][1],本地玩家.slot_equipped[0][2]), 自定义字符串(""), 左边, -997, 
+		本地玩家.slot_unlocked[0] == 0?自定义颜色(全局.equipment_color_pool[0][0], 全局.equipment_color_pool[0][1], 全局.equipment_color_pool[0][2], 100):自定义颜色(全局.equipment_color_pool[0][0], 全局.equipment_color_pool[0][1], 全局.equipment_color_pool[0][2], 255), 
+		颜色(白色), 自定义颜色(235, 218, 245, 255), 可见，字符串和颜色, 默认可见度);
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2), 自定义字符串("\r\n     lv5     \r\n"), 自定义字符串(":{0},{1},{2}                                                                                                        ",本地玩家.slot_equipped[1][0],本地玩家.slot_equipped[1][1],本地玩家.slot_equipped[1][2]), 自定义字符串(""), 左边, -996, 
+		本地玩家.slot_unlocked[1] == 0?自定义颜色(全局.equipment_color_pool[1][0], 全局.equipment_color_pool[1][1], 全局.equipment_color_pool[1][2], 100):自定义颜色(全局.equipment_color_pool[1][0], 全局.equipment_color_pool[1][1], 全局.equipment_color_pool[1][2], 255), 
+		颜色(白色), 自定义颜色(235, 218, 245, 255), 可见，字符串和颜色, 默认可见度);
+		创建HUD文本(已过滤的数组(所有玩家(所有队伍), 全局.GameState == 2), 自定义字符串("\r\n     lv10     \r\n"), 自定义字符串(":{0},{1},{2}                                                                                                        ",本地玩家.slot_equipped[2][0],本地玩家.slot_equipped[2][1],本地玩家.slot_equipped[2][2]), 自定义字符串(""), 左边, -995, 
+		本地玩家.slot_unlocked[2] == 0?自定义颜色(全局.equipment_color_pool[2][0], 全局.equipment_color_pool[2][1], 全局.equipment_color_pool[2][2], 100):自定义颜色(全局.equipment_color_pool[2][0], 全局.equipment_color_pool[2][1], 全局.equipment_color_pool[2][2], 255), 
+		颜色(白色), 自定义颜色(235, 218, 245, 255), 可见，字符串和颜色, 默认可见度);
+	}
+}
+
+规则("装备颜色池子初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.equipment_color_pool =
+		 数组(
+			数组(246, 247, 236)
+			,
+			数组(78, 166, 248)
+			,
+			数组(255, 118, 60, 255)
+			
+			);
+	}
+}
+
+规则("(装备名称，稀有度)数组初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.equipment_color = 空数组;
+				
+	}
+}
+
+规则("\\\装备池初始化-普通")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+	动作
+	{
+		全局.equipment_pool[0] =
+		 数组(
+			数组(自定义字符串("灵敏步伐"), 数组(0,0,0,0,0,1), 自定义字符串("无视碰撞体积\r\n敏捷+1"), 0),
+			数组(自定义字符串("烈焰敏锐"), 数组(0,2,0,0,0,0), 自定义字符串("当具有燃烧状态时，获得+4的敏捷属性\r\n当等级为10的时候，获得+7的敏捷属性\r\n法强+2"), 0),
+			数组(自定义字符串("法愈共鸣"), 数组(0,2,0,0,0,0), 自定义字符串("你的治疗现在也可以获得法强加成\r\n5级以后，加成翻倍\r\n法强+2"), 0),
+			数组(自定义字符串("嗜血复苏"), 数组(1,1,0,0,0,0), 自定义字符串("每击杀一个敌人回复2*（攻击+法强）的生命 \r\n攻击+1，法强+1"), 0),
+			数组(自定义字符串("撤离庇护"), 数组(0,0,2,0,0,0), 自定义字符串("当你在撤离点之内时，每秒回复5*生命\r\n5级以后，改为10*生命\r\n生命+2"), 0),
+			数组(自定义字符串("狂战之力"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3攻击\r\n5级以后，改为+5攻击"), 0),
+			数组(自定义字符串("奥术光辉"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3法强\r\n5级以后，改为+5法强"), 0),
+			数组(自定义字符串("生命恩赐"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3生命\r\n5级以后，改为+5生命"), 0),
+			数组(自定义字符串("铁壁守护"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3护甲\r\n5级以后，改为+5护甲"), 0),
+			数组(自定义字符串("魔障帷幕"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3魔抗\r\n5级以后，改为+5魔抗"), 0),
+			数组(自定义字符串("疾风迅影"), 数组(0,0,0,0,0,0), 自定义字符串("获得+3敏捷\r\n5级以后，改为+5敏捷"), 0),
+			数组(自定义字符串("猎风弹匣"), 数组(0,0,0,0,0,2), 自定义字符串("造成击杀会回复自己敏捷/2的弹药\r\n敏捷+2"), 0),
+			数组(自定义字符串("坚韧脉络"), 数组(0,0,0,0,0,0), 自定义字符串("每受到一次伤害，获得+1护甲\r\n持续3秒，最多叠加1*level层"), 0),
+			数组(自定义字符串("奇生脉动"), 数组(0,0,0,0,0,0), 自定义字符串("如果你的生命为奇数\r\n获得每秒10点的回复"), 0),
+			数组(自定义字符串("迅捷节律"), 数组(0,0,0,0,0,0), 自定义字符串("每当你的敏捷为奇数\r\n设置你的技能CD为1s（如果必要）"), 0),
+			数组(自定义字符串("撼地战锤"), 数组(0,0,0,0,0,0), 自定义字符串("你的攻击现在能造成击退"), 0)
+			);
+	}
+}
+
+规则("——灵敏步伐-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("灵敏步伐")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		取消与玩家的移动碰撞(事件玩家);
+		调用子程序(Agility);
+		创建效果(所有玩家(所有队伍), “士兵：76”疾跑效果, 颜色(白色), 事件玩家, 1, 可见，位置和半径);
+		事件玩家._ID_Lingminbufa = 最后创建的实体;
+		等待直到(全局.GameState == 3, 99999);
+		调用子程序(Agility);
+		消除效果(事件玩家._ID_Lingminbufa);
+		开启与玩家的移动碰撞(事件玩家);
+
+	}
+}
+
+规则("——猎风弹匣-击杀敌人回复弹药")
+{
+	事件
+	{
+		玩家造成最后一击;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("猎风弹匣")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		设置弹药(事件玩家, 0, 弹药(事件玩家, 0)+事件玩家.Shuxing[5]/2);
+		设置弹药(事件玩家, 1, 弹药(事件玩家, 1)+事件玩家.Shuxing[5]/2);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 子弹+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 1);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(211, 239, 235, 255));
+	}
+}
+
+规则("——法愈共鸣-治疗时用法强加成")
+{
+	事件
+	{
+		玩家造成治疗;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("法愈共鸣")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		If(事件玩家.level < 5);
+		治疗(受治疗者, 空, 事件治疗 * (1 + 0.5 * ((1 + 0.5*事件玩家.Shuxing[1])^0.5 - 1)));
+		Else;
+		治疗(受治疗者, 空, 事件治疗 * (1 + 0.5 * ((1 + 1*事件玩家.Shuxing[1])^0.5 - 1)));
+		End;
+	}
+}
+
+规则("——嗜血复苏-杀人时治疗")
+{
+	事件
+	{
+		玩家造成最后一击;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("嗜血复苏")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		播放效果(事件玩家, 治疗目标激活效果, 颜色(队伍2), 被攻击方, 1);
+		治疗(事件玩家, 空, 10 *(事件玩家.Shuxing[0]+事件玩家.Shuxing[1]));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 嗜血+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 10 *(事件玩家.Shuxing[0]+事件玩家.Shuxing[1]));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(79, 216, 138, 255));
+	}
+}
+
+
+规则("——撤离庇护-在撤离点内回复")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("撤离庇护")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		全局.Quitting_stage < 3;
+		相距距离(全局.Quitting_Locations[全局.Quitting_stage], 事件玩家) <= 4;
+	}
+
+	动作
+	{
+		If(事件玩家.level < 5);
+		治疗(事件玩家, 事件玩家, 5*事件玩家.Shuxing[2]);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 +"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 5*事件玩家.Shuxing[2]);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(79, 216, 138, 255));
+		Else;
+		治疗(事件玩家, 事件玩家, 10*事件玩家.Shuxing[2]);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 +"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 10*事件玩家.Shuxing[2]);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(79, 216, 138, 255));
+		End;
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+
+规则("——战后余盾-脱战临时护盾")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("战后余盾")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		等待(5, 当为“假”时中止);
+		小字体信息(事件玩家, 自定义字符串("战后余盾 已刷新"));
+		移除玩家的生命池(事件玩家._PoolID_Zhanhouyudun);
+		If(事件玩家.level < 7);
+		为玩家添加生命池(事件玩家, 生命值, 100, 假, 真);
+		Else;
+		为玩家添加生命池(事件玩家, 护甲, 100, 假, 真);
+		End;
+		事件玩家._PoolID_Zhanhouyudun = 最后创建的生命池;
+		播放效果(事件玩家, 布丽吉塔恢复包护甲声音, 颜色(白色), 事件玩家, 175);
+		播放效果(所有玩家(所有队伍), 布丽吉塔恢复包护甲效果, 颜色(白色), 事件玩家, 1);
+	}
+}
+
+规则("——狂战之力-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("狂战之力")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[0] += 3;
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[0] += 2;
+		Else;
+			事件玩家.Shuxing[0] += 5;
+		End;
+			等待直到(全局.GameState == 3, 99999);
+			事件玩家.Shuxing[0] -= 5;
+	}
+}
+
+规则("——奥术光辉-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("奥术光辉")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[1] += 3;
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[1] += 2;
+		Else;
+			事件玩家.Shuxing[1] += 5;
+		End;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[1] -= 5;
+	}
+}
+
+规则("——生命恩赐-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("生命恩赐")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[2] += 3;
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[2] += 2;
+		Else;
+			事件玩家.Shuxing[2] += 5;
+		End;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[2] -= 5;
+	}
+}
+
+规则("——铁壁守护-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("铁壁守护")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[3] += 3;
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[3] += 2;
+		Else;
+			事件玩家.Shuxing[3] += 5;
+		End;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[3] -= 5;
+	}
+}
+
+规则("——魔障帷幕-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("魔障帷幕")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[4] += 3;
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[4] += 2;
+		Else;
+			事件玩家.Shuxing[4] += 5;
+		End;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[4] -= 5;
+	}
+}
+
+规则("——疾风迅影-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("疾风迅影")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			事件玩家.Shuxing[5] += 3;
+			调用子程序(Agility);
+			等待直到(事件玩家.level >= 5, 99999);
+			事件玩家.Shuxing[5] += 2;
+			调用子程序(Agility);
+		Else;
+			事件玩家.Shuxing[5] += 5;
+			调用子程序(Agility);
+		End;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[5] -= 5;
+		调用子程序(Agility);
+	}
+}
+
+规则("——迅捷节律-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("迅捷节律")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家.Shuxing[5] % 2 == 1;
+	}
+	动作
+	{
+		设置技能冷却(事件玩家, 按钮(技能1), 较小(1, 技能冷却时间(事件玩家, 按钮(技能1))));
+		设置技能冷却(事件玩家, 按钮(技能2), 较小(1, 技能冷却时间(事件玩家, 按钮(技能2))));
+		小字体信息(事件玩家, 自定义字符串("迅捷节律已触发！"));
+		等待(0.1, 无视条件);
+	}
+}
+
+规则("——撼地战锤-攻击造成击退")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("撼地战锤")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		施加推力(被攻击方, 方向(眼睛位置(事件玩家), 被攻击方), 8, 至地图, 取消相反运动);
+	}
+}
+// 装备池初始化 - 稀有（更新）
+规则("\\\装备池初始化-稀有")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+	动作
+	{
+		全局.equipment_pool[1] =
+		 数组(
+			数组(自定义字符串("完美主义"), 数组(2,0,0,0,0,0), 自定义字符串("获得+3攻击+3法强，直到你受到伤害\r\n攻击+2"), 1),
+			数组(自定义字符串("先发制人"), 数组(0,0,0,2,1,0), 自定义字符串("你对敌人造成的第一次伤害\r\n附加10*(护甲+魔抗)的伤害\r\n5级后，还会造成短暂眩晕\r\n护甲+2魔抗+1"), 1),
+			数组(自定义字符串("猫火"), 数组(0,0,0,0,0,2), 自定义字符串("当你的生命低于25%的时候（燃烧）\r\n获得+5攻击/+5法强\r\n若敏捷>10，改为+10攻击+10法强\r\n敏捷+2"), 1),
+			数组(自定义字符串("耀光"), 数组(0,0,0,0,0,0), 自定义字符串("在你使用技能后的下一次近身攻击\r\n造成10*（攻击+法强）的伤害"), 1),
+			数组(自定义字符串("冰与火之歌"), 数组(0,0,0,0,0,0), 自定义字符串("每次使用技能后\r\n你的下一次伤害会附加一个持续1s的元素状态\r\n（随机为燃烧、冻结）\r\n若你的法强 && 迅捷 ≥ 10\r\n则同时附加两种状态"), 1),
+			数组(自定义字符串("头颅刷新"), 数组(0,0,0,0,0,0), 自定义字符串("当你击杀敌人后\r\n将你的技能1CD降低为3s（若有必要）"), 1),
+			数组(自定义字符串("战后余盾"), 数组(0,0,2,0,0,0), 自定义字符串("当你脱离战斗4s以后，临时获得10*生命的护盾\r\n当等级为7级以后，护盾改为临时护甲\r\n生命+2"), 1),
+			数组(自定义字符串("躯骸刷新"), 数组(0,0,0,0,0,0), 自定义字符串("当你击杀敌人后\r\n将你的技能2CD降低为3s（若有必要）"), 1),
+			数组(自定义字符串("荆棘反光"), 数组(0,0,0,1,2,0), 自定义字符串("对攻击你的敌人造成10*（护甲+魔抗）的伤害\r\n内置CD1s\r\n护甲+1，魔抗+2"), 1),
+			数组(自定义字符串("生焰光环"), 数组(0,0,3,0,0,0), 自定义字符串("每秒对周围5m的敌人造成10*生命的伤害\r\n生命+3"), 1),
+			数组(自定义字符串("共鸣恩泽"), 数组(0,0,0,0,0,0), 自定义字符串("如果受到治疗\r\n你和治疗者获得敏捷+1\r\n持续1s\r\n若你的护甲/魔抗>10，改为获得敏捷+4"), 1),
+			数组(自定义字符串("震地壁垒"), 数组(0,0,0,0,0,0), 自定义字符串("当你造成击退时\r\n获得+5护甲+5魔抗，持续2s\r\n5级以后\r\n还会回复自身(护甲*生命)生命值"), 1),
+			数组(自定义字符串("残敌汲取"), 数组(1,1,0,0,0,0), 自定义字符串("每对一个半血以下敌人造成伤害时\r\n回复4*（攻击+法强）的生命值\r\n法强+1，攻击+1"), 1),
+			数组(自定义字符串("雷霆震慑"), 数组(0,0,0,0,0,0), 自定义字符串("当你造成暴击时，会有50%概率击倒敌人\r\n五级后，改为100%概率"), 1),
+			数组(自定义字符串("星矢追魂"), 数组(1,1,0,0,0,0), 自定义字符串("你指针方向的第一个敌人\r\n受到5*(攻击+法强）的伤害，每秒两次\r\n攻击+1,法强+1"), 1),
+			数组(自定义字符串("灵魂谐振"), 数组(0,0,0,0,0,0), 自定义字符串("每次治疗他人时，你和目标获得+2法强，持续3秒\r\n若目标生命低于50%，改为+5法强\r\n8级后，改为获得+4法强，+7法强"), 1),
+			数组(自定义字符串("陨地冲击"), 数组(0,0,0,0,0,0), 自定义字符串("陨地冲击：当你着陆时\r\n会对周围5m的敌人造成伤害\r\n数值等于你的（生命）% 的最大生命值\r\n8级后，范围扩大至8m"), 1),
+			数组(自定义字符串("米凯尔面具"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你的攻击获得(3*法强)%的吸血效果"), 1),
+			数组(自定义字符串("巨人护符"), 数组(0, 0, 5, 0, 0, 0), 自定义字符串("你的体型会随着【生命】而改变\r\n每点【生命】会为你提供5%的最大体型\r\n生命+5"), 1),
+			数组(自定义字符串("君士坦丁之盾"), 数组(0, 0, 5, 0, 0, 0), 自定义字符串("你的屏障大小会随着【生命】而改变\r\n每点【生命】会为你提供5%的屏障大小\r\n生命+5"), 1),
+			数组(自定义字符串("致命稳定器"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("使用主要武器造成伤害时，有25%概率\r\n消耗你50%最大弹药额外造成（0.5*事件伤害）的\r\n伤害（如果你弹药足够的话），若未能触发\r\n则为你补充一枚弹药"), 1),
+			数组(自定义字符串("善恶天平"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("当你治疗其他队友时，你也会获得\r\n此次治疗量的(20+5*法强)%治疗"), 1),
+			数组(自定义字符串("爆能抑制器"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你使用主要武器造成伤害时，有20%概率（随攻击提升）\r\n将你该次伤害变为持续伤害\r\n5秒内共造成1.5倍伤害"), 1),
+			数组(自定义字符串("闪避护符"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你受到攻击时\r\n有(10+敏捷*2)%的概率\r\n规避此次伤害"), 1),
+			数组(自定义字符串("崔佛的皮靴"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你造成击退时，会对该敌人\r\n造成（5*[攻击*法强]）点伤害"), 1),
+			数组(自定义字符串("贪婪戒指"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你的敏捷每达到\r\n5的倍数\r\n获得等额的攻击\r\n直到关卡结束"), 1),
+			数组(自定义字符串("血包小子"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你拾取急救包以后\r\n获得(魔抗+敏捷)*5的临时护盾"), 1),
+			数组(自定义字符串("碎颅战锤"), 数组(0, 0, 5, 0, 0, 0), 自定义字符串("每隔3秒，你的下次主要武器攻击\r\n会附带（生命*10)的伤害\r\n生命值+5"), 1),
+			数组(自定义字符串("肉块"), 数组(0, 0, 3, 0, 0, 0), 自定义字符串("召唤一个小肉块进行协同攻击\r\n每秒造成10*护甲的伤害\r\n若同时激活绷带\r\n伤害改为每秒20*护甲\r\n护甲+3"), 1),
+			数组(自定义字符串("绷带"), 数组(0, 0, 0, 3, 0, 0), 自定义字符串("召唤一个小绷带进行协同攻击\r\n每秒造成10*魔抗的伤害\r\n若同时激活肉块\r\n伤害改为每秒20*魔抗\r\n魔抗+3"), 1),
+			数组(自定义字符串("多面手"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("此装备激活时，你每有一项属性>0\r\n全属性+2"), 1),
+			数组(自定义字符串("炸弹小子"), 数组(0, 0, 0, 2, 0, 2), 自定义字符串("你会周期性地在身下放置炸弹\r\n一段延迟后爆炸,造成10*(护甲+攻击)的伤害\r\n若你的迅捷>10,改为周期性向怪物投掷炸弹\r\n护甲+2,敏捷+2"), 1),
+			数组(自定义字符串("斧王之斧"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("每隔5秒，你受到下一次攻击时\r\n将会对自身周围6M的所有敌人造成\r\n该次的攻击伤害"), 1)
+			);
+	}
+}
+
+规则("——灵魂谐振-治疗加法强")
+{
+	事件
+	{
+		玩家受到治疗;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(治疗者.slot_equipped[当前数组元素], 自定义字符串("灵魂谐振")) && 治疗者.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家 != 治疗者;
+	}
+	动作
+	{
+		If(事件玩家.level < 8);
+			If(标准化生命值(受治疗者) <= 0.5);
+				治疗者.Shuxing[1] += 5;
+				受治疗者.Shuxing[1] += 5;
+				等待(3, 无视条件);
+				治疗者.Shuxing[1] -= 5;
+				受治疗者.Shuxing[1] -= 5;
+			Else;
+				治疗者.Shuxing[1] += 2;
+				受治疗者.Shuxing[1] += 2;
+				等待(3, 无视条件);
+				治疗者.Shuxing[1] -= 2;
+				受治疗者.Shuxing[1] -= 2;
+			End;
+		Else;
+			If(标准化生命值(受治疗者) <= 0.5);
+				治疗者.Shuxing[1] += 7;
+				受治疗者.Shuxing[1] += 7;
+				等待(3, 无视条件);
+				治疗者.Shuxing[1] -= 7;
+				受治疗者.Shuxing[1] -= 7;
+			Else;
+				治疗者.Shuxing[1] += 4;
+				受治疗者.Shuxing[1] += 4;
+				等待(3, 无视条件);
+				治疗者.Shuxing[1] -= 4;
+				受治疗者.Shuxing[1] -= 4;
+			End;
+		End;
+		播放效果(所有玩家(所有队伍), 正面状态施加声音, 颜色(白色), 受治疗者, 100);
+	}
+}
+
+规则("——星矢追魂-指针方向伤害")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("星矢追魂")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		存活(射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真)) == 真;
+	}
+	动作
+	{
+		伤害(射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真), 事件玩家, 5 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		播放效果(所有玩家(所有队伍), 有害选择效果, 颜色(天蓝色), 射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真), 0.5);
+		修改玩家变量(射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真), Damage_list, 添加至数组, 自定义字符串("装备 {0}",图标字符串(箭矢)));
+		修改玩家变量(射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真), Damage_list, 添加至数组, 5 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		修改玩家变量(射线命中玩家(眼睛位置(事件玩家), 眼睛位置(事件玩家)+50*面朝方向(事件玩家), 所有玩家(队伍1), 事件玩家, 真), Damage_list, 添加至数组, 自定义颜色(64, 67, 217, 255));
+		等待(0.5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——雷霆震慑-暴击触发击倒")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("雷霆震慑")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		事件暴击 == 真;
+	}
+	动作
+	{
+		If(事件玩家.level < 5);
+			If(随机整数(1,100) <= 50);
+				设置状态(被攻击方, 事件玩家, 击倒, 1);
+				播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), 被攻击方, 0.5);
+			End;
+		Else;
+			设置状态(被攻击方, 事件玩家, 击倒, 1);
+			播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), 被攻击方, 0.5);
+		End;
+	}
+}
+
+规则("——完美主义-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("完美主义")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		标准化生命值(事件玩家) == 1;
+	}
+
+	动作
+	{
+		等待(0.250, 当为“假”时中止);
+		小字体信息(事件玩家, 自定义字符串("完美主义已激活"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 完美主义"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串(""));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(21, 83, 9, 255));
+		事件玩家.Shuxing[0] += 2;
+		等待直到(全局.GameState == 3 || 标准化生命值(事件玩家) < 1, 99999);
+		事件玩家.Shuxing[0] -= 2;
+	}
+}
+
+规则("——残敌汲取-对低血敌人回复")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("残敌汲取")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		标准化生命值(被攻击方) <= 0.5;
+	}
+	动作
+	{
+		治疗(事件玩家, 事件玩家, 4 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		播放效果(事件玩家, 治疗目标激活效果, 颜色(队伍2), 事件玩家, 1);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 汲取"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 4 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(196, 24, 61, 255));
+		等待(0.250, 无视条件);
+	}
+}
+规则("——震地壁垒-击退触发效果")
+{
+	事件
+	{
+		玩家造成击退;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("震地壁垒")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		事件玩家.Shuxing[3] += 5;
+		事件玩家.Shuxing[4] += 5;
+		If(事件玩家.level >= 5);
+			治疗(事件玩家, 事件玩家, 事件玩家.Shuxing[3] * 事件玩家.Shuxing[2]);
+			播放效果(事件玩家, 治疗目标激活效果, 颜色(队伍2), 事件玩家, 1);
+		End;
+		播放效果(事件玩家, 布丽吉塔恢复包护甲声音, 颜色(白色), 事件玩家, 100);
+		等待(2, 无视条件);
+		事件玩家.Shuxing[3] -= 5;
+		事件玩家.Shuxing[4] -= 5;
+	}
+}
+规则("——共鸣恩泽-受到治疗加敏捷")
+{
+	事件
+	{
+		玩家受到治疗;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(受治疗者.slot_equipped[当前数组元素], 自定义字符串("共鸣恩泽")) && 受治疗者.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家 != 治疗者;
+	}
+	动作
+	{
+		If(受治疗者.Shuxing[3] > 10 || 受治疗者.Shuxing[4] > 10);
+			受治疗者.Shuxing[5] += 4;
+			治疗者.Shuxing[5] += 4;
+			调用子程序(Agility);
+			等待(1, 无视条件);
+			受治疗者.Shuxing[5] -= 4;
+			治疗者.Shuxing[5] -= 4;
+			调用子程序(Agility);
+		Else;
+			受治疗者.Shuxing[5] += 1;
+			治疗者.Shuxing[5] += 1;
+			调用子程序(Agility);
+			等待(1, 无视条件);
+			受治疗者.Shuxing[5] -= 1;
+			治疗者.Shuxing[5] -= 1;
+			调用子程序(Agility);
+		End;
+		播放效果(所有玩家(所有队伍), 正面状态施加声音, 颜色(白色), 受治疗者, 100);
+	}
+}
+
+规则("——生焰光环-范围伤害")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("生焰光环")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		伤害(范围内玩家(事件玩家, 5, 队伍1, 表面), 事件玩家, 10 * 事件玩家.Shuxing[2]);
+		播放效果(所有玩家(所有队伍), 环状爆炸, 颜色(红色), 事件玩家, 5);
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——先发制人-初次伤害附加")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("先发制人")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		伤害(事件玩家, 攻击方, 10*(攻击方.Shuxing[3]+攻击方.Shuxing[4]));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 先发"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 10*(攻击方.Shuxing[3]+攻击方.Shuxing[4]));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(255, 255, 255, 255));
+		播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 眼睛位置(事件玩家), 0.3);
+		If(攻击方.level >= 5);
+		设置状态(事件玩家, 攻击方, 击晕, 1);
+		End;
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——荆棘反光-受到伤害反伤")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("荆棘反光")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 反伤"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 10*(事件玩家.Shuxing[3]+事件玩家.Shuxing[4]));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(205, 128, 55, 255));
+		伤害(攻击方, 事件玩家, 10 * (事件玩家.Shuxing[3] + 事件玩家.Shuxing[4]));
+		播放效果(所有玩家(所有队伍), “黑影”位移传动材料效果, 颜色(红色), 攻击方, 0.3);
+		等待(1, 无视条件);
+	}
+}
+规则("——猫火-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("猫火")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		标准化生命值(事件玩家) <= 0.25;
+	}
+
+	动作
+	{
+		小字体信息(事件玩家, 自定义字符串("猫火已激活"));
+		设置状态(事件玩家, 空, 燃烧, 9999);
+		If(事件玩家.Shuxing[5] <= 10);
+		事件玩家.Shuxing[0] += 5;
+		事件玩家.Shuxing[1] += 5;
+		等待直到(全局.GameState == 3 || 标准化生命值(事件玩家) > 0.25, 99999);
+		事件玩家.Shuxing[0] -= 5;
+		事件玩家.Shuxing[1] -= 5;
+		清除状态(事件玩家, 燃烧);
+		Else;
+		事件玩家.Shuxing[0] += 5;
+		事件玩家.Shuxing[1] += 5;
+		等待直到(全局.GameState == 3 || 标准化生命值(事件玩家) > 0.25, 99999);
+		事件玩家.Shuxing[0] -= 5;
+		事件玩家.Shuxing[1] -= 5;
+		清除状态(事件玩家, 燃烧);
+		End;
+	}
+}
+
+规则("——多面手-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("多面手")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		For 玩家变量(事件玩家, _Count_Duomianshou, 0, 数量(已过滤的数组(事件玩家.Shuxing, 当前数组元素 > 0)), 1);
+			事件玩家.Shuxing[0] += 2;
+			事件玩家.Shuxing[1] += 2;
+			事件玩家.Shuxing[2] += 2;
+			事件玩家.Shuxing[3] += 2;
+			事件玩家.Shuxing[4] += 2;
+			事件玩家.Shuxing[5] += 2;
+		End;
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 多面手：全属性+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 2*事件玩家._Count_Duomianshou);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(250, 247, 89, 255));
+		等待直到(全局.GameState == 3, 99999);
+			事件玩家.Shuxing[0] -= 2*事件玩家._Count_Duomianshou;
+			事件玩家.Shuxing[1] -= 2*事件玩家._Count_Duomianshou;
+			事件玩家.Shuxing[2] -= 2*事件玩家._Count_Duomianshou;
+			事件玩家.Shuxing[3] -= 2*事件玩家._Count_Duomianshou;
+			事件玩家.Shuxing[4] -= 2*事件玩家._Count_Duomianshou;
+			事件玩家.Shuxing[5] -= 2*事件玩家._Count_Duomianshou;
+	}
+}
+
+规则("——肉块-效果创建")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("肉块")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建效果(((对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("肉块")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1)&&(全局.GameState == 2)) ? 所有玩家(所有队伍) : 空, 球, 颜色(红色), 眼睛位置(事件玩家)+地图矢量(矢量(-1, 1, 1), 事件玩家, 旋转), 1, 可见，位置和半径);
+		创建地图文本(((对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("肉块")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1)&&(全局.GameState == 2)) ? 所有玩家(所有队伍) : 空, 自定义字符串("肉块"), 眼睛位置(事件玩家)+地图矢量(矢量(-1, 1, 1), 事件玩家, 旋转), 0.7, 根据表面截取, 可见，位置和字符串, 颜色(红色), 默认可见度);
+		等待(9999, 无视条件);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——肉块-自动导弹")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("肉块")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		数量(范围内玩家(事件玩家, 20, 队伍1, 表面)) > 0;
+	}
+
+	动作
+	{
+		创建追踪弹道(球弹道, 事件玩家, 眼睛位置(事件玩家)+地图矢量(矢量(-1, 1, 1), 事件玩家, 旋转), 方向(眼睛位置(事件玩家)+地图矢量(矢量(-1, 1, 1), 事件玩家, 旋转), 眼睛位置(首个(已排序的数组(范围内玩家(事件玩家, 20, 队伍1, 表面), 相距距离(事件玩家, 当前数组元素))))), 至地图, 伤害, 队伍1, 对任意为“真”(数组(0,1,2), (数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绷带")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1) ? 20*事件玩家.Shuxing[3] : 10*事件玩家.Shuxing[3], 1, 0, 有害爆炸, 爆炸声音, 0, 13, 5, 0, 首个(已排序的数组(范围内玩家(事件玩家, 20, 队伍1, 表面), 相距距离(事件玩家, 当前数组元素))), 0.700);
+		等待(随机实数(0.7, 1.2), 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——绷带-自动导弹")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绷带")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		数量(范围内玩家(事件玩家, 20, 队伍1, 表面)) > 0;
+	}
+
+	动作
+	{
+		创建追踪弹道(球弹道, 事件玩家, 眼睛位置(事件玩家)+地图矢量(矢量(1, 1, 1), 事件玩家, 旋转), 方向(眼睛位置(事件玩家)+地图矢量(矢量(1, 1, 1), 事件玩家, 旋转), 眼睛位置(首个(已排序的数组(范围内玩家(事件玩家, 20, 队伍1, 表面), 相距距离(事件玩家, 当前数组元素))))), 至地图, 伤害, 队伍1, 对任意为“真”(数组(0,1,2), (数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("肉块")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1) ? 20*事件玩家.Shuxing[4] : 10*事件玩家.Shuxing[4], 1, 0, 有害爆炸, 爆炸声音, 0, 13, 5, 0, 首个(已排序的数组(范围内玩家(事件玩家, 20, 队伍1, 表面), 相距距离(事件玩家, 当前数组元素))), 0.700);
+		等待(随机实数(0.7, 1.2), 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——绷带-效果创建")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绷带")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建效果(((对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绷带")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1)&&(全局.GameState == 2)) ? 所有玩家(所有队伍) : 空, 球, 颜色(红色), 眼睛位置(事件玩家)+地图矢量(矢量(1, 1, 1), 事件玩家, 旋转), 1, 可见，位置和半径);
+		创建地图文本(((对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绷带")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1)&&(全局.GameState == 2)) ? 所有玩家(所有队伍) : 空, 自定义字符串("肉块"), 眼睛位置(事件玩家)+地图矢量(矢量(1, 1, 1), 事件玩家, 旋转), 0.7, 根据表面截取, 可见，位置和字符串, 颜色(红色), 默认可见度);
+		等待(9999, 无视条件);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("子程序YG_type_bool")
+{
+	事件
+	{
+		子程序;
+		YG_type_bool;
+	}
+
+	动作
+	{
+				If(对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("耀光")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1);
+		事件玩家._Bool_Yaoguang = 1;
+		Else If(对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("冰与火之歌")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1);
+			If(事件玩家.Shuxing[1] >= 10 && 事件玩家.Shuxing[5]>= 10);
+			事件玩家._Draw_Bingyuhuozhige = 自定义字符串("冰冻并燃烧");
+			Else;
+			事件玩家._Draw_Bingyuhuozhige = 数组随机取值(数组(自定义字符串("燃烧"),自定义字符串("冰冻")));
+			End;
+		End;
+		等待(3, 当为“真”时重新开始);
+		事件玩家._Bool_Yaoguang = 0;
+		事件玩家._Draw_Bingyuhuozhige = 0;
+	}
+}
+
+规则("释放技能后刷新充能-技能1")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		正在使用技能 1(事件玩家) == 真;
+	}
+
+	动作
+	{
+		调用子程序(YG_type_bool);
+	}
+}
+
+规则("释放技能后刷新充能-技能2")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		正在使用技能 2(事件玩家) == 真;
+	}
+
+	动作
+	{
+		调用子程序(YG_type_bool);
+	}
+}
+
+规则("释放技能后刷新充能-终极技能")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		正在使用终极技能(事件玩家) == 真;
+	}
+
+	动作
+	{
+		调用子程序(YG_type_bool);
+	}
+}
+
+规则("释放技能后刷新充能-右键")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		技能冷却时间(事件玩家, 按钮(辅助攻击模式)) > 0;
+	}
+
+	动作
+	{
+		调用子程序(YG_type_bool);
+	}
+}
+
+规则("释放技能后刷新充能-空格")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		技能冷却时间(事件玩家, 按钮(跳跃)) > 0;
+	}
+
+	动作
+	{
+		调用子程序(YG_type_bool);
+	}
+}
+
+规则("——耀光-造成伤害消耗充能")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("耀光")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家._Bool_Yaoguang == 1;
+		事件技能 == 按钮(近身攻击);
+	}
+
+	动作
+	{
+		播放效果(所有玩家(所有队伍), 有害选择效果, 颜色(天蓝色), 被攻击方, 1);
+		伤害(被攻击方, 事件玩家, 10*(事件玩家.Shuxing[0]+事件玩家.Shuxing[1]));
+		事件玩家._Bool_Yaoguang = 0;
+	}
+}
+
+规则("——耀光-特效地图文本初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("耀光")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建地图文本(对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("耀光")) && 事件玩家.slot_unlocked[当前数组元素] == 1 && 事件玩家._Bool_Yaoguang == 1) == 1 ? 事件玩家 : 空, 自定义字符串("{0}耀光",图标字符串(光晕)), 眼睛位置(事件玩家) + 10 * 面朝方向(事件玩家) + 地图矢量(矢量(-1, -1, 0), 事件玩家, 旋转), 2, 不要截取, 可见，位置和字符串, 颜色(天蓝色), 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——冰与火之歌-造成伤害消耗充能")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("冰与火之歌")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家._Draw_Bingyuhuozhige != 0;
+	}
+
+	动作
+	{
+		If(事件玩家._Draw_Bingyuhuozhige == 自定义字符串("冰冻"));
+		设置状态(被攻击方, 事件玩家, 冰冻, 1);
+		Else If(事件玩家._Draw_Bingyuhuozhige == 自定义字符串("燃烧"));
+		设置状态(被攻击方, 事件玩家, 燃烧, 1);
+		开始持续伤害(被攻击方, 事件玩家, 1, 75);
+		Else If(事件玩家._Draw_Bingyuhuozhige == 自定义字符串("冰冻并燃烧"));
+		设置状态(被攻击方, 事件玩家, 燃烧, 1);
+		开始持续伤害(被攻击方, 事件玩家, 1, 75);
+		设置状态(被攻击方, 事件玩家, 冰冻, 1);
+		End;
+		事件玩家._Draw_Bingyuhuozhige = 0;
+	}
+}
+
+规则("——冰与火之歌-特效地图文本初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("冰与火之歌")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建地图文本(对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("冰与火之歌")) && 事件玩家.slot_unlocked[当前数组元素] == 1 && 事件玩家._Draw_Bingyuhuozhige != 0) == 1 ? 事件玩家 : 空, 自定义字符串("冰与火之歌-{0}",事件玩家._Draw_Bingyuhuozhige), 眼睛位置(事件玩家) + 10 * 面朝方向(事件玩家) + 地图矢量(矢量(-1, -0.5, 0), 事件玩家, 旋转), 2, 不要截取, 可见，位置和字符串, 颜色(白色), 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——头颅刷新-杀人后重置技能1cd")
+{
+	事件
+	{
+		玩家造成最后一击;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("头颅刷新")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		技能冷却时间(事件玩家, 按钮(技能1)) > 3;
+	}
+
+	动作
+	{
+		设置技能冷却(事件玩家, 按钮(技能1), 较小(3, 技能冷却时间(事件玩家, 按钮(技能1))));
+		播放效果(事件玩家, 有害选择效果, 颜色(白色), 被攻击方, 1);
+	}
+}
+
+规则("——躯骸刷新-杀人后重置技能2cd")
+{
+	事件
+	{
+		玩家造成最后一击;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("躯骸刷新")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		技能冷却时间(事件玩家, 按钮(技能2)) > 3;
+	}
+
+	动作
+	{
+		设置技能冷却(事件玩家, 按钮(技能2), 较小(3, 技能冷却时间(事件玩家, 按钮(技能2))));
+		播放效果(事件玩家, 有害选择效果, 颜色(白色), 被攻击方, 1);
+	}
+}
+
+规则("——陨地冲击-着陆伤害")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("陨地冲击")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		在地面上(事件玩家) == 真;
+	}
+	动作
+	{
+		If(事件玩家.level < 8);
+			伤害(范围内玩家(事件玩家, 5, 队伍1, 表面), 事件玩家, 0.002 * 事件玩家.Shuxing[2] * 最大生命值(事件玩家));
+			播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(橙色), 事件玩家, 5);
+		Else;
+			伤害(范围内玩家(事件玩家, 8, 队伍1, 表面), 事件玩家, 0.002 * 事件玩家.Shuxing[2] * 最大生命值(事件玩家));
+			播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(橙色), 事件玩家, 8);
+		End;
+	}
+}
+
+规则("——米凯尔面具-造成伤害激活")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("米凯尔面具")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, (1 + 0.050 * 事件玩家.Shuxing[1]) * 0.050 * 事件伤害);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 吸血+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 0.03 * 事件玩家.Shuxing[1] * 事件伤害);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(98, 245, 221, 255));
+	}
+}
+
+规则("——巨人护符-变大")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("巨人护符")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		开始调整玩家大小(事件玩家, 1 + 事件玩家.Shuxing[2] * 0.020, 真);
+		等待直到 (全局.GameState == 3, 99999);
+		停止调整玩家大小(事件玩家);
+	}
+}
+
+规则("——君士坦丁之盾-变大")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("君士坦丁之盾")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		开始调整障碍大小(事件玩家, 1 * (1 + 事件玩家.Shuxing[2] * 0.050), 真);
+		等待直到 (全局.GameState == 3, 99999);
+		停止调整障碍大小(事件玩家);
+	}
+}
+
+规则("——末日铁拳的西装-激活")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("末日铁拳的西装")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		类型的生命值(事件玩家, 护甲) < 类型的生命值(事件玩家, 生命值) * 0.400;
+	}
+
+	动作
+	{
+		为玩家添加生命池(事件玩家, 护甲, 事件伤害 * 0.050, 假, 假);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 护甲+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 事件伤害 * 0.050);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(68, 75, 74, 255));
+	}
+}
+
+
+规则("——致命稳定器-设置弹药")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("致命稳定器")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用主要武器(事件玩家) == 真;
+		被攻击方 != 事件玩家;
+		数组包含(数组(按钮(主要攻击模式)), 事件技能) == 真;
+
+	}
+
+	动作
+	{
+		If(随机整数(0, 100) >= 75);
+			If(弹药(事件玩家, 0) >= 0.500 * 最大弹药(事件玩家, 0));
+			设置弹药(事件玩家, 0, 弹药(事件玩家, 0) - 最大弹药(事件玩家, 0) * 0.500);
+			伤害(被攻击方, 事件玩家, 0.500 * 事件伤害);
+			等待(0.500, 无视条件);
+			End;
+		Else;
+			设置弹药(事件玩家, 0, 弹药(事件玩家, 0) + 1);
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 子弹+"));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 1);
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(211, 239, 235, 255));
+		End;
+	}
+}
+
+规则("——善恶天平-造成治疗激活")
+{
+	事件
+	{
+		玩家造成治疗;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("善恶天平")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		受治疗者 != 事件玩家;
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, (1 + 事件玩家.Shuxing[1] * 0.050) * 0.200 * 事件治疗);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 +"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, (1 + 事件玩家.Shuxing[1] * 0.050) * 0.200 * 事件治疗);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(15, 90, 11, 255));
+	}
+}
+
+规则("——爆能抑制器-造成伤害激活")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("爆能抑制器")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用主要武器(事件玩家) == 真;
+		被攻击方 != 事件玩家;
+		数组包含(数组(按钮(主要攻击模式)), 事件技能) == 真;
+	}
+
+	动作
+	{
+		If(随机整数(0 + 事件玩家.Shuxing[0], 100) > 80);
+			修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 dot"));
+			修改玩家变量(被攻击方, Damage_list, 添加至数组, 0.300 * 事件伤害);
+			修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(191, 219, 191, 255));
+			开始持续伤害(被攻击方, 事件玩家, 5, 0.300 * 事件伤害);
+			等待(0.500, 无视条件);
+		End;
+	}
+}
+
+规则("——闪避护符-受到伤害激活")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("闪避护符")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		If(随机整数(0, 100) < (10+事件玩家.Shuxing[5]*2));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 闪避！"));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串(""));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(154, 155, 154, 255));
+			治疗(事件玩家, 事件玩家, 事件伤害);
+			等待(0.250, 无视条件);
+		End;
+	}
+}
+
+规则("——崔佛的皮靴-击退造成伤害")
+{
+	事件
+	{
+		玩家造成击退;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("崔佛的皮靴")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 皮鞋"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 5 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(234, 127, 248, 255));
+		伤害(被攻击方, 事件玩家, 5 * (事件玩家.Shuxing[0] + 事件玩家.Shuxing[1]));
+		等待(0.500, 无视条件);
+	}
+}
+规则("——碎颅战锤-伤害")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("碎颅战锤")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		被攻击方 != 事件玩家;
+		数组包含(数组(按钮(主要攻击模式)), 事件技能) == 真;
+	}
+
+	动作
+	{
+		伤害(被攻击方, 事件玩家, 10*事件玩家.Shuxing[2]);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("碎颅"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 0.100 * 最大生命值(事件玩家));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(141, 29, 29, 255));
+		等待(3, 无视条件);
+	}
+}
+规则("——贪婪戒指-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("贪婪戒指")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		事件玩家.Shuxing[0] += 取整(事件玩家.Shuxing[5] * 0.200, 下);
+		等待直到 (全局.GameState == 3, 99999);
+		事件玩家.Shuxing[0] -= 取整(事件玩家.Shuxing[5] * 0.200, 下);
+	}
+}
+
+规则("——斧王之斧-受到伤害激活")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("斧王之斧")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		攻击方 != 事件玩家;
+	}
+
+	动作
+	{
+		伤害(范围内玩家(事件玩家, 6, 队伍1, 表面及敌方屏障), 空, 事件伤害);
+		播放效果(所有玩家(所有队伍), 环状爆炸, 颜色(玫红), 事件玩家, 6.750);
+		等待(5, 无视条件);
+	}
+}
+规则("——炸弹小子-召唤炸弹")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("炸弹小子")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		If(事件玩家.level < 8 || 数量((范围内玩家(事件玩家, 15, 队伍1, 表面))) == 0);
+		创建弹道(球弹道, 事件玩家, 眼睛位置(事件玩家), 上, 至地图, 伤害, 队伍1, 8*(事件玩家.Shuxing[0]+事件玩家.Shuxing[3]), 1, 3, 有害爆炸, 爆炸声音, 0, 5, 6, 0, 3, 10);
+		Else;
+		创建弹道(球弹道, 事件玩家, 眼睛位置(事件玩家), 方向(眼睛位置(事件玩家), 眼睛位置(数组随机取值(范围内玩家(事件玩家, 15, 队伍1, 表面))))+上*2, 至地图, 伤害, 队伍1, 8*(事件玩家.Shuxing[0]+事件玩家.Shuxing[3]), 1, 3, 有害爆炸, 爆炸声音, 0, 15, 6, 0, 1, 5);
+		End;
+		等待(2, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+// 装备池初始化 - 传奇（更新）
+规则("\\\装备池初始化-传奇")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+	动作
+	{
+		全局.equipment_pool[2] =
+		 数组(
+			数组(自定义字符串("精准打击"), 数组(0,0,0,2,2,0), 自定义字符串("当你的法强>10 || 攻击>10\r\n 你的攻击会有（5*敏捷+10）%概率造成暴击\r\n伤害倍率为1.5"), 2),
+			数组(自定义字符串("掠夺者之剑"), 数组(0,0,0,0,0,0), 自定义字符串("每造成一次击杀\r\n获得+1法强+1攻击\r\n上限为3*level\r\n护甲+2魔抗+2"), 2),
+			数组(自定义字符串("风暴之眼"), 数组(0,1,0,0,0,3), 自定义字符串("每释放3次技能，召唤一道雷电打击距离鼠标最近的敌人\r\n造成10*（攻击+敏捷）的范围伤害\r\n若敏捷>12，雷电伤害提升至15*（攻击+敏捷）\r\n并有50%概率眩晕敌人1秒\r\n法强+1，敏捷+3"), 2),
+			数组(自定义字符串("不灭之握"), 数组(0,0,0,0,0,0), 自定义字符串("每用近战击杀一名敌人\r\n获得+2生命\r\n最多叠加3*level层"), 2),
+			数组(自定义字符串("末日铁拳的拳套"), 数组(0, 5, 0, 0, 0, 0), 自定义字符串("近战攻击V变为冷却时间12秒的{0}上勾拳{1}\r\n造成15+法强*5点伤害\r\n法强+5", 英雄图标字符串(英雄(末日铁拳)), 图标字符串(箭头：向上)), 2),
+			数组(自定义字符串("反伤刺甲"), 数组(0, 0, 0, 0, 0,0), 自定义字符串("受到伤害时\r\n你会反弹0.2*事件伤害+（护甲+魔抗）*1点伤害\r\n若你的生命值≤50%\r\n则反弹伤害翻倍"), 2), 
+			数组(自定义字符串("能源转换器"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("受到攻击时，你会获得4%终极技能能量"), 2), 
+			数组(自定义字符串("残暴之爪"), 数组(0, 0, 0, 2, 2, 0), 自定义字符串("你对敌人造成暴击伤害时，会在0.5秒后\r\n再次对该敌人造成（0.75*事件伤害)的伤害量"),2), 
+			数组(自定义字符串("引爆器"), 数组(0, 0, 0, 2, 2, 0), 自定义字符串("击杀一名敌人后，会在敌人死亡处引爆，对范围5M内敌人造成\r\n（最后一击伤害量）的伤害，每点法强会增加5%的伤害。"), 2), 
+			数组(自定义字符串("飞镖发射器"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("使用主要武器时，将会向前发射一枚飞镖\r\n造成（5+攻击力*2）点伤害，如玩家攻击力≥20点时\r\n将会额外发射两枚飞镖"), 2),
+			数组(自定义字符串("腐朽之木"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("受到治疗时，会发射两发追踪子弹\r\n每发伤害为10*(生命*2+魔抗)"), 2), 
+			数组(自定义字符串("祈祷项链"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("受到≥自身最大生命值10%的伤害后\r\n会恢复该伤害值50%的生命"), 2), 
+			数组(自定义字符串("狙击手的灵魂"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("当你使用主要武器造成伤害，且与敌人距离≥4M时\r\n你主要武器造成的伤害都会\r\n额外造成（距离*0.1）的伤害"), 2),
+			数组(自定义字符串("恐螯之心"), 数组(0, 0, 4, 0, 0, 0), 自定义字符串("每秒治愈你2.5%的最大生命值\r\n生命+4"), 2), 
+			数组(自定义字符串("恶魔恩赐"), 数组(1, 1, 1, 1, 1, 1), 自定义字符串("每受到(1000-敏捷*10)点伤害\r\n随机属性永久+1\r\n全属性+1"), 2),
+			数组(自定义字符串("弱点共鸣"), 数组(0, 2, 0, 0, 0, 0), 自定义字符串("对冰冻,眩晕,击倒敌人造成暴击伤害\r\n暴击倍率为150%\r\n八级以后，倍率改为200%\r\n法强+2"), 2),
+			数组(自定义字符串("霜狱震壁"), 数组(0, 2, 0, 0, 0, 0), 自定义字符串("可对冰冻敌人施加击退\r\n若敌人在击退途中撞墙\r\n清除冰冻效果并附加15*法强的伤害\r\n攻击>10后，不再清除冰冻效果\r\n攻击+2"), 2),
+			数组(自定义字符串("闪电链"), 数组(2, 0, 0, 0, 0, 0), 自定义字符串("五级以后\r\n你的攻击伤害会对附近的一名敌人\r\n施加(5*迅捷+2*生命)伤害的闪电链\r\n敏捷＞10以后，改为附近两名敌人\r\n攻击+2"), 2),
+			数组(自定义字符串("召唤雷电"), 数组(0, 2, 0, 2, 0, 0), 自定义字符串("十级以后\r\n周期性地在身边召唤落雷\r\n造成8*(魔抗+法强)的伤害,并造成击倒\r\n魔抗+2,法强+2"), 2),
+			数组(自定义字符串("炽焰油迹"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("使用技能后的下一次攻击\r\n会在目标处留下一滩存在3s的油\r\n造成每秒(攻击+法强)的dot伤害\r\n如果油内有敌人处于燃烧状态\r\n点燃油，转而造成10*(攻击+法强)的爆炸伤害"), 2), 
+			数组(自定义字符串("绝对领域"), 数组(0, 3, 0, 0, 0, 0), 自定义字符串("满血时，随身一个半径为(法强)m的区域\r\n对靠近的怪物造成眩晕,附加10*双抗的伤害(CD:1s)\r\n法强+3"), 2), 
+			数组(自定义字符串("雷霆回响"), 数组(0, 0, 0, 0, 0, 3), 自定义字符串("每次暴击，释放雷霆冲击\r\n对目标及附近2米敌人造成(5*敏捷)伤害（CD 2秒）\r\n敏捷>10时，冲击附带0.5秒晕眩\r\n敏捷+3"), 2), 
+			数组(自定义字符串("末日铁拳的西装"), 数组(0, 0, 0, 0, 0, 0), 自定义字符串("你造成伤害时会获得（0.05*伤害*(护甲+魔抗)）的护甲\r\n最高不可超过你40%的最大生命值"), 2)
+			);
+	}
+}
+
+规则("——精准打击-造成伤害消耗充能")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("精准打击")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		(事件玩家.Shuxing[0] > 10 && 事件玩家.Shuxing[1] >10) == 真;
+	}
+
+	动作
+	{
+		If(随机整数(1,100) <= 10+5*事件玩家.Shuxing[5]);
+			创建弹道(球弹道, 空, 眼睛位置(被攻击方), 空, 至地图, 伤害, 所有队伍, 20, 1, 0, 有害爆炸, 爆炸声音, 0, 10, 5, 0, 0, 0);
+			伤害(被攻击方, 事件玩家, 0.5*事件伤害);
+		End;
+	}
+}
+
+规则("——掠夺者之剑-杀人叠加层数")
+{
+	事件
+	{
+		玩家造成最后一击;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("掠夺者之剑")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		If(3*事件玩家.level > 事件玩家._stacks_Lueduozhezhijian+1);
+		播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 所选位置(事件玩家), 100);
+		事件玩家._stacks_Lueduozhezhijian = 较小(3*事件玩家.level, 事件玩家._stacks_Lueduozhezhijian+1);
+		事件玩家.Shuxing[0] += 1;
+		事件玩家.Shuxing[1] += 1;
+		End;
+	}
+}
+
+规则("——掠夺者之剑-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("掠夺者之剑")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		事件玩家._stacks_Lueduozhezhijian = 0;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[0] -= 事件玩家._stacks_Lueduozhezhijian;
+		事件玩家.Shuxing[1] -= 事件玩家._stacks_Lueduozhezhijian;
+		事件玩家._stacks_Lueduozhezhijian = 0;
+	}
+}
+
+规则("——掠夺者之剑-层数HUD初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("掠夺者之剑")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建HUD文本(事件玩家._stacks_Lueduozhezhijian > 0?事件玩家:空, 自定义字符串("\r\n     掠夺者之剑：{0}/{1}     \r\n",事件玩家._stacks_Lueduozhezhijian,事件玩家.level*3), 空, 空, 右边, -2, 颜色(橙色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——风暴之眼-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 0;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家._count_Fengbaozhiyan = 0;
+	}
+}
+
+规则("——风暴之眼-释放技能后叠层数-技能1")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用技能 1(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 较小(3, 事件玩家._count_Fengbaozhiyan +1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 所选位置(事件玩家), 100);
+
+	}
+}
+
+规则("——风暴之眼-释放技能后叠层数-技能2")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用技能 2(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 较小(3, 事件玩家._count_Fengbaozhiyan +1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 所选位置(事件玩家), 100);
+	}
+}
+
+规则("——风暴之眼-释放技能后叠层数-终极技能")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用终极技能(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 较小(3, 事件玩家._count_Fengbaozhiyan +1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 所选位置(事件玩家), 100);
+
+	}
+}
+
+规则("——风暴之眼-释放技能后叠层数-右键")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		技能冷却时间(事件玩家, 按钮(辅助攻击模式)) > 0;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 较小(3, 事件玩家._count_Fengbaozhiyan +1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 所选位置(事件玩家), 100);
+
+	}
+}
+
+规则("——风暴之眼-释放技能后叠层数-跳跃")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		技能冷却时间(事件玩家, 按钮(跳跃)) > 0;
+	}
+
+	动作
+	{
+		事件玩家._count_Fengbaozhiyan = 较小(3, 事件玩家._count_Fengbaozhiyan +1);
+		播放效果(事件玩家, “黑影”标志声音, 颜色(白色), 所选位置(事件玩家), 100);
+
+	}
+}
+
+规则("——风暴之眼-特效地图文本初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建地图文本(对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 事件玩家.slot_unlocked[当前数组元素] == 1 && 事件玩家._count_Fengbaozhiyan >= 1) == 1 ? 事件玩家 : 空, 自定义字符串("{0}风暴之眼 {1}/3",图标字符串(螺旋),事件玩家._count_Fengbaozhiyan), 眼睛位置(事件玩家) + 10 * 面朝方向(事件玩家) + 地图矢量(矢量(1, -1, 0), 事件玩家, 旋转), 2, 不要截取, 可见，位置和字符串, 颜色(亮紫色), 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——风暴之眼-消耗充能")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("风暴之眼")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家._count_Fengbaozhiyan == 3;
+	}
+
+	动作
+	{
+		播放效果(所有玩家(所有队伍), “秩序之光”传送面板重现效果, 颜色(白色), 距离准星最近的玩家(事件玩家,队伍1), 1);
+		播放效果(所有玩家(所有队伍), “回声”黏性炸弹爆炸效果, 颜色(白色), 距离准星最近的玩家(事件玩家,队伍1), 1);
+		播放效果(所有玩家(所有队伍), “回声”黏性炸弹爆炸效果, 颜色(白色), 距离准星最近的玩家(事件玩家,队伍1), 1);
+		If(事件玩家.Shuxing[5] <= 12);
+		伤害(范围内玩家(被攻击方, 3, 队伍1, 表面), 事件玩家, 10*(事件玩家.Shuxing[1]+事件玩家.Shuxing[5]));
+		Else;
+		伤害(范围内玩家(被攻击方, 3, 队伍1, 表面), 事件玩家, 15*(事件玩家.Shuxing[1]+事件玩家.Shuxing[5]));
+		设置状态(范围内玩家(被攻击方, 3, 队伍1, 表面), 空, 击倒, 1);
+		End;
+		事件玩家._count_Fengbaozhiyan = 0;
+	}
+}
+
+规则("——不灭之握-激活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("不灭之握")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		事件玩家._stacks_Bumiezhiwo = 0;
+		等待直到(全局.GameState == 3, 99999);
+		事件玩家.Shuxing[2] -= 事件玩家._stacks_Bumiezhiwo * 2;
+		事件玩家._stacks_Bumiezhiwo = 0;
+	}
+}
+
+规则("——不灭之握-层数HUD初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("不灭之握")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		创建HUD文本(事件玩家._stacks_Bumiezhiwo > 0 ? 事件玩家 : 空, 自定义字符串("\r\n     不灭之握：{0}/{1}     \r\n", 事件玩家._stacks_Bumiezhiwo, 事件玩家.level * 3), 空, 空, 右边, -2, 颜色(橙色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——不灭之握-击杀叠加生命")
+{
+	事件
+	{
+		玩家造成最后一击;
+		双方;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("不灭之握")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家._stacks_Bumiezhiwo < 事件玩家.level * 3;
+		事件技能 == 按钮(近身攻击);
+	}
+	动作
+	{
+		事件玩家._stacks_Bumiezhiwo += 1;
+		事件玩家.Shuxing[2] += 2;
+		播放效果(事件玩家, 正面状态施加声音, 颜色(白色), 事件玩家, 100);
+	}
+}
+
+规则("——末日铁拳的拳套-释放")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		技能冷却时间(事件玩家, 按钮(技能1)) == 0;
+		按钮被按下(事件玩家, 按钮(近身攻击)) == 真;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("末日铁拳的拳套")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		禁用按钮(事件玩家, 按钮(近身攻击));
+		设置启用近战攻击(事件玩家, 假);
+		播放效果(所有玩家(所有队伍), “末日铁拳”上勾重拳跳跃声音, 颜色(白色), 事件玩家, 100);
+		播放效果(所有玩家(所有队伍), “末日铁拳”上勾重拳击中声音, 颜色(白色), 范围内玩家(射线命中位置(眼睛位置(事件玩家), 眼睛位置(事件玩家) + 面朝方向(事件玩家) * 2.500, 所有玩家(队伍2), 事件玩家, 真), 3.500, 队伍2,
+			表面), 100);
+		小字体信息(事件玩家, 自定义字符串("{0}{1}：上勾拳{2}！", 英雄图标字符串(所用英雄(事件玩家)), 事件玩家, 图标字符串(箭头：向上)));
+		伤害(范围内玩家(射线命中位置(眼睛位置(事件玩家), 眼睛位置(事件玩家) + 面朝方向(事件玩家) * 2.500, 所有玩家(队伍1), 事件玩家, 3.500), 0, 队伍1, 表面), 事件玩家, 15 + 事件玩家.Shuxing[1] * 5);
+		施加推力(范围内玩家(射线命中位置(眼睛位置(事件玩家), 眼睛位置(事件玩家) + 面朝方向(事件玩家) * 2.500, 所有玩家(所有队伍), 事件玩家, 真), 3.500, 所有队伍, 表面), 上, 15, 至地图, 取消相反运动);
+		设置状态(范围内玩家(射线命中位置(眼睛位置(事件玩家), 眼睛位置(事件玩家) + 面朝方向(事件玩家) * 2.500, 所有玩家(队伍1), 事件玩家, 3.500), 0, 队伍1, 关闭), 事件玩家, 击晕, 0.750);
+		等待(12, 无视条件);
+		设置启用近战攻击(事件玩家, 真);
+		可用按钮(事件玩家, 按钮(近身攻击));
+	}
+}
+
+规则("——反伤刺甲-反伤")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("反伤刺甲")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		攻击方 != 事件玩家;
+	}
+
+	动作
+	{
+		If(标准化生命值(事件玩家) <= 0.5);
+			伤害(攻击方, 事件玩家, 0.400 * 事件伤害 + (事件玩家.Shuxing[4] + 事件玩家.Shuxing[3]) * 2);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 反伤"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 0.400 * 事件伤害 + (事件玩家.Shuxing[4] + 事件玩家.Shuxing[3]) * 2);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(250, 139, 48, 255));
+			播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 攻击方, 0.300);
+			等待(1, 无视条件);
+		Else;
+			伤害(攻击方, 事件玩家, 0.200 * 事件伤害 + (事件玩家.Shuxing[3] + 事件玩家.Shuxing[4]) * 1);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 反伤"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 0.200 * 事件伤害 + (事件玩家.Shuxing[3] + 事件玩家.Shuxing[4]) * 1);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(250, 139, 48, 255));
+			播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 攻击方, 0.300);
+			等待(1, 无视条件);
+		End;
+	}
+}
+规则("——恶魔恩赐-积累受伤")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("恶魔恩赐")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		攻击方 != 事件玩家;
+	}
+
+	动作
+	{
+		事件玩家._hurt_EMEC += 事件伤害;
+		If(事件玩家._hurt_EMEC >= 1000-事件玩家.Shuxing[5]*10);
+			播放效果(事件玩家, 有益选择效果, 颜色(黑色), 事件玩家, 1);
+			事件玩家._hurt_EMEC = 随机整数(0, 5);
+			事件玩家.Shuxing[事件玩家._hurt_EMEC] += 1; 
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 恶魔恩赐"));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("{0}+1",全局.Shuxing_Name[事件玩家._hurt_EMEC]));
+			修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(4, 4, 4, 255));
+			等待(0.250, 无视条件);
+			事件玩家._hurt_EMEC = 0;
+		End;
+	}
+}
+规则("——恶魔恩赐-回合结束时候重置")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 3;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("恶魔恩赐")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		事件玩家._hurt_EMEC = 0;
+	}
+}
+规则("——恶魔恩赐-层数HUD初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("掠夺者之剑")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		创建HUD文本(事件玩家._hurt_EMEC > 0?事件玩家:空, 自定义字符串("\r\n     恶魔恩赐：{0}/{1}     \r\n",事件玩家._hurt_EMEC,1000-10*事件玩家.Shuxing[5]), 空, 空, 右边, -3, 颜色(黑色), 颜色(白色), 颜色(白色), 可见和字符串, 默认可见度);
+		等待(9999, 无视条件);
+	}
+}
+规则("——能源转换器-受伤加充能")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("能源转化器")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		设置终极技能充能(事件玩家, 较小(终极技能充能百分比(事件玩家) + 4,100));
+		播放效果(所有玩家(所有队伍), 有益选择效果 , 颜色(青绿色), 事件玩家, 0.300);
+		等待(0.1, 无视条件);
+	}
+}
+
+规则("——残暴之爪-造成暴击等待以后附加")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("残暴之爪")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		事件暴击 == 真;
+	}
+
+	动作
+	{
+		等待(0.500, 无视条件);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 撕裂"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 0.750 * 事件伤害);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(255, 65, 65, 255));
+		伤害(被攻击方, 事件玩家, 0.750 * 事件伤害);
+		
+	}
+}
+
+规则("——引爆器-造成最后一击爆炸")
+{
+	事件
+	{
+		玩家造成最后一击;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("引爆器")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		播放效果(所有玩家(所有队伍), 卡西迪闪光弹击晕效果, 颜色(白色), 被攻击方, 0.250);
+		播放效果(所有玩家(所有队伍), 爆炸声音, 颜色(白色), 被攻击方, 50);
+		播放效果(所有玩家(所有队伍), 半藏音初始脉冲效果, 颜色(队伍2), 被攻击方, 0.350);
+		伤害(范围内玩家(被攻击方, 5, 队伍1, 表面), 事件玩家, (1 + 事件玩家.Shuxing[1] * 0.050) * 事件伤害);
+		播放效果(所有玩家(所有队伍), 环状爆炸, 颜色(红色), 被攻击方, 0.550);
+	}
+}
+
+规则("——飞镖发射器-按下左键发射")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("飞镖发射器")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		正在使用主要武器(事件玩家) == 真;
+	}
+
+	动作
+	{
+		创建弹道(源氏“镖”, 事件玩家, 空, 与此角度的相对方向(随机整数(0, 1), 逐帧更新(垂直朝向角度(事件玩家)) + 随机整数(0, 1)), 至玩家, 伤害, 队伍1, 5 + 事件玩家.Shuxing[0] * 2, 1, 0, 有害爆炸,
+			爆炸声音, 0, 60, 4, 0, 0, 0);
+		If(事件玩家.Shuxing[0] >= 20);
+			创建弹道(源氏“镖”, 事件玩家, 空, 与此角度的相对方向(随机整数(0, 1), 逐帧更新(垂直朝向角度(事件玩家)) + 随机整数(0, 1)), 至玩家, 伤害, 队伍1, 5 + 事件玩家.Shuxing[0] * 2, 1, 0, 有害爆炸,
+				爆炸声音, 0, 60, 4, 0, 0, 0);
+			创建弹道(源氏“镖”, 事件玩家, 空, 与此角度的相对方向(随机整数(0, 1), 逐帧更新(垂直朝向角度(事件玩家)) + 随机整数(0, 1)), 至玩家, 伤害, 队伍1, 5 + 事件玩家.Shuxing[0] * 2, 1, 0, 有害爆炸,
+				爆炸声音, 0, 60, 4, 0, 0, 0);
+		End;
+		等待(0.10, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——腐朽之木-受到治疗造成伤害")
+{
+	事件
+	{
+		玩家受到治疗;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("腐朽之木")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		If(数量(范围内玩家(事件玩家, 15, 队伍1, 关闭)) > 0);
+		创建追踪弹道(奥丽莎聚变驱动器, 事件玩家, 眼睛位置(事件玩家), 面朝方向(事件玩家), 至地图, 伤害, 队伍1, 10*(事件玩家.Shuxing[2]*2+事件玩家.Shuxing[4]), 1, 0, 有害爆炸, 爆炸声音, 0, 10, 5, 0, 数组随机取值(范围内玩家(事件玩家, 15, 队伍1, 关闭)), 0.800);
+		创建追踪弹道(奥丽莎聚变驱动器, 事件玩家, 眼睛位置(事件玩家), 面朝方向(事件玩家), 至地图, 伤害, 队伍1, 10*(事件玩家.Shuxing[2]*2+事件玩家.Shuxing[4]), 1, 0, 有害爆炸, 爆炸声音, 0, 10, 5, 0, 数组随机取值(范围内玩家(事件玩家, 15, 队伍1, 关闭)), 0.800);
+		等待(1, 无视条件);
+		End;
+	}
+}
+
+规则("——祈祷项链-受到超过10%伤害自愈")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("祈祷项链")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		事件伤害 >= 0.100 * 最大生命值(事件玩家);
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, 事件伤害 * 0.500);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 祈祷+"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 事件伤害 * 0.500);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(50, 137, 73, 255));
+		
+	}
+}
+
+规则("——狙击手的灵魂-超过一定距离增加伤害")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("狙击手的灵魂")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		相距距离(眼睛位置(事件玩家), 眼睛位置(被攻击方)) >= 10;
+		事件技能 == 按钮(主要攻击模式);
+	}
+
+	动作
+	{
+		伤害(被攻击方, 事件玩家, 事件伤害 * 相距距离(眼睛位置(事件玩家), 眼睛位置(被攻击方)) * 0.100);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 (狙击)"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 事件伤害 * 相距距离(眼睛位置(事件玩家), 眼睛位置(被攻击方)) * 0.100);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(51, 57, 53, 255));
+	}
+}
+
+规则("——恐螯之心-恢复")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0, 1, 2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("恐鳌之心")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+
+	动作
+	{
+		治疗(事件玩家, 事件玩家, 0.025 * 最大生命值(事件玩家));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("恐鳌之心"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 0.025 * 最大生命值(事件玩家));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(36, 56, 43, 255));
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——雷霆回响-暴击触发")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("雷霆回响")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		事件暴击 == 真;
+	}
+	动作
+	{
+		伤害(范围内玩家(被攻击方, 2, 队伍1, 表面), 攻击方, 5 * 攻击方.Shuxing[5]);
+		If(攻击方.Shuxing[5] > 10);
+			设置状态(范围内玩家(被攻击方, 2, 队伍1, 表面),事件玩家,击晕, 0.5);
+		End;
+		播放效果(事件玩家, 有害爆炸, 颜色(蓝色), 被攻击方, 2);
+		播放效果(事件玩家, 爆炸声音, 颜色(蓝色), 被攻击方, 150);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 雷霆"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 5 * 攻击方.Shuxing[5]);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(44, 58, 248, 255));
+	}
+}
+
+规则("——绝对领域-创建效果")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绝对领域")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+	}
+	动作
+	{
+		创建效果(((对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绝对领域")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1) && (标准化生命值(事件玩家) == 1) && 全局.GameState == 2) ? 所有玩家(所有队伍) : 空, 环, 颜色(橙色), 事件玩家, 事件玩家.Shuxing[1], 可见，位置和半径);
+		等待(9999, 无视条件);
+	}
+}
+
+规则("——绝对领域-造成伤害")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("绝对领域")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		标准化生命值(事件玩家) == 1;
+		数量(范围内玩家(事件玩家, 事件玩家.Shuxing[1], 队伍1, 表面)) > 0 ;
+	}
+	动作
+	{
+		伤害(范围内玩家(事件玩家, 事件玩家.Shuxing[1], 队伍1, 表面), 事件玩家, 10*(事件玩家.Shuxing[3]+事件玩家.Shuxing[4]));
+		设置状态(范围内玩家(事件玩家, 事件玩家.Shuxing[1], 队伍1, 表面), 事件玩家, 击晕, 0.5);
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——召唤雷电-召唤雷电")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(事件玩家.slot_equipped[当前数组元素], 自定义字符串("召唤雷电")) && 事件玩家.slot_unlocked[当前数组元素] == 1) == 1;
+		事件玩家.level >= 10;
+	}
+
+	动作
+	{
+		While(随机整数(0, 4) == 0);
+		创建弹道(查莉娅重力喷涌, 事件玩家, 地图矢量(矢量(随机实数(-2.5, 2.5), 4, 随机实数(-1.5, 1.5)), 事件玩家, 旋转并转换), 下, 至地图, 伤害, 队伍1, 8*(事件玩家.Shuxing[1]+事件玩家.Shuxing[4]), 0, 4, 有害爆炸, 爆炸声音, 0.5, 10, 5, 0, 0, 7);
+		End;
+		等待(0.5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+规则("——闪电链-左右键近战触发")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("闪电链")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		数组包含(数组(按钮(主要攻击模式), 按钮(辅助攻击模式), 按钮(近身攻击)), 事件技能) == 真;
+		事件玩家.level >= 5;
+	}
+	动作
+	{
+		创建弹道(西格玛超能之球, 被攻击方, 眼睛位置(被攻击方), 方向(眼睛位置(被攻击方), 眼睛位置(首个(已排序的数组(所有存活玩家(队伍1), 相距距离(被攻击方, 当前数组元素))))), 至地图, 伤害, 队伍1, 0.5*事件伤害, 1, 0, 有害爆炸, 爆炸声音, 0.6, 15, 5, 0, 0, 0);
+	}
+}
+规则("——弱点共鸣-暴击触发")
+{
+	事件
+	{
+		玩家造成伤害;
+		队伍2;
+		全部;
+	}
+	条件
+	{
+		全局.GameState == 2;
+		对任意为“真”(数组(0,1,2), 数组包含(攻击方.slot_equipped[当前数组元素], 自定义字符串("弱点共鸣")) && 攻击方.slot_unlocked[当前数组元素] == 1) == 1;
+		(具有状态(被攻击方, 冰冻) || 具有状态(被攻击方, 击晕) || 具有状态(被攻击方, 击倒)) == 真;
+	}
+	动作
+	{
+		创建弹道(球弹道, 事件玩家, 眼睛位置(被攻击方), 空, 至地图, 伤害, 所有队伍, 事件玩家.level >=8 ? 事件伤害 : 0.5*事件伤害, 0, 0, 有害爆炸, 爆炸声音, 0, 10, 5, 0, 0, 0);
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("装备 弱点"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义字符串("暴击！"));
+		修改玩家变量(被攻击方, Damage_list, 添加至数组, 自定义颜色(248, 44, 44, 255));
+		等待(0.250, 无视条件);
+
+	}
+}
+规则("装备子数组展开初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		
+	}
+
+	动作
+	{
+		全局.equipment_name[0] = 映射的数组(全局.equipment_pool[0], 当前数组元素[0]);
+		全局.equipment_name[1] = 映射的数组(全局.equipment_pool[1], 当前数组元素[0]);
+		全局.equipment_name[2] = 映射的数组(全局.equipment_pool[2], 当前数组元素[0]);
+
+		全局.equipment_DEScr[0] = 映射的数组(全局.equipment_pool[0], 当前数组元素[2]);
+		全局.equipment_DEScr[1] = 映射的数组(全局.equipment_pool[1], 当前数组元素[2]);
+		全局.equipment_DEScr[2] = 映射的数组(全局.equipment_pool[2], 当前数组元素[2]);
+
+		全局.equipment_Name = 添加至数组(映射的数组(全局.equipment_pool[0], 当前数组元素[0]),添加至数组(映射的数组(全局.equipment_pool[1], 当前数组元素[0]),映射的数组(全局.equipment_pool[2], 当前数组元素[0])));
+		全局.equipment_Shuxing = 添加至数组(映射的数组(全局.equipment_pool[0], 当前数组元素[1]),添加至数组(映射的数组(全局.equipment_pool[1], 当前数组元素[1]),映射的数组(全局.equipment_pool[2], 当前数组元素[1])));
+	}
+}
+
+规则("装备槽位随玩家等级自动解锁-0")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		事件玩家.level >= 1;
+	}
+
+	动作
+	{
+			事件玩家.slot_unlocked[0] = 1;
+	}
+}
+
+规则("装备槽位随玩家等级自动解锁-1")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		事件玩家.level >= 5;
+	}
+
+	动作
+	{
+			事件玩家.slot_unlocked[1] = 1;
+	}
+}
+
+规则("装备槽位随玩家等级自动解锁-2")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		事件玩家.level >= 10;
+	}
+
+	动作
+	{
+			事件玩家.slot_unlocked[2] = 1;
+	}
+}
+
+规则("装备槽位在关卡结束的时候关闭并清空size")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.GameState != 2;
+		事件玩家.level <= 1;
+	}
+
+	动作
+	{
+			事件玩家.slot_unlocked = 数组(0,0,0);
+	}
+}
+
+规则("装填装备")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		
+	}
+
+	动作
+	{
+		//
+		//判断第一个槽
+		事件玩家.the_slot = 数组值的索引(事件玩家.slot_unlocked, 0);
+		If(事件玩家.slot_unlocked[事件玩家.the_slot] == 1);
+	}
+}
+
+规则("——————抽奖")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+}
+
+
+
+规则("子程序Draw_attribute 抽奖-属性Draw_Result生成")
+{
+	事件
+	{
+		子程序;
+		Draw_attribute;
+	}
+
+	动作
+	{
+		//生成一个属性抽奖的结果
+		事件玩家.Draw_pool = 数组(数组分割(随机数组(数组(0,1,2,3,4,5)), 0, 3),数组(随机整数(全局.attribute_pool[事件玩家.Used_Ticket_ID][0], 全局.attribute_pool[事件玩家.Used_Ticket_ID][1]),随机整数(全局.attribute_pool[事件玩家.Used_Ticket_ID][0], 全局.attribute_pool[事件玩家.Used_Ticket_ID][1]),随机整数(全局.attribute_pool[事件玩家.Used_Ticket_ID][0], 全局.attribute_pool[事件玩家.Used_Ticket_ID][1])));
+		事件玩家.Draw_pool = 映射的数组(数组(0,1,2), 数组(事件玩家.Draw_pool[0][当前数组元素], 事件玩家.Draw_pool[1][当前数组元素]));
+		事件玩家.Draw_Result = 映射的数组(事件玩家.Draw_pool, 自定义字符串("{0} {1}",全局.Shuxing_Name[当前数组元素[0]],当前数组元素[1]));
+	}
+}
+
+规则("子程序Draw_equipment 抽奖-装备Draw_Result生成")
+{
+	事件
+	{
+		子程序;
+		Draw_equipment;
+	}
+
+	动作
+	{
+		事件玩家.Draw_pool = 随机数组(映射的数组(全局.equipment_pool[事件玩家.Used_Ticket_ID], 当前数组元素[0]));
+		事件玩家.Draw_pool = 已过滤的数组(事件玩家.Draw_pool, 数组包含(事件玩家.bags, 当前数组元素) != 真);
+		事件玩家.Draw_Result = 数组分割(事件玩家.Draw_pool, 0, 较小(数量(事件玩家.Draw_pool), 3));//防止玩家已经拥有了所有的装备，那么就别生成pool了。
+	}
+}
+
+规则("——————等级模块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		
+	}
+
+	动作
+	{
+		
+	}
+}
+
+规则("等级初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		全局.GameState == 1;
+	}
+
+	动作
+	{
+		事件玩家.level = 0;
+	}
+}
+
+规则("——————机器人调用寻路模块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		
+	}
+
+	动作
+	{
+		
+	}
+}
+
+规则("规则302")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		是否是机器人(事件玩家) == 真;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name != 0;
+		数量(事件玩家.path) > 0;
+		事件玩家.Pathing_Bool == 1;
+		对任意为“真”(所有存活玩家(队伍2), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线) == 1) != 1;
+	}
+
+	动作
+	{
+		等待(3, 当为“假”时中止);
+		设置移动速度(事件玩家, 400);
+		等待直到(对任意为“真”(所有存活玩家(队伍2), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线) == 1) == 1, 5);
+		设置移动速度(事件玩家, 100);
+		如条件为“真”则循环;
+		
+	}
+}
+
+规则("机器人初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		是否是机器人(事件玩家) == 真;
+	}
+
+	动作
+	{
+		事件玩家.bot_ballistic_velocity = -0.003;
+		事件玩家.bot_aming_accuracy = 0;
+		追踪玩家变量频率(事件玩家, update_timer, 0, 1, 速率及最终值);
+		事件玩家.Pathing_Bool = 0;
+	}
+}
+
+规则("沿路径移动")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		是否是机器人(事件玩家) == 真;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name != 0;
+		数量(事件玩家.path) > 0;
+		事件玩家.Pathing_Bool == 1;
+	}
+
+	动作
+	{
+		禁用 传送(事件玩家, 事件玩家.start);
+		等待(0.250, 无视条件);
+		停止定向阈值(事件玩家);
+		停止限制阈值(事件玩家);
+		开始定向阈值(事件玩家, 方向(眼睛位置(事件玩家), 首个(事件玩家.path)), 1, 至地图, 替换现有阈值, 方向和幅度);
+	}
+}
+
+规则("沿路径移动防卡死")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		是否是机器人(事件玩家) == 真;
+		已重生(事件玩家) == 真;
+		速度(事件玩家) <= 1;
+		数量(事件玩家.path) > 0;
+		事件玩家.bot_name != 0;
+		事件玩家.Pathing_Bool == 1;
+		标准化生命值(事件玩家) == 1;
+	}
+
+	动作
+	{
+		等待(3, 当为“假”时中止);
+		传送(事件玩家, 事件玩家.path[0]);
+	}
+}
+
+规则("移除路径中已到达的节点")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		是否是机器人(事件玩家) == 真;
+		已重生(事件玩家) == 真;
+		数量(事件玩家.path) > 0;
+		相距距离(眼睛位置(事件玩家), 矢量(X方向分量(首个(事件玩家.path)), Y方向分量(眼睛位置(事件玩家)), Z方向分量(首个(事件玩家.path)))) < 1;
+		事件玩家.bot_name != 0;
+		事件玩家.Pathing_Bool == 1;
+	}
+
+	动作
+	{
+		修改玩家变量(事件玩家, path, 根据索引从数组中移除, 0);
+		If(数量(事件玩家.path) == 0);
+			停止定向阈值(事件玩家);
+		End;
+	}
+}
+
+规则("机器人-寻找有效目标")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		服务器负载峰值 < 150;
+		是否是机器人(事件玩家) == 真;
+		存活(事件玩家) == 真;
+		事件玩家.bot_name != 0;
+	}
+
+	动作
+	{
+		事件玩家.bot_targetArray = 已过滤的数组(所有存活玩家(队伍2), 事件玩家 != 当前数组元素 && 已重生(当前数组元素) && !是否是机器人(当前数组元素) && 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线));
+		If(数量(事件玩家.bot_targetArray) > 0);
+			事件玩家.bot_targetPlayer = 首个(已排序的数组(事件玩家.bot_targetArray, 相距距离(事件玩家, 当前数组元素) * 标准化生命值(当前数组元素)));
+		End;
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+
+规则("——无垢巨人-寻路调用")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.update_timer == 0;
+		服务器负载峰值 < 150;
+		数量(已过滤的数组(范围内玩家(事件玩家, 8, 队伍2, 表面), 存活(当前数组元素) && 在视线内(事件玩家, 眼睛位置(当前数组元素), 屏障不会阻挡视线))) == 0;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_state == 自定义字符串("无垢巨人");
+		事件玩家.bot_name != 0;
+	}
+
+	动作
+	{
+		等待(随机实数(0.7, 1.2), 当为“假”时中止);
+		If(数量(事件玩家.path) == 0 || 相距距离(事件玩家.Tracing_target, 事件玩家.end) >= 20 || 死亡(事件玩家.Tracing_target) == 1);
+		事件玩家.start = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.Tracing_target = 首个(已排序的数组(所有存活玩家(队伍2), 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.end = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家.Tracing_target, 当前数组元素)));
+		事件玩家.Pathing_Bool = 1;
+		调用子程序(Start_Dijstra);
+		End;
+		If(对任意为“真”(所有存活玩家(队伍2), 在视线内(眼睛位置(当前数组元素), 事件玩家, 屏障不会阻挡视线) == 1));//如果就在玩家眼皮子底下，那么就快点更新
+		事件玩家.update_timer = 1;
+		Else;
+		事件玩家.update_timer = 随机实数(1, 3);
+		End;
+	}
+}
+规则("——无垢巨人 触发")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		数量(已过滤的数组(范围内玩家(事件玩家, 12, 队伍2, 表面), 存活(当前数组元素) && 当前数组元素 == 事件玩家.bot_targetPlayer)) >= 1;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_targetPlayer != 0;
+		事件玩家.bot_name != 0;
+		事件玩家.bot_state == 自定义字符串("无垢巨人");
+		
+	}
+
+	动作
+	{
+		等待(随机实数(0.1, 0.4), 当为“假”时中止);
+		事件玩家.path = 空数组;
+		事件玩家.Pathing_Bool = 0;
+		开始朝向(事件玩家, 方向(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer)), 200, 至地图, 方向及角速率);
+		停止定向阈值(事件玩家);
+		开始限制阈值(事件玩家, 0.700, 1, 0, 1, 0, 1);
+		事件玩家.update_timer = 随机实数(3, 5);
+		If(事件玩家.bot_name == 自定义字符串("僵尸托比昂"));
+			调用子程序(JSTBA);
+		End;
+		If(事件玩家.bot_name == 自定义字符串("钩子路霸"));
+			调用子程序(GZLB);
+		End;
+		If(事件玩家.bot_name == 自定义字符串("蚊子回声"));
+			调用子程序(WZHS);
+		End;
+		If(事件玩家.bot_name == 自定义字符串("莫伊拉"));
+			调用子程序(MYL);
+		End;
+		If(事件玩家.bot_name == 自定义字符串("死神"));
+			调用子程序(SS);
+		End;
+	}
+}
+规则("规则301")
+{
+	事件
+	{
+		子程序;
+		Sub65;
+	}
+
+	动作
+	{
+		For 玩家变量(事件玩家, tp_for, 0, 存活玩家数量(队伍2), 1);//开始检索一个所有玩家都看不到的近点
+		事件玩家.tp_location = 已过滤的数组(全局.nodes_location, 在视线内(所有存活玩家(队伍2)[事件玩家.tp_for], 当前数组元素, 屏障不会阻挡视线));
+		等待(0.016, 无视条件);
+		End;
+		事件玩家.tp_location = 首个(已排序的数组(事件玩家.tp_location, 相距距离(数组随机取值(所有存活玩家(队伍2)), 当前数组元素)));
+		传送(事件玩家, 事件玩家.tp_location);
+	}
+}
+
+
+
+规则("——周游-寻路调用")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.update_timer == 0;
+		服务器负载峰值 < 150;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_state == 自定义字符串("周游");
+		事件玩家.bot_name != 0;
+	}
+
+	动作
+	{
+		等待(随机实数(0.7, 1.2), 当为“假”时中止);
+		事件玩家.start = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.Tracing_target = 首个(已排序的数组(所有存活玩家(队伍2), 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.end = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家.Tracing_target, 当前数组元素)));
+		事件玩家.Pathing_Bool = 1;
+		调用子程序(Start_Dijstra);
+		If(对任意为“真”(所有存活玩家(队伍2), 在视线内(眼睛位置(当前数组元素), 事件玩家, 屏障不会阻挡视线) == 1));//如果就在玩家眼皮子底下，那么就快点更新
+		事件玩家.update_timer = 1;
+		Else;
+		事件玩家.update_timer = 随机实数(3, 5);
+		End;
+	}
+}
+
+规则("——周游 触发")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		事件玩家.bot_targetPlayer != 0;
+		事件玩家.bot_name != 0;
+		事件玩家.bot_state == 自定义字符串("周游");
+		数量(已过滤的数组(范围内玩家(事件玩家, 12, 队伍2, 表面), 存活(当前数组元素) && 当前数组元素 == 事件玩家.bot_targetPlayer)) >= 1;
+	}
+
+	动作
+	{
+		等待(随机实数(0.1, 0.4), 当为“假”时中止);
+		调用子程序(bot_facing_update);
+		事件玩家.update_timer = 随机实数(1, 3);
+		If(事件玩家.bot_name == 自定义字符串("莫伊拉"));
+			调用子程序(MYL);
+		End;
+		If(事件玩家.bot_name == 自定义字符串("毛加"));
+			调用子程序(MJ);
+		End;
+	}
+}
+规则("——漫游-寻路调用")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.update_timer == 0;
+		服务器负载峰值 < 150;
+		数量(事件玩家.path) == 0;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_state == 自定义字符串("漫游");
+		事件玩家.bot_name != 0;
+	}
+
+	动作
+	{
+		等待(随机实数(0.2, 0.6), 当为“假”时中止);
+		事件玩家.start = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.end = 数组随机取值(全局.nodes_location);
+		事件玩家.Pathing_Bool = 1;
+		调用子程序(Start_Dijstra);
+		事件玩家.update_timer = 2;
+	}
+}
+
+规则("子程序 JSTBA 僵尸托比昂")
+{
+	事件
+	{
+		子程序;
+		JSTBA;
+	}
+
+	动作
+	{
+		设置武器(事件玩家, 2);
+		While(事件玩家.Pathing_Bool == 0);
+		按下按键(事件玩家, 按钮(技能2));
+		开始按下按钮(事件玩家, 按钮(主要攻击模式));
+		等待(1.5, 无视条件);
+		停止按下按钮(事件玩家, 按钮(主要攻击模式));
+		等待(0.5, 无视条件);
+		End;
+	}
+}
+
+规则("子程序 GZLB 钩子路霸")
+{
+	事件
+	{
+		子程序;
+		GZLB;
+	}
+
+	动作
+	{
+		While(事件玩家.Pathing_Bool == 0);
+		设置技能冷却(事件玩家, 按钮(技能1), 0);
+		按下按键(事件玩家, 按钮(技能1));
+		等待(6, 无视条件);
+		End;
+	}
+}
+
+规则("子程序 WZHS 蚊子回声")
+{
+	事件
+	{
+		子程序;
+		WZHS;
+	}
+
+	动作
+	{
+		事件玩家.bot_wenzi_The1 = 已过滤的数组(所有存活玩家(队伍2), 相距距离(当前数组元素, 事件玩家) <= 20 && 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线));
+		等待(0.016, 无视条件);
+		事件玩家.bot_wenzi_The1 = 首个(已排序的数组(事件玩家.bot_wenzi_The1, 相距距离(当前数组元素, 事件玩家)));
+		开始朝向(事件玩家, 方向(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_wenzi_The1)), 10000, 至地图, 方向及角速率);
+		绑定玩家(事件玩家, 事件玩家.bot_wenzi_The1, 矢量(单次赋值(随机实数(-0.8, 0.8)), 单次赋值(随机实数(-0.500, 0.8)), 单次赋值(随机实数(0.5, 1.4))));
+		开始调整玩家大小(事件玩家, 0.400, 真);
+		While(事件玩家.Pathing_Bool == 0);
+		设置技能冷却(事件玩家, 按钮(技能2), 0);
+		按下按键(事件玩家, 按钮(技能2));
+		等待(5, 无视条件);
+		End;
+	}
+}
+
+规则("子程序 MYL 莫伊拉")
+{
+	事件
+	{
+		子程序;
+		MYL;
+	}
+
+	动作
+	{
+		开始按下按钮(事件玩家, 按钮(技能1));
+		While(存活(事件玩家) == 1 && 正在使用终极技能(事件玩家) != 真);
+			While(真);
+			设置技能冷却(事件玩家, 按钮(技能1), 0);
+			等待(随机实数(0.5, 2), 无视条件);
+			If(随机整数(0, 1) == 0);
+			中断;
+			End;
+			End;
+		调用子程序(bot_facing_update);
+		设置终极技能充能(事件玩家, 100);
+		按下按键(事件玩家, 按钮(终极技能));
+		等待(随机实数(5, 7), 无视条件);
+		End;
+	}
+}
+
+规则("子程序 MJ 毛加")
+{
+	事件
+	{
+		子程序;
+		MJ;
+	}
+
+	动作
+	{
+		While(存活(事件玩家) == 1 && 正在使用技能 1(事件玩家) != 真);
+		开始朝向(事件玩家, 方向(眼睛位置(事件玩家), 矢量(X方向分量(事件玩家.nodes_location[事件玩家.path[0]]), Y方向分量(眼睛位置(事件玩家)), Z方向分量(
+			事件玩家.nodes_location[事件玩家.path[0]]))), 300, 至地图, 方向及角速率);
+		设置技能冷却(事件玩家, 按钮(技能1), 0);
+		按下按键(事件玩家, 按钮(技能1));
+		等待(1, 无视条件);
+		End;
+	}
+}
+
+规则("子程序 SS 死神")
+{
+	事件
+	{
+		子程序;
+		SS;
+	}
+
+	动作
+	{
+		While(存活(事件玩家) == 1 && 正在使用技能 1(事件玩家) != 1);
+		设置技能冷却(事件玩家, 按钮(技能1), 0);
+		开始按下按钮(事件玩家, 按钮(技能1));
+		等待(1.5, 无视条件);
+		停止按下按钮(事件玩家, 按钮(技能1));
+		等待(0.5, 无视条件);
+		End;
+	}
+}
+
+
+
+规则("子程序 bot_facing_update 机器人朝向")
+{
+	事件
+	{
+		子程序;
+		bot_facing_update;
+	}
+
+	动作
+	{
+		If(事件玩家.bot_targetPlayer == -1);
+			开始朝向(事件玩家, 方向(眼睛位置(事件玩家), 矢量(X方向分量(事件玩家.nodes_location[事件玩家.path[0]]), Y方向分量(眼睛位置(事件玩家)), Z方向分量(
+			事件玩家.nodes_location[事件玩家.path[0]]))), 300, 至地图, 方向及角速率);
+		Else;
+			开始朝向(事件玩家, 方向(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer) + 下 * 相距距离(事件玩家, 事件玩家.bot_targetPlayer) * 0.010 + 速率(事件玩家.bot_targetPlayer)
+				* (相距距离(事件玩家, 事件玩家.bot_targetPlayer) * 事件玩家.bot_ballistic_velocity + 0.200) + 与此角度的相对方向(水平朝向角度(事件玩家) + 随机实数(相距距离(事件玩家,
+				事件玩家.bot_targetPlayer) * 绝对值(事件玩家.bot_aming_accuracy) * -1, 相距距离(事件玩家, 事件玩家.bot_targetPlayer) * 绝对值(事件玩家.bot_aming_accuracy)),
+				垂直朝向角度(事件玩家) + 随机实数(相距距离(事件玩家, 事件玩家.bot_targetPlayer) * 绝对值(事件玩家.bot_aming_accuracy) * 0.250 * -1, 相距距离(事件玩家,
+				事件玩家.bot_targetPlayer) * 绝对值(事件玩家.bot_aming_accuracy) * 0.250)) * 1), 1000, 至地图, 方向及角速率);
+		End;
+	}
+}
+
+规则("——————关卡板块——————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		
+	}
+
+	动作
+	{
+		
+	}
+}
+规则("队伍的RoomAll初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.RoomAll = 空数组;
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("金蝉脱壳"));
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("蚊子来了"));
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("致敬以撒"));
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("践踏者"));
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("墓地"));
+		修改全局变量(RoomAll, 添加至数组, 自定义字符串("试炼"));
+		
+	}
+}
+规则("—1-1 金蝉脱壳")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("金蝉脱壳");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("僵尸托比昂"), 6));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("钩子路霸"),较大(2, 存活玩家数量(队伍2)/2)),数组(自定义字符串("僵尸托比昂"), 3));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("钩子路霸"),4),数组(自定义字符串("僵尸托比昂"), 2));
+			End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("—1-2 蚊子来了")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("蚊子来了");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("蚊子回声"), 较大(2, 存活玩家数量(队伍2)/2+1)),数组(自定义字符串("僵尸托比昂"), 3));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("蚊子回声"), 较大(3, 存活玩家数量(队伍2))),数组(自定义字符串("僵尸托比昂"), 3));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("蚊子回声"), 较小(6, 存活玩家数量(队伍2)*3)));
+			End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("—1-3 致敬以撒")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("致敬以撒");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("莫伊拉"),1+1*存活玩家数量(队伍2)));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("蚊子回声"), 较大(4, 存活玩家数量(队伍2))),数组(自定义字符串("莫伊拉"),存活玩家数量(队伍2)/2));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("蚊子回声"), 较大(2, 存活玩家数量(队伍2)/2)),数组(自定义字符串("莫伊拉"),较大(3, 存活玩家数量(队伍2))));
+			End;
+		等待(2, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("—2-1 践踏者")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("践踏者");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("毛加"),存活玩家数量(队伍2)));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("僵尸托比昂"), 较小(3,存活玩家数量(队伍2))),数组(自定义字符串("毛加"),较大(2,存活玩家数量(所有队伍))));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("毛加"), 较大(4, 较小(2*存活玩家数量(队伍2), 6))));
+			End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("—2-2 墓地")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("墓地");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("僵尸托比昂"),4),数组(自定义字符串("死神"),2));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("钩子路霸"),3),数组(自定义字符串("死神"), 2));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("毛加"), 2),数组(自定义字符串("钩子路霸"), 3),数组(自定义字符串("死神"), 2));
+			End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("—2-3 试炼")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("试炼");
+	}
+
+	动作
+	{
+			全局.leveladd = 0;
+			For 全局变量(for_leveladd, 0, 数量(所有玩家(队伍2)), 1);
+				全局.leveladd += 此栏位的玩家(全局.for_leveladd, 队伍2).level;
+				等待(0.016, 无视条件);
+			End;
+			全局.leveladd = 全局.leveladd/数量(所有玩家(队伍2));
+			If(全局.leveladd <= 4 && 全局.Quitting_stage == 0);
+				全局.spawnlist = 数组(数组(自定义字符串("毛加"),2),数组(自定义字符串("图腾"),1),数组(自定义字符串("僵尸托比昂"), 2));
+			Else If(全局.leveladd <= 7 && 全局.Quitting_stage == 1);
+				全局.spawnlist = 数组(数组(自定义字符串("毛加"), 3),数组(自定义字符串("图腾"),较大(2,存活玩家数量(所有队伍)/2)),数组(自定义字符串("莫伊拉"),1));
+			Else If(全局.leveladd <= 10 && 全局.Quitting_stage >= 2);
+				全局.spawnlist = 数组(数组(自定义字符串("图腾"),3),数组(自定义字符串("僵尸托比昂"), 3),数组(自定义字符串("莫伊拉"), 1));
+			End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+
+规则("——————spawnlist怪物生成逻辑————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+	}
+
+	动作
+	{
+	}
+}
+
+规则("局内时，不断按照spawnlist生成怪物")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.spawnlist != 0;
+		全局.GameState == 2;
+		全局.Quitting_stage < 3;
+		数量(所有玩家(队伍1)) < 7;
+	}
+
+	动作
+	{
+		全局.Spawnlist_now = 空数组;
+		For 全局变量(for_spawnlist, 0, 数量(全局.spawnlist), 1);//先根据spawnlist创建一个一维的怪物生成名单
+			While(数量(已过滤的数组(全局.Spawnlist_now, 当前数组元素 == 全局.spawnlist[全局.for_spawnlist][0])) < 全局.spawnlist[全局.for_spawnlist][1]);//如果该对局中该种类型的怪物没有达到上限
+			修改全局变量(Spawnlist_now, 添加至数组, 全局.spawnlist[全局.for_spawnlist][0]);
+			等待(0.016, 无视条件);
+			End;
+		End;//再进行生成，期间为了平均每种怪物，进行一次打乱处理
+			全局.Spawnlist_now = 随机数组(全局.Spawnlist_now);
+		While(数量(全局.Spawnlist_now) > 0 && 服务器负载峰值 < 150 && 数量(所有玩家(队伍1)) < 7);
+			生成机器人(英雄(回声), 队伍1, -1, 数组随机取值(已过滤的数组(全局.nodes_location, (相距距离(数组随机取值(所有存活玩家(队伍2)), 当前数组元素) <= 30) && (相距距离(数组随机取值(所有存活玩家(队伍2)), 当前数组元素) >= 10))),矢量(0, 0, 0));
+			最后创建的实体.bot_name = 全局.Spawnlist_now[0];
+			修改全局变量(Spawnlist_now, 根据索引从数组中移除, 0);
+			等待(随机实数(2, 3), 无视条件);
+		End;
+		等待(5, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+
+规则("——————怪物————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+	}
+
+	动作
+	{
+	}
+}
+
+
+规则("僵尸托比昂/初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name == 自定义字符串("僵尸托比昂");
+	}
+
+	动作
+	{
+		预加载英雄(事件玩家, 英雄(托比昂));
+		开始强制玩家选择英雄(事件玩家, 英雄(托比昂));
+		事件玩家.bot_state = 自定义字符串("无垢巨人");
+	}
+}
+
+规则("钩子路霸//初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name == 自定义字符串("钩子路霸");
+	}
+
+	动作
+	{
+		预加载英雄(事件玩家, 英雄(路霸));
+		开始强制玩家选择英雄(事件玩家, 英雄(路霸));
+		事件玩家.bot_state = 自定义字符串("无垢巨人");
+		设置状态(事件玩家, 空, 燃烧, 9999);
+	}
+}
+
+规则("钩子路霸//技能效果")
+{
+	事件
+	{
+		玩家造成伤害;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("钩子路霸");
+		事件技能 == 按钮(技能1);
+	}
+
+	动作
+	{
+		设置状态(被攻击方, 事件玩家, 被入侵, 1);
+		开始持续伤害(被攻击方, 事件玩家, 2, 30);
+	}
+}
+
+规则("钩子路霸//钩子点燃技能效果")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("钩子路霸");
+		数量(范围内玩家(事件玩家, 3, 队伍2, 表面)) > 0;
+		存活(事件玩家) == 真;
+	}
+
+	动作
+	{
+		设置状态(范围内玩家(事件玩家, 3, 队伍2, 表面), 事件玩家, 燃烧, 1);
+		开始持续伤害(范围内玩家(事件玩家, 3, 队伍2, 表面), 事件玩家, 1, 30);
+		等待(1, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("蚊子回声/// 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("蚊子回声");
+	}
+
+	动作
+	{
+		预加载英雄(事件玩家, 英雄(回声));
+		开始强制玩家选择英雄(事件玩家, 英雄(回声));
+		事件玩家.bot_state = 自定义字符串("无垢巨人");
+	}
+}
+
+规则("蚊子回声/// 宿主死亡")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("蚊子回声");
+		死亡(事件玩家.bot_wenzi_The1) == 真;
+		事件玩家.bot_wenzi_The1 != 0;
+	}
+
+	动作
+	{
+		等待(1, 当为“假”时中止);
+		解除绑定(事件玩家);
+		停止朝向(事件玩家);
+	}
+}
+
+规则("蚊子回声/// 被打下身")
+{
+	事件
+	{
+		玩家受到伤害;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("蚊子回声");
+		事件玩家.bot_wenzi_The1 != 0;
+		事件技能 == 按钮(近身攻击);
+	}
+
+	动作
+	{
+		设置状态(事件玩家, 空, 击晕, 2);
+		解除绑定(事件玩家);
+		停止朝向(事件玩家);
+		停止强制设置玩家位置(事件玩家);
+	}
+}
+
+规则("蚊子回声/// 被上身了文本提示")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		存活(事件玩家) == 真;
+		对任意为“真”(所有存活玩家(队伍1), 当前数组元素.bot_wenzi_The1 == 事件玩家) == 真;
+	}
+
+	动作
+	{
+		大字体信息(事件玩家, 自定义字符串("被讨厌的蚊子缠上了？\r\n\r\n试试用近战把他们挠下来吧！"));
+		等待(5, 当为“假”时中止);
+		如条件为“真”则循环;
+	}
+}
+
+规则("莫伊拉//// 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("莫伊拉");
+		已重生(事件玩家) == 真;
+		所用英雄(事件玩家) != 英雄(莫伊拉);
+	}
+
+	动作
+	{
+
+		预加载英雄(事件玩家, 英雄(莫伊拉));
+		开始强制玩家选择英雄(事件玩家, 英雄(莫伊拉));
+		等待(1, 无视条件);
+		设置受到伤害(事件玩家, 80);
+		设置造成伤害(事件玩家, 50);
+		设置受到治疗(事件玩家, 20);
+		设置瞄准速度(事件玩家, 40);
+		事件玩家.bot_state = 自定义字符串("周游");
+		如条件为“真”则循环;
+	}
+}
+
+规则("毛加///// 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("毛加");
+		已重生(事件玩家) == 真;
+		所用英雄(事件玩家) != 英雄(毛加);
+	}
+
+	动作
+	{
+		预加载英雄(事件玩家, 英雄(毛加));
+		开始强制玩家选择英雄(事件玩家, 英雄(毛加));
+		等待(1, 无视条件);
+		设置瞄准速度(事件玩家, 40);
+		事件玩家.bot_state = 自定义字符串("周游");
+		如条件为“真”则循环;
+	}
+}
+
+规则("死神////// 沉睡")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("死神");
+		正在使用技能 1(事件玩家) == 真;
+	}
+
+	动作
+	{
+		设置状态((范围内玩家(事件玩家, 3, 队伍2, 关闭)), 空, 击倒, 0.5);
+		等待(2, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("死神////// 蹦哒")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("死神");
+		正在使用技能 1(事件玩家) == 真;
+	}
+
+	动作
+	{
+		施加推力(事件玩家, 上, 10, 至地图, 取消相反运动);
+	}
+}
+
+规则("死神////// 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("死神");
+		已重生(事件玩家) == 真;
+		所用英雄(事件玩家) != 英雄(死神);
+	}
+
+	动作
+	{
+
+		预加载英雄(事件玩家, 英雄(死神));
+		开始强制玩家选择英雄(事件玩家, 英雄(死神));
+		等待(1, 无视条件);
+		事件玩家.bot_state = 自定义字符串("无垢巨人");
+		如条件为“真”则循环;
+	}
+}
+
+规则("图腾////// 初始化")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("图腾");
+		已重生(事件玩家) == 真;
+		所用英雄(事件玩家) != 英雄(破坏球);
+	}
+
+	动作
+	{
+		预加载英雄(事件玩家, 英雄(破坏球));
+		开始强制玩家选择英雄(事件玩家, 英雄(破坏球));
+		等待(1, 无视条件);
+		事件玩家.bot_state = 自定义字符串("周游");
+		开始按下按钮(事件玩家, 按钮(技能1));
+		开始调整玩家大小(事件玩家, 1.2, 真);
+		创建地图文本(所有玩家(所有队伍), 自定义字符串("图腾{0}",图标字符串(螺旋)), 事件玩家, 2, 不要截取, 可见，位置和字符串, 颜色(白色), 默认可见度);
+		取消与玩家的移动碰撞(事件玩家);
+		设置状态(事件玩家, 空, 无法杀死, 9999);
+		如条件为“真”则循环;
+	}
+}
+
+规则("图腾////// 自爆")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("图腾");
+		已重生(事件玩家) == 真;
+		标准化生命值(事件玩家) <= 0.1;
+	}
+
+	动作
+	{
+		创建效果(所有玩家(所有队伍), 环, 颜色(红色), 所选位置(事件玩家), 10, 可见，位置和半径);
+		事件玩家.Pathing_Bool = 0;
+		设置状态(事件玩家, 空, 被入侵, 3);
+		设置状态(事件玩家, 空, 击晕, 3);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 自爆 3!"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串(""));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(248, 53, 14, 255));
+		播放效果(范围内玩家(事件玩家, 10, 所有队伍, 关闭), 卡西迪闪光弹爆炸声音, 颜色(白色), 事件玩家, 75);
+		等待(1, 无视条件);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 自爆 2!"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串(""));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(248, 53, 14, 255));
+		播放效果(范围内玩家(事件玩家, 10, 所有队伍, 关闭), 卡西迪闪光弹爆炸声音, 颜色(白色), 事件玩家, 150);
+		等待(1, 无视条件);
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串("装备 自爆 1!"));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义字符串(""));
+		修改玩家变量(事件玩家, Damage_list, 添加至数组, 自定义颜色(248, 53, 14, 255));
+		播放效果(范围内玩家(事件玩家, 10, 所有队伍, 关闭), 卡西迪闪光弹爆炸声音, 颜色(白色), 事件玩家, 175);
+		等待(1, 无视条件);
+		播放效果(所有玩家(所有队伍), D.Va自毁爆炸效果, 颜色(队伍2), 事件玩家, 175);
+		伤害(范围内玩家(事件玩家, 10, 所有队伍, 表面), 事件玩家, 300);
+		清除状态(事件玩家, 无法杀死);
+		击杀(事件玩家, 空);
+	}
+}
+
+规则("图腾////// 自动导弹")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("图腾");
+		已重生(事件玩家) == 真;
+		数量(事件玩家.bot_targetArray) > 0;
+	}
+
+	动作
+	{
+		创建追踪弹道(“法老之鹰”火箭, 事件玩家, 眼睛位置(事件玩家), 速率(事件玩家), 至地图, 伤害, 队伍2, 50, 1, 3, 查莉娅粒子炮爆炸效果, 艾什延时雷管爆炸声音, 0, 10, 5, 5, 事件玩家.bot_targetPlayer, 0.6);
+		创建追踪弹道(“法老之鹰”火箭, 事件玩家, 眼睛位置(事件玩家), 速率(事件玩家), 至地图, 伤害, 队伍2, 50, 1, 3, 查莉娅粒子炮爆炸效果, 艾什延时雷管爆炸声音, 0, 10, 5, 5, 事件玩家.bot_targetPlayer, 0.65);
+		创建追踪弹道(“法老之鹰”火箭, 事件玩家, 眼睛位置(事件玩家),  速率(事件玩家), 至地图, 伤害, 队伍2, 50, 1, 3, 查莉娅粒子炮爆炸效果, 艾什延时雷管爆炸声音, 0, 10, 5, 5, 事件玩家.bot_targetPlayer, 0.7);
+		等待(2, 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("图腾////// 加血")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("图腾");
+		已重生(事件玩家) == 真;
+		存活(事件玩家) == 真;
+	}
+
+	动作
+	{
+		播放效果(所有玩家(所有队伍), 环状爆炸, 自定义颜色(166, 217, 47, 255), 事件玩家, 10);
+		治疗(范围内玩家(事件玩家, 10, 队伍1, 关闭), 事件玩家, 0.3*最大生命值(此栏位的玩家(事件玩家.TT_heal_for, 队伍1)));
+		For 玩家变量(事件玩家, TT_heal_for, 0, 数量(范围内玩家(事件玩家, 10, 队伍1, 关闭)), 1);
+		根据条件跳过(死亡(范围内玩家(事件玩家, 10, 队伍1, 关闭)[事件玩家.TT_heal_for]) == 1, 4);
+		修改玩家变量(范围内玩家(事件玩家, 10, 队伍1, 关闭)[事件玩家.TT_heal_for], Damage_list, 添加至数组, 自定义字符串("装备 {0}图腾",图标字符串(螺旋)));
+		修改玩家变量(范围内玩家(事件玩家, 10, 队伍1, 关闭)[事件玩家.TT_heal_for], Damage_list, 添加至数组, 0.3*最大生命值(此栏位的玩家(事件玩家.TT_heal_for, 队伍1)));
+		修改玩家变量(范围内玩家(事件玩家, 10, 队伍1, 关闭)[事件玩家.TT_heal_for], Damage_list, 添加至数组, 自定义颜色(166, 217, 47, 255));
+		等待(0.016, 无视条件);
+		End;
+		等待(随机实数(2,3), 无视条件);
+		如条件为“真”则循环;
+	}
+}
+
+规则("——————boss————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+	}
+
+	动作
+	{
+	}
+}
+
+规则("boss特效文本初始化-全局")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建进度条HUD文本((全局.GameState == 2 && 存活(全局.boss) == 真 && 全局.boss != 0) ? 所有玩家(所有队伍):空, 标准化生命值(全局.boss)*100, 自定义字符串("{0}{1} 剩余生命值",图标字符串(骷髅),(全局.boss).bot_name), 右边, -1, 自定义颜色(220 + 35 * 标准化生命值(全局.boss), 20 + 235 * 标准化生命值(全局.boss), 60 + 195 * 标准化生命值(全局.boss), 255), 颜色(白色), 可见，值和颜色, 默认可见度);
+	}
+}
+
+规则("boss特效文本初始化-玩家")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家 == 全局.boss;
+		全局.boss != 0;
+		已重生(事件玩家) == 真;
+	}
+
+	动作
+	{
+		创建效果(所有玩家(所有队伍), “回声”复制效果, 颜色(队伍2), 事件玩家, 1, 可见，位置和半径);
+		创建地图文本(所有玩家(所有队伍), 自定义字符串("{0}{1}",图标字符串(骷髅),事件玩家.bot_name), 事件玩家, 1.5, 根据表面截取, 可见，位置和字符串, 颜色(红色), 默认可见度);
+		创建效果(所有玩家(所有队伍), 环, 颜色(红色), 事件玩家, 2, 可见，位置和半径);
+	}
+}
+
+规则("—1-3 致敬以撒 召唤boss")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 2;
+		全局.CurrentRoom == 自定义字符串("致敬以撒");
+		全局.Quitting_stage >= 2;
+	}
+
+	动作
+	{
+		生成机器人(英雄(温斯顿), 队伍1, -1, 数组随机取值(全局.nodes_location), 矢量(0, 0, 0));
+		全局.boss = 最后创建的实体;
+		最后创建的实体.bot_name = 自定义字符串("暴怒猩猩");
+		大字体信息(所有玩家(所有队伍), 自定义字符串("Boss刷新！！！"));
+	}
+}
+
+规则("1-3 暴怒猩猩")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		全局.CurrentRoom == 自定义字符串("致敬以撒");
+		存活(全局.boss) == 真;
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+	}
+
+	动作
+	{
+		开始调整玩家大小(事件玩家, 1.2, 真);
+		事件玩家._boss_Mengsichuo_Shift_Position = 0;
+		创建效果(事件玩家._boss_Mengsichuo_Shift_Position != 0 ? 所有玩家(所有队伍) : 空, 环, 颜色(红色), 事件玩家._boss_Mengsichuo_Shift_Position, 4, 可见，位置和半径);
+		创建效果(事件玩家._boss_Mengsichuo_Shift_Position != 0 ? 所有玩家(所有队伍) : 空, 火花声音, 颜色(白色), 事件玩家._boss_Mengsichuo_Shift_Position, 200, 可见，位置和半径);
+		事件玩家.Shuxing[1] = 4;//让它的shift痛一点！
+		为玩家添加生命池(事件玩家, 生命值, 较大(4000, 3000*玩家数量(队伍2)), 真, 真);
+		为玩家添加生命池(事件玩家, 护甲, 较大(3000, 2000*玩家数量(队伍2)), 真, 真);
+		开始按下按钮(事件玩家, 按钮(终极技能));
+		创建地图文本(所有玩家(所有队伍), 自定义字符串("{0} {1}%",技能图标字符串(英雄(温斯顿), 按钮(终极技能)),逐帧更新(终极技能充能百分比(事件玩家))), 眼睛位置(事件玩家) + 矢量(0, 1.5, 0), 2, 根据表面截取, 可见，位置和字符串, 颜色(白色), 默认可见度);
+		设置终极技能充能(事件玩家, 40);
+	}
+}
+		
+规则("——暴怒猩猩-寻路调用")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.update_timer == 0;
+		服务器负载峰值 < 150;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+		数量(事件玩家.bot_targetArray) == 0;
+	}
+
+	动作
+	{
+		等待(0.250, 当为“假”时中止);
+		等待(随机实数(0.7, 1.2), 当为“假”时中止);
+		事件玩家.start = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.Tracing_target = 首个(已排序的数组(所有存活玩家(队伍2), 相距距离(事件玩家, 当前数组元素)));
+		事件玩家.end = 首个(已排序的数组(事件玩家.nodes_location, 相距距离(事件玩家.Tracing_target, 当前数组元素)));
+		事件玩家.Pathing_Bool = 1;
+		调用子程序(Start_Dijstra);
+		事件玩家.update_timer = 0.25;
+	}
+}
+
+规则("——暴怒猩猩-触发")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.bot_targetArray) > 0;
+		已重生(事件玩家) == 真;
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+	}
+
+	动作
+	{
+		开始限制阈值(事件玩家, 1, 0, 0, 0, 0, 0);
+		设置移动速度(事件玩家, 120);
+		
+		调用子程序(Winston);
+		事件玩家.update_timer = 3;
+		事件玩家.Pathing_Bool = 0;
+		
+	}
+}
+
+规则("——暴怒猩猩-shift天女散花")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.bot_targetArray) > 0;
+		已重生(事件玩家) == 真;
+		正在使用技能 1(事件玩家) == 真;
+		正在空中(事件玩家) == 真;
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+	}
+
+	动作
+	{
+		等待(0.250, 当为“假”时中止);
+		事件玩家.BNXX_shift_round = 随机整数(4, 8);
+		While(事件玩家.BNXX_shift_round > 0);
+		创建弹道(查莉娅粒子炮, 事件玩家, 眼睛位置(事件玩家), 地图矢量(矢量(随机实数(-1, 1), 随机实数(-1, 1), 随机实数(-1, 1)), 事件玩家, 旋转), 至地图, 伤害, 队伍2, 50, 1, 0, 有害爆炸, 爆炸声音, 0, 10, 5, 0, 2, 10);
+		事件玩家.BNXX_shift_round -= 1;
+		End;
+	}
+}
+规则("——暴怒猩猩-刷新shift")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		数量(事件玩家.bot_targetArray) > 0;
+		已重生(事件玩家) == 真;
+		技能冷却时间(事件玩家, 按钮(技能1)) > 2;
+		正在使用技能 1(事件玩家) != 真;
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+	}
+
+	动作
+	{
+		设置技能冷却(事件玩家, 按钮(技能1), 随机实数(2.5,3.5));
+	}
+}
+规则("——暴怒猩猩-放大")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	条件
+	{
+		事件玩家.bot_name == 自定义字符串("暴怒猩猩");
+		全局.Quitting_stage >= 3;
+	}
+
+	动作
+	{
+		设置终极技能充能(事件玩家, 100);
+		开始按下按钮(事件玩家, 按钮(终极技能));
+	}
+}
+
+规则("sub Winston")
+{
+	事件
+	{
+		子程序;
+		Winston;
+	}
+
+	动作
+	{
+		调用子程序(bot_facing_update);
+		While(数量(事件玩家.bot_targetArray) > 0);
+			等待(0.500, 无视条件);
+			If(相距距离(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer)) < 9 || !正在使用主要武器(事件玩家));
+				开始按下按钮(事件玩家, 按钮(主要攻击模式));
+				停止按下按钮(事件玩家, 按钮(辅助攻击模式));
+			Else;
+				开始按下按钮(事件玩家, 按钮(辅助攻击模式));
+				停止按下按钮(事件玩家, 按钮(主要攻击模式));
+			End;
+			If(相距距离(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer)) < 40 && (相距距离(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer)) > 15 || 绝对值(Y方向分量(所选位置(
+				事件玩家)) - Y方向分量(眼睛位置(事件玩家.bot_targetPlayer))) > 2));
+				按下按键(事件玩家, 按钮(技能1));
+			End;
+				按下按键(事件玩家, 按钮(技能2));
+			If(终极技能充能百分比(事件玩家) == 100 && 技能冷却时间(事件玩家, 按钮(技能1)) == 0 && 相距距离(眼睛位置(事件玩家), 眼睛位置(事件玩家.bot_targetPlayer)) <= 5);
+				按下按键(事件玩家, 按钮(技能1));
+				等待(0.500, 无视条件);
+				按下按键(事件玩家, 按钮(终极技能));
+				等待(0.500, 无视条件);
+				按下按键(事件玩家, 按钮(技能1));
+			End;
+		End;
+		停止按下按钮(事件玩家, 按钮(主要攻击模式));
+		停止按下按钮(事件玩家, 按钮(辅助攻击模式));
+		按下按键(事件玩家, 按钮(装填));
+	}
+}
+
+规则("——————重生复活计时————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+	}
+
+	动作
+	{
+	}
+}
+
+规则("初始化为3次重生")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		双方;
+		全部;
+	}
+
+	动作
+	{
+		事件玩家.revive_time = 3;
+	}
+}
+
+规则("每次通关加1次")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	条件
+	{
+		全局.GameState == 3;
+	}
+
+	动作
+	{
+		所有玩家(队伍2).revive_time += 1;
+		小字体信息(所有玩家(队伍2), 自定义字符串("你的复活次数增加一次"));
+	}
+}
+
+规则("死亡后复活")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		死亡(事件玩家) == 真;
+	}
+
+	动作
+	{
+		If(事件玩家.revive_time == 0);
+			小字体信息(事件玩家, 自定义字符串("很可惜你的复活次数已经用完\r\n请等待这关结束吧！"));
+		Else;
+			小字体信息(所有玩家(所有队伍), 自定义字符串("{0}{1}正在复活......3s",英雄图标字符串(所用英雄(事件玩家)),事件玩家));
+			等待(1, 当为“假”时中止);
+			小字体信息(所有玩家(所有队伍), 自定义字符串("{0}{1}正在复活......2s",英雄图标字符串(所用英雄(事件玩家)),事件玩家));
+			等待(1, 当为“假”时中止);
+			小字体信息(所有玩家(所有队伍), 自定义字符串("{0}{1}正在复活......1s",英雄图标字符串(所用英雄(事件玩家)),事件玩家));
+			等待(1, 当为“假”时中止);
+			大字体信息(所有玩家(所有队伍), 自定义字符串("{0}{1}已复活！",英雄图标字符串(所用英雄(事件玩家)),事件玩家));
+			复活(事件玩家);
+			事件玩家.revive_time -= 1;
+			设置状态(事件玩家, 空, 相移, 4);
+		End;
+	}
+}
+
+规则("地形杀传送")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍2;
+		全部;
+	}
+
+	条件
+	{
+		死亡(事件玩家) == 真;
+		事件为环境事件 == 真;
+	}
+
+	动作
+	{
+		传送(事件玩家, 最近的可行走位置(事件玩家));
+	}
+}
+规则("——————小怪变异系统————")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+	动作
+	{
+	}
+}
+
+规则("——————小怪变异系统")
+{
+	事件
+	{
+		持续 - 每名玩家;
+		队伍1;
+		全部;
+	}
+
+	条件
+	{
+		已重生(事件玩家) == 真;
+		事件玩家 != 全局.boss;
+	}
+
+	动作
+	{
+		If(随机整数(0, 100) <= 30);
+		事件玩家.Mutant_draw = 数组随机取值(数组(数组(0,7),数组(1,7),数组(2,15),数组(3,10),数组(4,10),数组(5,5)));
+		事件玩家.Shuxing[事件玩家.Mutant_draw[0]] += 事件玩家.Mutant_draw[1] + 全局.RoomLayer;
+		调用子程序(Agility);
+		创建地图文本(所有玩家(所有队伍), 自定义字符串("变异体:{0}+{1}",全局.Shuxing_Name[事件玩家.Mutant_draw[0]],事件玩家.Mutant_draw[1] + 全局.RoomLayer), 眼睛位置(事件玩家)+矢量(0, 0.7, 0), 1.5, 根据表面截取, 可见，位置和字符串, 颜色(玫红), 默认可见度);
+		创建效果(所有玩家(所有队伍), 环, 颜色(玫红), 事件玩家, 1, 可见，位置和半径);
+		End;
+	}
+}

@@ -1,0 +1,1830 @@
+// === 全局变量和玩家变量定义 ===
+
+// 全局变量：装备唯一ID
+globalvar Number EquipmentUniqueID!;
+
+// 全局变量：装备池
+globalvar Equipment[] equipment_pool;
+
+// 全局变量：属性顺序
+globalvar String[] AllStatName_Ordered! = ["攻击%","生命%","护甲%","敏捷%","护盾%",'再生%',"攻击", "生命", "护甲", "敏捷", "护盾", "再生"];
+
+// 全局变量：装备品质颜色
+globalvar Color[] quality_Colors = [Color.White, Color.SkyBlue, Color.Purple, Color.Orange, Color.Black, Color.Purple];
+
+// 全局变量：装备基底定义
+globalvar Dictionary<Equipment_part, BaseType[]> BaseTypes = {
+    Keys: [Equipment_part.Head, Equipment_part.Chest, Equipment_part.boots, Equipment_part.talisman, Equipment_part.weapon],
+    Values: [
+        // 头部
+        [
+            new BaseType(name: "布帽", inherentStats: {Keys: [], Values: []}, dropWeight: 50, rarity: "Common"),
+            new BaseType(name: "铁盔", inherentStats: {Keys: ["护甲%"], Values: [5]}, dropWeight: 25, rarity: "Advanced"),
+            new BaseType(name: "龙冠", inherentStats: {Keys: ["护甲%"], Values: [10]}, dropWeight: 15, rarity: "Elite")
+        ],
+        // 身体
+        [
+            new BaseType(name: "布甲", inherentStats: {Keys: [], Values: []}, dropWeight: 50, rarity: "Common"),
+            new BaseType(name: "链甲", inherentStats: {Keys: ['生命%'], Values: [5]}, dropWeight: 25, rarity: "Advanced"),
+            new BaseType(name: "圣铠", inherentStats: {Keys: ["生命%"], Values: [10]}, dropWeight: 15, rarity: "Elite")
+        ],
+        // 鞋子
+        [
+            new BaseType(name: "布鞋", inherentStats: {Keys: [], Values: []}, dropWeight: 50, rarity: "Common"),
+            new BaseType(name: "皮靴", inherentStats: {Keys: ["敏捷%"], Values: [10]}, dropWeight: 25, rarity: "Advanced"),
+            new BaseType(name: "风行靴", inherentStats: {Keys: ["敏捷%"], Values: [10]}, dropWeight: 15, rarity: "Elite")
+        ],
+        // 护符
+        [
+            new BaseType(name: "铜符", inherentStats: {Keys: [], Values: []}, dropWeight: 50, rarity: "Common"),
+            new BaseType(name: "银符", inherentStats: {Keys: ["再生%"], Values: [3]}, dropWeight: 25, rarity: "Advanced"),
+            new BaseType(name: "圣符", inherentStats: {Keys: ["再生%"], Values: [5, 10]}, dropWeight: 15, rarity: "Elite")
+        ],
+        // 武器
+        [
+            new BaseType(name: "短剑", inherentStats: {Keys: [], Values: []}, dropWeight: 50, rarity: "Common"),
+            new BaseType(name: "斩首之剑", inherentStats: {Keys: ["攻击%"], Values: [10]}, dropWeight: 25, rarity: "Advanced"),
+            new BaseType(name: "杀戮之刃", inherentStats: {Keys: ['攻击%'], Values: [10]}, dropWeight: 15, rarity: "Elite")
+        ]
+    ]
+};
+
+// 全局变量：前缀词缀池
+globalvar Dictionary<String, Affix[]> PrefixPool = {
+    Keys: ["攻击", "生命", "护甲", "敏捷"],
+    Values: [
+        // 攻击
+        [
+            new Affix(tier: 3, range: [1, 5]),   // Tier 3: 攻击 (1-5)
+            new Affix(tier: 2, range: [10, 25]),  // Tier 2: 攻击 (5-10)
+            new Affix(tier: 1, range: [35, 60])  // Tier 1: 攻击 (10-20)
+        ],
+        // 生命
+        [
+            new Affix(tier: 3, range: [30, 100]), // Tier 3: 生命 (10-20)
+            new Affix(tier: 2, range: [200, 500]), // Tier 2: 生命 (20-40)
+            new Affix(tier: 1, range: [700, 1400])  // Tier 1: 生命 (40-80)
+        ],
+        // 护甲
+        [
+            new Affix(tier: 3, range: [2, 5]),   // Tier 3: 护甲 (2-5)
+            new Affix(tier: 2, range: [8, 14]),  // Tier 2: 护甲 (5-10)
+            new Affix(tier: 1, range: [10, 20])  // Tier 1: 护甲 (10-20)
+        ],
+        // 敏捷
+        [
+            new Affix(tier: 3, range: [1, 5]),   // Tier 3: 敏捷 (1-3)
+            new Affix(tier: 2, range: [5, 10]),   // Tier 2: 敏捷 (3-6)
+            new Affix(tier: 1, range: [10, 20])   // Tier 1: 敏捷 (6-12)
+        ]
+    ]
+};
+
+// 全局变量：后缀词缀池
+globalvar Dictionary<String, Affix[]> SuffixPool = {
+    Keys: ["再生", "护盾"],
+    Values: [
+        // 再生
+        [
+            new Affix(tier: 3, range: [1, 3]),   // Tier 3: 再生 (1-3)
+            new Affix(tier: 2, range: [3, 6]),   // Tier 2: 再生 (3-6)
+            new Affix(tier: 1, range: [6, 12])   // Tier 1: 再生 (6-12)
+        ],
+        // 护盾
+        [
+            new Affix(tier: 3, range: [10, 50]),  // Tier 3: 护盾 (5-10)
+            new Affix(tier: 2, range: [50, 100]), // Tier 2: 护盾 (10-20)
+            new Affix(tier: 1, range: [80, 200])  // Tier 1: 护盾 (20-40)
+        ]
+    ]  
+};
+
+// 全局变量：菜单相关
+globalvar Number uniqueButtonID!;
+globalvar Boolean MenuCreated!;
+globalvar Number MenuCursorSensibility! = 5;
+globalvar Any temptest;
+
+// 玩家变量定义
+playervar Number level!;
+playervar Equipment[] equipped = [];
+playervar Equipment[] equipment_got = [];
+playervar Dictionary<String, Number> PlayerStats = {Keys: [], Values: []};
+playervar Equipment_part current_part;
+playervar Equipment current_selected_equip;
+playervar String current_description;
+playervar Number current_page;
+playervar String current_display_mode;
+playervar Number current_display_mode_index;
+playervar Equipment[] current_equip_list;
+playervar MenuButton[] equip_buttons;
+playervar MenuButton[] part_buttons;
+playervar Boolean isInMenu;
+playervar Vector AnchorFacing;
+playervar Vector Eye;
+playervar Vector Lookat;
+playervar Number MenuLoop;
+playervar Vector MenuFlatBase1;
+playervar Vector MenuFlatBase2;
+playervar Vector[] CameraNow;
+playervar Boolean HoverVisible;
+playervar String HoverText;
+playervar Color hovercolor;
+playervar Boolean isButtonHovered;
+playervar MenuButton[] Button_Pool;
+playervar String key_;
+playervar MenuActive menuactive;
+
+// === 枚举定义 ===
+
+enum MenuActive {
+    MainMenu,
+    EquipMenu,
+    CopyMenu
+}
+
+enum ButtonScale {
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+
+enum Equipment_quality {
+    Average,
+    Rare,
+    Epic,
+    Ledgend,
+    Mythic,
+    Mysterious
+}
+
+enum Equipment_part {
+    Head,
+    Chest,
+    boots,
+    talisman,
+    weapon
+}
+
+// === 类和结构定义 ===
+
+// 字典结构
+struct Dictionary<K, V> {
+    public K[] Keys;
+    public V[] Values;
+    public V Get(in K key) {
+        return Values[Keys.IndexOf(key)];
+    }
+    public ref void Set(in K key, in V value) {
+        Values[Keys.IndexOf(key)] = value;
+    }
+    public ref void Add(in K key, in V value) {
+        Keys += key;
+        Values += value;
+    }
+    public ref void SetOrAdd(in K key, in V value) {
+        Number index! = Keys.IndexOf(key);
+        if (index == -1) Add(key, value);
+        else Values[index] = value;
+    }
+}
+
+// 基底类
+class BaseType {
+    public String name;
+    public Dictionary<String, Number> inherentStats;
+    public Number dropWeight;
+    public String rarity;
+    public constructor(
+        in String name,
+        in Dictionary<String, Number> inherentStats,
+        in Number dropWeight,
+        in String rarity
+    ) {
+        this.name = name;
+        this.inherentStats = inherentStats;
+        this.dropWeight = dropWeight;
+        this.rarity = rarity;
+    }
+}
+
+// 词缀类
+class Affix {
+    public Number Tier;
+    public Number[] Range;
+    public Number AffixLevel;
+    public constructor(in Number tier, in Number[] range, in Number affixLevel = 0) {
+        this.Tier = tier;
+        this.Range = range;
+        this.AffixLevel = affixLevel;
+    }
+}
+
+// 装备类
+class Equipment {
+    public String Name;
+    public Dictionary<String, Number> QuadriStats;
+    public String Description;
+    public Equipment_part Part;
+    public Number ID;
+    public Equipment_quality Quality;
+    public constructor(
+        in String name = "default name",
+        in Dictionary<String, Number> stats = {Keys: [], Values: []},
+        in String description = '空',
+        in Equipment_part part = Equipment_part.Head,
+        in Equipment_quality quality = Equipment_quality.Average
+    ) {
+        EquipmentUniqueID = EquipmentUniqueID + 1;
+        Name = name;
+        QuadriStats = stats;
+        Description = description;
+        Part = part;
+        Quality = quality;
+        ID = EquipmentUniqueID;
+        equipment_pool[ID] = this;
+    }
+}
+
+// 菜单按钮类
+class MenuButton {
+    public String Label;
+    public String HoverLabel;
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Color DefaultColor;
+    public Color HoverColor;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public Number ID;
+    public String Name = '';
+    public ()=>void OnClick;
+    public ()=>void OnHover = null;
+    public constructor(
+        in String label = 'null',
+        in String Hoverlabel = '',
+        in Number posX = 0,
+        in Number posY = 0,
+        in ButtonScale scale = ButtonScale.Medium,
+        in Color defaultColor = Color.White,
+        in Color hoverColor = Color.Yellow,
+        in Boolean interactable = false,
+        in MenuActive[] ofmenuActives,
+        in String name = '无名氏按钮',
+        in Any onclick = 0
+    ) {
+        Constructor(label,Hoverlabel,posX,posY,scale,defaultColor,hoverColor,interactable,ofmenuActives,name,onclick);
+    }
+    public void SetOnClick(in ()=>void onClick) {
+        OnClick = onClick;
+    }
+    public void SetOnHover(in ()=>void onHover) {
+        OnHover = onHover;
+    }
+
+    protected void Constructor(String label = 'null',
+        String Hoverlabel = '',
+        Number posX = 0,
+        Number posY = 0,
+        ButtonScale scale = ButtonScale.Medium,
+        Color defaultColor = Color.White,
+        Color hoverColor = Color.Yellow,
+        Boolean interactable = false,
+        MenuActive[] ofmenuActives,
+        String name = '无名氏按钮',
+        Any onclick = 0) "[Test] Constructor" {
+        uniqueButtonID++;
+        this.Label = label;
+        this.HoverLabel = Hoverlabel;
+        this.PosX = posX;
+        this.PosY = posY;
+        this.Scale = scale;
+        this.Name = name;
+        this.DefaultColor = defaultColor;
+        this.HoverColor = hoverColor;
+        this.Interactable = interactable;
+        this.ofMenuActives = ofmenuActives;
+        this.ID = uniqueButtonID;
+        EventPlayer().Button_Pool[uniqueButtonID] = this;
+  }
+}
+
+// === 菜单系统相关函数和规则 ===
+
+void GetMenuBase() {
+    EventPlayer().CameraNow = [EventPlayer().Eye, EventPlayer().Eye + DirectionTowards(EventPlayer().Eye, EventPlayer().Lookat)];
+    define varbase1 = -0.5 * Normalize(CrossProduct(Vector(0, 1, 0), DirectionTowards(EventPlayer().CameraNow[0], EventPlayer().CameraNow[1])));
+    define varbase2 = -0.5 * Normalize(CrossProduct(DirectionTowards(EventPlayer().CameraNow[0], EventPlayer().CameraNow[1]), varbase1));
+    EventPlayer().MenuFlatBase1 = varbase1;
+    EventPlayer().MenuFlatBase2 = varbase2;
+}
+
+void CreateMenuText() {
+    MenuCreated = true;
+    foreach (MenuButton bn in EventPlayer().Button_Pool) {
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(UpdateEveryFrame((EvaluateOnce(bn)).ofMenuActives), LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: UpdateEveryFrame((EvaluateOnce(bn)).Label),
+            Position: UpdateEveryFrame(LocalPlayer().CameraNow[1] + LocalPlayer().MenuFlatBase1 * UpdateEveryFrame((EvaluateOnce(bn)).PosX) + LocalPlayer().MenuFlatBase2 * UpdateEveryFrame((EvaluateOnce(bn)).PosY)),
+            Scale: <Number>UpdateEveryFrame((EvaluateOnce(bn)).Scale),
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: UpdateEveryFrame((EvaluateOnce(bn)).Interactable) && LocalPlayer().MenuLoop == UpdateEveryFrame((EvaluateOnce(bn)).ID) ? <Color>UpdateEveryFrame((EvaluateOnce(bn)).HoverColor) : <Color>UpdateEveryFrame((EvaluateOnce(bn)).DefaultColor)
+        );
+        MinWait();
+    }
+}
+
+MenuButton GetButtonByID(Number id) "sub根据ID获取按钮" {
+    foreach (MenuButton b! in EventPlayer().Button_Pool) {
+        if (id == b.ID) {
+            return b;
+        }
+    }
+}
+
+MenuButton GetButtonByName(String name) "sub根据名字获取按钮" {
+    foreach (MenuButton b! in EventPlayer().Button_Pool) {
+        if (name == b.Name) {
+            return b;
+        }
+    }
+}
+
+Number CURSOR_X_LOCAL:
+    -HorizontalFacingAngleOf(LocalPlayer()) / MenuCursorSensibility;
+Number CURSOR_X:
+    -HorizontalFacingAngleOf(EventPlayer()) / MenuCursorSensibility;
+Number CURSOR_Y_LOCAL:
+    -VerticalFacingAngleOf(LocalPlayer()) / MenuCursorSensibility;
+Number CURSOR_Y:
+    -VerticalFacingAngleOf(EventPlayer()) / MenuCursorSensibility;
+
+void MainMenu_Initialize() {
+    // 退出菜单按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu, MenuActive.EquipMenu, MenuActive.CopyMenu],
+        label: "（X）",
+        interactable: true,
+        name: "推出菜单按钮",
+        posX: 2,
+        posY: 1.2,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "退出菜单"
+    ).SetOnClick(CloseMenu);
+
+    // 装备菜单按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu, MenuActive.EquipMenu],
+        label: "装备菜单",
+        interactable: true,
+        name: "装备菜单按钮",
+        posX: -1,
+        posY: 1.0,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "打开装备管理界面"
+    ).SetOnClick(OpenEquipMenu_OnClick);
+
+    // 副本菜单按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu, MenuActive.EquipMenu],
+        label: "副本菜单",
+        interactable: true,
+        name: "副本菜单按钮",
+        posX: 1,
+        posY: 1.0,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "打开副本界面"
+    ).SetOnClick(OpenCopyMenu_OnClick);
+
+    // 主菜单按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu, MenuActive.EquipMenu],
+        label: "主菜单",
+        interactable: true,
+        name: "主菜单按钮",
+        posX: 0,
+        posY: 1.0,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "返回主菜单"
+    ).SetOnClick(OpenMainMenu_OnClick);
+
+    // 分割线
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu, MenuActive.EquipMenu],
+        label: "——————————————",
+        interactable: false,
+        name: "分割线",
+        posX: 0,
+        posY: 0.85,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+
+    // 玩家属性 debug 按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.MainMenu],
+        label: "玩家属性加载中...",
+        interactable: false,
+        name: "玩家属性按钮",
+        posX: 0,
+        posY: -0.6,
+        scale: ButtonScale.Small,
+        defaultColor: CustomColor(133, 188, 255, 255),
+        hoverColor: Color.White
+    );
+}
+
+void OpenMainMenu() {
+    EventPlayer().Eye = Vector(0, 10, 2);
+    EventPlayer().Lookat = Vector(3, 324, -22);
+    GetButtonByName('玩家属性按钮').Label = GetPlayerStatsDebug();
+}
+
+void OpenMenu(in MenuActive name) {
+    EventPlayer().menuactive = name;
+    if (!isInMenu) {
+        AnchorFacing = FacingDirectionOf(EventPlayer());
+        isInMenu = true;
+        SetAimSpeed(EventPlayer(), 0.1);
+        SetPrimaryFireEnabled(EventPlayer(), false);
+        SetSecondaryFireEnabled(EventPlayer(), false);
+        DisableHeroHud(EventPlayer());
+        DisableGameModeHud(EventPlayer());
+        SetFacing(EventPlayer(), Vector(0, 0, 1));
+        EventPlayer().CameraNow[0] = Vector(0, 0, 0);
+        EventPlayer().CameraNow[1] = Vector(0, 0, 1);
+    }
+    switch (name) {
+        case MenuActive.MainMenu:
+            OpenMainMenu();
+            break;
+        case MenuActive.EquipMenu:
+            OpenEquipmenu();
+            break;
+        case MenuActive.CopyMenu:
+            OpenCopyMenu();
+            break;
+    }
+    GetMenuBase();
+    StartCamera(EventPlayer(), EventPlayer().CameraNow[0], EventPlayer().CameraNow[1], 20);
+}
+
+void CloseMenu(){
+    isInMenu = false;
+    StopCamera();
+    SetAimSpeed(EventPlayer(),100);
+    SetPrimaryFireEnabled(EventPlayer(),true);
+    SetSecondaryFireEnabled(EventPlayer(),true);
+    EnableHeroHud(EventPlayer());
+    EnableGameModeHud(EventPlayer());
+    SetFacing(EventPlayer(),AnchorFacing);
+}
+
+void OpenEquipMenu_OnClick() {
+    OpenMenu(MenuActive.EquipMenu);
+}
+
+void OpenCopyMenu_OnClick() {
+    OpenMenu(MenuActive.CopyMenu);
+}
+
+void OpenMainMenu_OnClick() {
+    OpenMenu(MenuActive.MainMenu);
+}
+
+Number[] GetButtonHitBox(in MenuButton b) {
+    switch (b.Scale) {
+        case ButtonScale.Small: return [0.2, 0.1]; break;
+        case ButtonScale.Medium: return [0.2, 0.15]; break;
+        case ButtonScale.Large: return [0.3, 0.25]; break;
+    }
+}
+
+rule: '互动打开主菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    Wait(0.2,WaitBehavior.AbortWhenFalse);
+    OpenMenu(MenuActive.MainMenu);
+}
+
+rule: "指针初始化" {
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: '(+)',
+        Position: UpdateEveryFrame(LocalPlayer().CameraNow[1] + LocalPlayer().MenuFlatBase1 * CURSOR_X_LOCAL + LocalPlayer().MenuFlatBase2 * CURSOR_Y_LOCAL),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+    CreateHudText(Header: LocalPlayer().MenuLoop);
+}
+
+rule: "悬停文本初始化" {
+    define offset! = -0.1;
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverText,
+        Position: UpdateEveryFrame(LocalPlayer().CameraNow[1] + LocalPlayer().MenuFlatBase1 * CURSOR_X_LOCAL + LocalPlayer().MenuFlatBase2 * (CURSOR_Y_LOCAL + offset)),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: LocalPlayer().hovercolor
+    );
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(EventPlayer().isInMenu)
+{
+    EventPlayer().isButtonHovered = false;
+        define bns = FilteredArray(EventPlayer().Button_Pool, ArrayContains((<MenuButton>ArrayElement()).ofMenuActives, EventPlayer().menuactive));
+        foreach (MenuButton bn in bns) {
+            define HitBox! = GetButtonHitBox(bn);
+            define ClickWidth = HitBox[0];
+            define ClickHeight = HitBox[1];
+            if (bn.ID != 0) {
+                if (AbsoluteValue(CURSOR_X - bn.PosX) < ClickWidth && AbsoluteValue(CURSOR_Y - bn.PosY) < ClickHeight) {
+                    EventPlayer().MenuLoop = bn.ID;
+                    EventPlayer().HoverVisible = bn.HoverLabel.Length > 0;
+                    EventPlayer().HoverText = bn.HoverLabel;
+                    EventPlayer().hovercolor = bn.HoverColor;
+                    EventPlayer().isButtonHovered = true;
+                    if(bn.OnHover != null){
+                        bn.OnHover.Invoke();
+                    }
+                }
+            }
+        }
+        if (!EventPlayer().isButtonHovered) {
+            EventPlayer().MenuLoop = 0;
+            EventPlayer().HoverVisible = 0;
+        }
+        Wait(0.05);
+        LoopIfConditionIsTrue();
+}
+
+rule: "按钮点击" 
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    if (EventPlayer().MenuLoop != 0 && GetButtonByID(EventPlayer().MenuLoop).Interactable) {
+            (<()=>void>GetButtonByID(EventPlayer().MenuLoop).OnClick).Invoke();
+    }
+}
+
+rule: "近战重置指针" 
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.Melee))
+{
+        SetFacing(EventPlayer(), Vector(0, 0, 1));
+}
+
+rule: "每个玩家初始化菜单" 
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    MainMenu_Initialize();
+    CreateEquipMenuButtons();
+    CreateCopyMenuButtons();
+    if (!MenuCreated) {
+        CreateMenuText();
+    }
+}
+
+// === 装备系统相关函数 ===
+
+void OpenEquipmenu() "打开装备菜单" {
+    EventPlayer().Eye = Vector(0, 10, 2);
+    EventPlayer().Lookat = Vector(3, 324, -22);
+    EventPlayer().current_part = Equipment_part.Head;
+    EventPlayer().current_selected_equip = null;
+    EventPlayer().current_description = "未选中装备";
+    EventPlayer().current_page = 0;
+    EventPlayer().current_display_mode = "全部";
+    EventPlayer().current_display_mode_index = 0;
+    GetButtonByName("显示模式按钮").Label = "显示：全部";
+    UpdateEquipButtons();
+}
+
+void CreateEquipMenuButtons() "创建装备菜单按钮" {
+    String[] parts! = ["头", "身体", "靴子", "护符", "武器"];
+    Equipment_part[] part_enums! = [Equipment_part.Head, Equipment_part.Chest, Equipment_part.boots, Equipment_part.talisman, Equipment_part.weapon];
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "[装备槽]",
+        interactable: false,
+        name: "上方分隔线",
+        posX: -1.5,
+        posY: 0.5,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+    for (Number i! = 0; i < 5; i = i + 1) {
+        new MenuButton(
+            ofmenuActives: [MenuActive.EquipMenu],
+            label: '待定',
+            interactable: true,
+            name: parts[i] + "按钮",
+            posX: -1.6,
+            posY: 0.3 - i * 0.2,
+            scale: ButtonScale.Small,
+            defaultColor: Color.White,
+            hoverColor: Color.Yellow
+        ).SetOnClick(()=>PartButtonOnClick(part_enums[i]));
+    }
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "—————",
+        interactable: false,
+        name: "下方分隔线",
+        posX: -1.5,
+        posY: -0.7,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: '待定',
+        interactable: false,
+        name: "介绍描述按钮",
+        posX: 0,
+        posY: -0.4,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+    for (Number i! = 0; i < 5; i = i + 1) {
+        new MenuButton(
+            ofmenuActives: [MenuActive.EquipMenu],
+            label: '待定',
+            interactable: true,
+            name: "装备按钮" + (i + 1),
+            posX: 1.5,
+            posY: 0.6 - i * 0.2,
+            scale: ButtonScale.Small,
+            defaultColor: Color.White,
+            hoverColor: Color.Yellow
+        ).SetOnClick(()=>EquipButtonOnClick(i));
+    }
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "<——",
+        interactable: true,
+        name: "左翻页按钮",
+        posX: 1.3,
+        posY: -0.4,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "上一页"
+    ).SetOnClick(LeftPageOnClick);
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "——>",
+        interactable: true,
+        name: "右翻页按钮",
+        posX: 1.7,
+        posY: -0.4,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "下一页"
+    ).SetOnClick(RightPageOnClick);
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "1/1",
+        interactable: false,
+        name: "页码显示按钮",
+        posX: 1.5,
+        posY: -0.4,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "显示：全部",
+        interactable: true,
+        name: "显示模式按钮",
+        posX: 1.5,
+        posY: -0.6,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "切换显示模式"
+    ).SetOnClick(DisplayModeOnClick);
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "穿戴",
+        interactable: true,
+        name: "穿戴按钮",
+        posX: 1.3,
+        posY: -0.8,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "穿戴选中的装备"
+    ).SetOnClick(WearButtonOnClick);
+    new MenuButton(
+        ofmenuActives: [MenuActive.EquipMenu],
+        label: "卸下",
+        interactable: true,
+        name: "卸下按钮",
+        posX: 1.7,
+        posY: -0.8,
+        scale: ButtonScale.Small,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "卸下当前部位的装备"
+    ).SetOnClick(RemoveButtonOnClick);
+}
+
+rule: '玩家属性持续类'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    AddHealthPoolToPlayer(EventPlayer(),HealthType.Health,PlayerStats.Get('生命')*0.01*(100+PlayerStats.Get('生命%')),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(EventPlayer(),HealthType.Shields,PlayerStats.Get('护盾')*0.01*(100+PlayerStats.Get('护盾%')),Recoverable: true,Reevaluation: true);
+    StartHealOverTime(EventPlayer(),EventPlayer(),9999999999,PlayerStats.Get('再生')*0.01*(100+PlayerStats.Get('再生%')));
+}
+void UpdateShuxing(Player p!)'更新玩家属性'{
+    SetMoveSpeed(EventPlayer(),100+PlayerStats.Get('敏捷')*0.01*(100+PlayerStats.Get('敏捷%')));
+    SetDamageDealt(EventPlayer(),(100+PlayerStats.Get('攻击'))*0.01*(100+PlayerStats.Get('攻击%')));
+    SetDamageReceived(EventPlayer(),100+PlayerStats.Get('护甲')*0.01*(100+PlayerStats.Get('护甲%')));
+}
+
+String GetPartButtonLabel(Equipment_part part!) "获取部位按钮标签" {
+    String partName!;
+    switch (part) {
+        case Equipment_part.Head: partName = "头"; break;
+        case Equipment_part.Chest: partName = "身体"; break;
+        case Equipment_part.boots: partName = "靴子"; break;
+        case Equipment_part.talisman: partName = "护符"; break;
+        case Equipment_part.weapon: partName = "武器"; break;
+    }
+    foreach (Equipment equip! in EventPlayer().equipped) {
+        if (equip.Part == part) {
+            return '(' + partName + ')' + "：" + equip.Name;
+        }
+    }
+    return '(' + partName + ')' + "：" + '未装备';
+}
+
+String GetEquipButtonLabel(Number button_id!) "获取装备按钮标签" {
+    if (EventPlayer().current_equip_list.Length > button_id) {
+        Equipment equip! = EventPlayer().current_equip_list[button_id];
+        String base_label = equip.Name;
+        if (EventPlayer().equipped.Contains(equip)) {
+            base_label = IconString(Icon.Asterisk) + base_label;
+        }
+        if (EventPlayer().current_selected_equip == equip) {
+            base_label = base_label + "<=";
+        }
+        return base_label;
+    }
+    return "";
+}
+
+String GetEquipButtonHoverLabel(Number button_id) "获取装备按钮悬停标签" {
+    if (EventPlayer().current_equip_list.Length > button_id) {
+        return "选择" + EventPlayer().current_equip_list[button_id].Name;
+    }
+    return "";
+}
+
+String GetEquipmentDescriptionLabel(Equipment equip!) "生成装备格式化描述标签" {
+    if (equip == null) {
+        return "（未装备）";
+    }
+    
+    // 获取品质名称
+    String qualityName!;
+    switch (equip.Quality) {
+        case Equipment_quality.Average: qualityName = "普通"; break;
+        case Equipment_quality.Rare: qualityName = "稀有"; break;
+        case Equipment_quality.Epic: qualityName = "史诗"; break;
+        case Equipment_quality.Ledgend: qualityName = "传奇"; break;
+        case Equipment_quality.Mythic: qualityName = "神话"; break;
+        case Equipment_quality.Mysterious: qualityName = "神秘"; break;
+    }
+    
+    // 获取部位名称
+    String partName!;
+    switch (equip.Part) {
+        case Equipment_part.Head: partName = "头部"; break;
+        case Equipment_part.Chest: partName = "胸部"; break;
+        case Equipment_part.boots: partName = "靴子"; break;
+        case Equipment_part.talisman: partName = "护符"; break;
+        case Equipment_part.weapon: partName = "武器"; break;
+    }
+    
+    // 构建描述头部
+    String result! = '[' + equip.Name + '] (' + qualityName + ')\n';
+    result = result + '-' + partName + '\n\n';
+    
+    
+    // 按 AllStatName_Ordered 顺序遍历属性
+    foreach (String key! in AllStatName_Ordered) {
+        if (equip.QuadriStats.Keys.Contains(key)) {
+            result = result + key + ': ' + equip.QuadriStats.Get(key) + '\n';
+        }
+        MinWait();
+    }
+    
+    // 添加描述
+    result = result + '\n' + '“' + equip.Description + '”';
+    
+    return result;
+}
+
+void PartButtonOnClick(Equipment_part part!) "部位按钮点击处理" {
+    EventPlayer().current_part = part;
+    EventPlayer().current_selected_equip = null;
+    foreach (Equipment equip! in EventPlayer().equipped) {
+        if (equip.Part == part) {
+            EventPlayer().current_selected_equip = equip;
+            break;
+        }
+    }
+    define bn! = GetButtonByName('介绍描述按钮');
+    if (EventPlayer().current_selected_equip != null) {
+        bn.Label = GetEquipmentDescriptionLabel(EventPlayer().current_selected_equip);
+        bn.DefaultColor = quality_Colors[<Number>EventPlayer().current_selected_equip.Quality];
+    } else {
+        bn.Label = '（未装备）';
+        bn.DefaultColor = Color.White;
+    }
+    UpdateEquipButtons();
+}
+
+void EquipButtonOnClick(Number button_id!) "装备按钮点击处理" {
+    if (EventPlayer().current_equip_list.Length > button_id) {
+        define DisplayModeBN! = GetButtonByName('介绍描述按钮');
+        Equipment selected! = EventPlayer().current_equip_list[button_id];
+        EventPlayer().current_selected_equip = selected;
+        EventPlayer().current_description = GetEquipmentDescriptionLabel(selected);
+        DisplayModeBN.Label = current_description;
+        DisplayModeBN.DefaultColor = quality_Colors[<Number>selected.Quality];
+        UpdateEquipButtons();
+    }
+}
+
+void LeftPageOnClick() "左翻页按钮点击处理" {
+    if (EventPlayer().current_page > 0) {
+        EventPlayer().current_page -= 1;
+        UpdateEquipButtons();
+    }
+}
+
+void RightPageOnClick() "右翻页按钮点击处理" {
+    Number total_pages! = RoundToInteger((FilteredEquipmentList().Length + 4) / 5, Rounding.Down);
+    if (EventPlayer().current_page < total_pages - 1) {
+        EventPlayer().current_page += 1;
+        UpdateEquipButtons();
+    }
+}
+
+void DisplayModeOnClick() "显示模式按钮点击处理" {
+    String[] display_modes! = ["全部", "头", "身体", "靴子", "护符", "武器"];
+    EventPlayer().current_display_mode_index = (EventPlayer().current_display_mode_index + 1) % display_modes.Length;
+    EventPlayer().current_display_mode = display_modes[EventPlayer().current_display_mode_index];
+    EventPlayer().current_page = 0;
+    GetButtonByName('显示模式按钮').Label = '显示：' + current_display_mode;
+    UpdateEquipButtons();
+}
+
+Equipment[] FilteredEquipmentList() "过滤和排序装备列表" {
+    Equipment[] filtered!;
+    if (EventPlayer().current_display_mode == "全部") {
+        filtered = EventPlayer().equipment_got;
+    } else {
+        Equipment_part part!;
+        switch (EventPlayer().current_display_mode) {
+            case "头": part = Equipment_part.Head; break;
+            case "身体": part = Equipment_part.Chest; break;
+            case "靴子": part = Equipment_part.boots; break;
+            case "护符": part = Equipment_part.talisman; break;
+            case "武器": part = Equipment_part.weapon; break;
+        }
+        filtered = FilteredArray(EventPlayer().equipment_got, (<Equipment>ArrayElement()).Part == part);
+        filtered = SortedArray(filtered, <Number>(<Equipment>ArrayElement()).Quality);
+    }
+    return filtered;
+}
+
+void UpdateEquipButtons() "更新装备按钮" {
+    Equipment[] filtered_list! = FilteredEquipmentList();
+    Number start_index! = EventPlayer().current_page * 5;
+    Number end_index! = Min(start_index + 5, filtered_list.Length);
+    EventPlayer().current_equip_list = ArraySlice(filtered_list, start_index, end_index);
+    Number total_pages! = RoundToInteger((filtered_list.Length + 4) / 5, Rounding.Down);
+    GetButtonByName("页码显示按钮").Label = <String>(EventPlayer().current_page + 1) + "/" + total_pages;
+    for (Number i! = 0; i < 5; i = i + 1) {
+        String buttonName! = "装备按钮" + (i + 1);
+        MenuButton button! = GetButtonByName(buttonName);
+        if (EventPlayer().current_equip_list.Length > i) {
+            Equipment equip! = EventPlayer().current_equip_list[i];
+            button.Label = GetEquipButtonLabel(i);
+            button.DefaultColor = quality_Colors[<Number>equip.Quality];
+        } else {
+            button.Label = "";
+            button.DefaultColor = Color.White;
+        }
+    }
+    String[] parts! = ["头", "身体", "靴子", "护符", "武器"];
+    Equipment_part[] part_enums! = [Equipment_part.Head, Equipment_part.Chest, Equipment_part.boots, Equipment_part.talisman, Equipment_part.weapon];
+    for (Number i! = 0; i < parts.Length; i = i + 1) {
+        String buttonName! = parts[i] + "按钮";
+        MenuButton button! = GetButtonByName(buttonName);
+        button.Label = GetPartButtonLabel(part_enums[i]);
+        Boolean hasEquip = false;
+        foreach (Equipment equip in EventPlayer().equipped) {
+            if (equip.Part == part_enums[i]) {
+                button.DefaultColor = quality_Colors[<Number>equip.Quality];
+                hasEquip = true;
+                break;
+            }
+        }
+        if (!hasEquip) {
+            button.DefaultColor = Color.White;
+        }
+    }
+}
+
+void WearButtonOnClick() "穿戴按钮点击处理" {
+    if (EventPlayer().current_selected_equip != null) {
+        EquipItem(EventPlayer().current_selected_equip);
+        UpdateEquipButtons();
+        define bn! = GetButtonByName('介绍描述按钮');
+        bn.Label = GetEquipmentDescriptionLabel(EventPlayer().current_selected_equip);
+        bn.DefaultColor = quality_Colors[<Number>EventPlayer().current_selected_equip.Quality];
+    } else {
+        SmallMessage(EventPlayer(), "请先选择一件装备");
+    }
+}
+
+void RemoveButtonOnClick() "卸下按钮点击处理" {
+    if (EventPlayer().current_selected_equip != null) {
+        if (EventPlayer().equipped.Contains(EventPlayer().current_selected_equip)) {
+            UnequipItemByPart(EventPlayer().current_selected_equip.Part);
+            UpdateEquipButtons();
+        } else {
+            SmallMessage(EventPlayer(), "选中的装备未装备");
+        }
+    } else {
+        SmallMessage(EventPlayer(), "请先选择一个装备");
+    }
+}
+
+
+Number GetStat(String statName!) "sub获取玩家属性值" {
+    Number index! = EventPlayer().PlayerStats.Keys.IndexOf(statName);
+    if (index != -1) {
+        return EventPlayer().PlayerStats.Values[index];
+    }
+    return 0;
+}
+
+void SetStat(in String statName, in Number value!) {
+    Number index! = EventPlayer().PlayerStats.Keys.IndexOf(statName);
+    if (index != -1) {
+        EventPlayer().PlayerStats.Values[index] = value;
+    } else {
+        EventPlayer().PlayerStats.Keys = EventPlayer().PlayerStats.Keys + [statName];
+        EventPlayer().PlayerStats.Values = EventPlayer().PlayerStats.Values + [value];
+    }
+}
+
+void EquipItem(Equipment newEquip!) "根据id给玩家穿戴装备" {
+    
+    // 检查装备是否存在
+    if (newEquip == null) {
+        MinWait();
+        SmallMessage(EventPlayer(),  " 错误：装备不存在");
+        return;
+    }
+    
+    // 检查玩家是否拥有该装备
+    if (!EventPlayer().equipment_got.Contains(newEquip)) {
+        MinWait();
+        SmallMessage(EventPlayer(), "你尚未拥有装备: " + newEquip.Name);
+        return;
+    }
+    
+    // 检查是否已装备在同一部位
+    Number indexToReplace! = -1;
+    foreach (Equipment equippedItem! in EventPlayer().equipped) {
+        if (equippedItem.Part == newEquip.Part) {
+            indexToReplace = EventPlayer().equipped.IndexOf(equippedItem);
+            break;
+        }
+    }
+    
+    // 如果该部位已有装备，则卸下旧装备
+    if (indexToReplace != -1) {
+        Equipment oldEquip! = EventPlayer().equipped[indexToReplace];
+        SmallMessage(EventPlayer(), "老装备index" + indexToReplace);
+        // 如果新装备已经装备在此部位，则不重复操作
+        if (oldEquip.ID == newEquip.ID) {
+            MinWait();
+            return;
+        }
+        // 卸下旧装备，更新属性
+        foreach (String key! in oldEquip.QuadriStats.Keys) {
+            SetStat(key, GetStat(key) - oldEquip.QuadriStats.Get(key));
+        }
+        MinWait();
+        SmallMessage(EventPlayer(), "已卸下: " + oldEquip.Name);
+        EventPlayer().equipped[indexToReplace] = newEquip;
+    } else {
+        // 如果部位为空，直接装备
+        EventPlayer().equipped = EventPlayer().equipped + newEquip;
+    }
+    
+    // 装备新装备，更新属性
+    foreach (String key! in newEquip.QuadriStats.Keys) {
+        SetStat(key, GetStat(key) + newEquip.QuadriStats.Get(key));
+    }
+    MinWait();
+    SmallMessage(EventPlayer(), "已装备: " + newEquip.Name);
+    
+    // 更新当前选中装备
+    EventPlayer().current_selected_equip = newEquip;
+    
+    // 更新按钮和描述
+    UpdateEquipButtons();
+    define bn! = GetButtonByName('介绍描述按钮');
+    bn.Label = GetEquipmentDescriptionLabel(newEquip);
+    bn.DefaultColor = quality_Colors[<Number>newEquip.Quality];
+    
+    // 更新玩家属性
+    UpdateShuxing(EventPlayer());
+}
+
+void UnequipItemByPart(in Equipment_part part) {
+    Number index! = -1;
+    foreach (Equipment equip! in EventPlayer().equipped) {
+        if (equip.Part == part) {
+            index = EventPlayer().equipped.IndexOf(equip);
+            break;
+        }
+        MinWait();
+    }
+    if (index != -1) {
+        foreach (String key! in EventPlayer().equipped[index].QuadriStats.Keys) {
+            SetStat(key, GetStat(key) - EventPlayer().equipped[index].QuadriStats.Get(key));
+        }
+        SmallMessage(EventPlayer(), "已卸下: " + EventPlayer().equipped[index].Name);
+        Equipment[] newEquipped = [];
+        for (Number i! = 0; i < EventPlayer().equipped.Length; i = i + 1) {
+            if (i != index) {
+                newEquipped = newEquipped + [EventPlayer().equipped[i]];
+            }
+            MinWait();
+        }
+        EventPlayer().equipped = newEquipped;
+    }
+    UpdateShuxing(EventPlayer());
+}
+
+
+Equipment GetEquipmentByName(String Name!) "sub获取装备镜像通过名字" {
+    foreach (Equipment equip! in equipment_pool) {
+        if (equip.Name == Name) {
+            return new Equipment(
+                name: equip.Name,
+                stats: {Keys: equip.QuadriStats.Keys, Values: equip.QuadriStats.Values},
+                description: equip.Description,
+                part: equip.Part,
+                quality: equip.Quality
+            );
+        }
+        MinWait();
+    }
+    return null;
+}
+
+String GetPlayerStatsDebug() "sub属性按钮" {
+    String[] debugMessage! = [];
+    debugMessage = debugMessage + ["玩家属性:\n\n"];
+    Number statCount! = AllStatName_Ordered.Length;
+    
+    for (Number i! = 0; i < statCount; i = i + 3) {
+        String line! = "";
+        if (i < statCount) {
+            String key! = AllStatName_Ordered[i];
+            line = line + key + ": " + (EventPlayer().PlayerStats.Keys.Contains(key) ? GetStat(key) : 0);
+        }
+        if (i + 1 < statCount) {
+            String key! = AllStatName_Ordered[i + 1];
+                line = line + ", " + key + ": " + (EventPlayer().PlayerStats.Keys.Contains(key) ? GetStat(key) : 0);
+        }
+        if (i + 2 < statCount) {
+            String key! = AllStatName_Ordered[i + 2];
+            line = line + ", " + key + ": " + (EventPlayer().PlayerStats.Keys.Contains(key) ? GetStat(key) : 0);
+        }
+        debugMessage = debugMessage + [line + "\n\n"];
+    }
+    String result! = "";
+    foreach (String i! in debugMessage) {
+        result = result + i;
+    }
+    return result;
+}
+
+rule: "My Player Rule" 
+Event.OngoingPlayer
+Team.All
+Player.All
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    EventPlayer().equipment_got += [GenerateRandomEquipment(35,Equipment_part.talisman,Equipment_quality.Average)];
+    EventPlayer().equipment_got += [GenerateRandomEquipment(35,Equipment_part.boots,Equipment_quality.Rare)];
+    EventPlayer().equipment_got += [GenerateRandomEquipment(35,Equipment_part.Chest,Equipment_quality.Epic)];
+}
+
+rule: "My Player Rule" {
+    new Equipment("权限狗专属", stats: {Keys: ["攻击", "生命", "护甲", "敏捷", "护盾"], Values: [3, 4, 3, 4, 3]}, "装备0\r\n测试用", part: Equipment_part.Head, quality: Equipment_quality.Average);
+    new Equipment("回复护符", stats: {Keys: ["再生"], Values: [10]}, "回复护符\r\n让你呼吸回血", part: Equipment_part.talisman, quality: Equipment_quality.Average);
+    new Equipment("护盾戒指", {Keys: ["护盾"], Values: [5]}, "护盾戒指\r\n提供再生护盾", Equipment_part.talisman, quality: Equipment_quality.Rare);
+    new Equipment("村里最好的铠甲", {Keys: ["护甲"], Values: [4]}, "村里最好的铠甲\r\n提供坚实保护", Equipment_part.talisman, quality: Equipment_quality.Rare);
+    new Equipment("迅捷之靴", stats: {Keys: ["敏捷", "护盾"], Values: [5, 2]}, "迅捷之靴\r\n提升移动速度与轻量护盾", part: Equipment_part.boots, quality: Equipment_quality.Rare);
+    new Equipment("生命项链", stats: {Keys: ["生命", "再生"], Values: [6, 3]}, "生命项链\r\n增强耐力与恢复", part: Equipment_part.talisman, quality: Equipment_quality.Average);
+    new Equipment("战士之刃", stats: {Keys: ["攻击", "敏捷"], Values: [4, 3]}, "战士之刃\r\n锋利且迅猛", part: Equipment_part.weapon, quality: Equipment_quality.Rare);
+    new Equipment("坚韧头盔", stats: {Keys: ["护甲", "生命"], Values: [3, 5]}, "坚韧头盔\r\n保护头部并增强生存", part: Equipment_part.Head, quality: Equipment_quality.Average);
+}
+
+// 生成随机装备
+Equipment GenerateRandomEquipment(
+    Number itemLevel!, // 装备等级
+    Equipment_part part!, // 部位
+    Equipment_quality quality! = Equipment_quality.Average // 稀有度
+    ) '生成随机装备'{
+    // 1. 确定基底
+    BaseType[] baseOptions = BaseTypes.Get(part);
+    BaseType selectedBase;
+    if (itemLevel < 10) {
+        selectedBase = baseOptions[0]; // 低级只能roll普通基底
+    } else if (itemLevel < 20) {
+        selectedBase = RandomWeighted(<BaseType[]>ArraySlice(baseOptions,0,2)); // 可roll普通或高级
+    } else {
+        selectedBase = RandomWeighted(baseOptions); // 可roll所有基底
+    }
+
+    // 2. 确定词缀数量
+    Number prefixCount! = 0;
+    Number suffixCount! = 0;
+    Number totalAffixes! = 0;
+    switch (quality) {
+        case Equipment_quality.Average:
+            prefixCount = RandomInteger(0, 1);
+            suffixCount = RandomInteger(0, 1);
+            if (prefixCount == 0 && suffixCount == 0) prefixCount = 1; // 至少1条
+            break;
+        case Equipment_quality.Rare:
+            totalAffixes = RandomInteger(2, 4);
+            prefixCount = RandomInteger(0, Min(totalAffixes, 3));
+            suffixCount = totalAffixes - prefixCount;
+            break;
+        case Equipment_quality.Epic:
+            totalAffixes = RandomInteger(3, 6);
+            prefixCount = RandomInteger(0, Min(totalAffixes, 3));
+            suffixCount = totalAffixes - prefixCount;
+            break;
+        case Equipment_quality.Ledgend:
+            // 传奇装备逻辑在下方单独处理
+            break;
+    }
+
+    // 3. 确定可roll的词缀Tier
+    Number maxTier = itemLevel >= 20 ? 1 : (itemLevel >= 10 ? 2 : 3);
+
+    // 4. 生成前缀
+    Dictionary<String, Number> stats! = {Keys: [], Values: []};
+    //根据基底生成固定前缀
+    for(Number i! = 0; i < selectedBase.inherentStats.Keys.Length; i = i + 1){
+    stats.Add(selectedBase.inherentStats.Keys[i],selectedBase.inherentStats.Values[i]);
+    }
+    //随机roll前缀
+    String prefixName = "";
+    if (prefixCount > 0) {
+        String[] availablePrefixes = PrefixPool.Keys;
+        String[] selectedPrefixes = RandomSample(availablePrefixes, prefixCount);
+        foreach (String prefix in selectedPrefixes) {
+            Affix[] tiers! = PrefixPool.Get(prefix);
+            Affix selectedTier! = RandomWeighted(tiers.Filter(t => t.Tier >= maxTier));
+            Number value! = RandomInteger(selectedTier.Range[0], selectedTier.Range[1]);
+            stats.Add(prefix, value);
+            prefixName = GetPrefixName(prefix, selectedTier.Tier);
+        }
+    }
+
+    // 5. 生成后缀
+    String suffixName = "";
+    if (suffixCount > 0) {
+        String[] availableSuffixes = SuffixPool.Keys;
+        String[] selectedSuffixes = RandomSample(availableSuffixes, suffixCount);
+        foreach (String suffix in selectedSuffixes) {
+            Affix[] tiers! = SuffixPool.Get(suffix);
+            Affix selectedTier! = RandomWeighted(tiers.Filter(t => t.Tier >= maxTier));
+            Number value! = RandomInteger(selectedTier.Range[0], selectedTier.Range[1]);
+            stats.Add(suffix, value);
+            suffixName = GetSuffixName(suffix, selectedTier.Tier);
+        }
+    }
+
+    // 6. 生成装备名称
+    String equipName = prefixName + selectedBase.name + suffixName;
+
+    // 7. 创建装备
+    return new Equipment(
+        name: equipName,
+        stats: stats,
+        description: GenerateDescription(quality, selectedBase),
+        part: part,
+        quality: quality
+    );
+}
+
+// 辅助函数：根据属性和Tier获取前缀名
+String GetPrefixName(String stat!, Number tier!)'sub根据属性和Tier获取前缀名' {
+    switch (stat) {
+        case "攻击":
+            return tier == 1 ? "狂暴" : (tier == 2 ? "锋利" : "粗糙");
+        case "生命":
+            return tier == 1 ? "不朽" : (tier == 2 ? "坚韧" : "厚实");
+        case "护甲":
+            return tier == 1 ? "精钢" : (tier == 2 ? "坚固" : "木头");
+        case "敏捷":
+            return tier == 1 ? "闪电" : (tier == 2 ? "迅捷" : "轻盈");
+    }
+    return "";
+}
+
+// 辅助函数：根据属性和Tier获取后缀名
+String GetSuffixName(String stat, Number tier)'sub根据属性和Tier获取后缀名' {
+    switch (stat) {
+        case "再生":
+            return tier == 1 ? "之复苏" : (tier == 2 ? "之恢复" : "之再生");
+        case "护盾":
+            return tier == 1 ? "之圣盾" : (tier == 2 ? "之护障" : "之屏障");
+    }
+    return "";
+}
+
+// 辅助函数：生成描述
+String GenerateDescription(Equipment_quality quality!, BaseType selectedBase!)'sub根据品质生成描述' {
+    String[] baseDescriptions = [
+        "平凡的装备，适合初学者。",
+        "蕴含魔力的稀有装备。",
+        "史诗般的力量，改变战局。",
+        "独特的神器，有着独特的效果。"
+    ];
+    String description = baseDescriptions[<Number>quality];
+
+    return description;
+}
+
+// 辅助函数：加权随机选择
+T RandomWeighted<T>(T[] options!, Number[] weights! = null)'sub加权随机选择' {
+    if (weights == null) {
+        weights = options.Map(_ => 1);
+    }
+    Number totalWeight = Sum_Number(weights);
+    Number rand = RandomReal(0, 1);
+    rand = totalWeight*rand;
+    Number currentWeight = 0;
+    for (Number i! = 0; i < options.Length; i++) {
+        currentWeight += weights[i];
+        if (rand <= currentWeight) {
+            return options[i];
+        }
+    MinWait();
+    }
+    return options[0];
+}
+
+//辅助函数：数组数组求和
+Number Sum_Number(Any[] shuzu)'sub数组数字求和'{
+    Number result! = 0;
+    foreach(Number n! in shuzu){
+        result += n;
+        MinWait();
+    }
+    return result;
+}
+
+//辅助函数：随机取样
+Any[] RandomSample(in Any[] shuzu!, in Number count!){
+    return ArraySlice(RandomizedArray(shuzu),0,count);
+}
+
+
+
+//副本副本
+
+// 副本类型枚举
+enum GameCopy_type
+{
+    Clear,
+    Live,
+    Collect,
+    Guard
+}
+
+globalvar Number GameCopy_UniqueID =0;
+globalvar GameCopy[] GameCopy_pool = [];
+globalvar Area[] Area_pool = [];
+
+//副本区域类
+class Area{
+    public Number AreaUniqueID;
+    public Vector Location;
+    public Number Radius;
+    public Vector[] SetCamera;//镜头组
+    public String AreaName;//区域名字
+    public String Status = '闲置';//区域状态：（‘闲置’，‘忙碌’)
+    public GameCopy Area_NowCopy;//区域当前进行任务 
+
+    public constructor(in Vector location,in Number radius,in Vector[] setCamera,in String areaName){
+        Location = location;
+        Radius = radius;
+        SetCamera = setCamera;
+        AreaName = areaName;
+        Area_pool[AreaUniqueID] = this;
+        AreaUniqueID++;
+    }
+
+    public Area GetAreaByName(in String name){
+        foreach(Area area! in Area_pool){
+            if(area.AreaName == name){
+                return area;
+            }
+        }
+    }
+}
+
+// 副本类
+class GameCopy
+{
+    public Area area; // 任务隶属区域
+    public String name = "任务名称";
+    public String introduction = "任务介绍";
+    public Number LockLevel = 1; // 解锁等级
+    public Number Time = 600; // 任务限时
+    public Number Min_p = 1; // 最小参与人数
+    public Number Max_p = 2; // 最大参与人数
+    public Awards awards; // 任务奖励函数
+    public String[] equipmentPool = []; // 副本的装备池，存储装备名称
+    public Boolean inprogress = false;//是否正在进行中
+    public ()=>void CopyAction;//副本触发事件
+    public Number Bot_Number = 1;//机器人占用
+    public Player[] CopyRoom = [];
+
+    public void SetCopyAction(in ()=>void copyAction) {
+        CopyAction = copyAction;
+    }
+
+    public constructor(in Area vararea,in String varname,in String varintroduction,in Number varLockLevel,in Number varTime,in Number varMin_p,in Number varMax_p,in Awards varawards,in String[] varequipmentPool){
+        area = vararea;
+        name = varname;
+        introduction = varintroduction;
+        LockLevel = varLockLevel;
+        Time = varTime;
+        Min_p = varMin_p;
+        Max_p = varMax_p;
+        awards = varawards;
+        equipmentPool = varequipmentPool;
+        GameCopy_pool[GameCopy_UniqueID] = this;
+        GameCopy_UniqueID = GameCopy_UniqueID + 1; // 递增唯一 ID
+    }
+    public String GetPropertyMessage(in String property)
+    {
+        switch (property)
+        {
+            case "area":
+                return "区域: " + this.area + "\n";
+            case "name":
+                return "名称: " + this.name + "\n";
+            case "introduction":
+                return "介绍: " + this.introduction + "\n";
+            case "LockLevel":
+                return "解锁等级: " + this.LockLevel + "\n";
+            case "Time":
+                return "限时: " + this.Time + "\n";
+            case "Min_p":
+                return "最小人数: " + this.Min_p + "\n";
+            case "Max_p":
+                return "最大人数: " + this.Max_p + "\n";
+            case "EXP":
+                if (this.awards != null)
+                    return "经验奖励: " + this.awards.EXP + "\n";
+                return "经验奖励: 无\n";
+            case "装备池":
+                if (this.equipmentPool != null)
+                {
+                    String temp_text = "装备池\n";
+                    foreach (String zhuangbei in equipmentPool)
+                    {
+                        temp_text = temp_text + zhuangbei + "\n";
+                    }
+                    return temp_text;
+                }
+                return "装备池: 空\n";
+            default:
+                return "未知属性: " + property + "\n";
+        }
+    }
+}
+
+// 任务奖励类
+class Awards
+{
+    public Number EXP; // 任务经验奖励？
+    public Affix Special_Affix;//任务特殊词缀
+
+    public constructor(in Number exp! = 100,in Affix special_Affix! = null){
+        EXP = exp;
+        Special_Affix = special_Affix;
+    }
+}
+
+// 初始化副本
+rule: "Initialize Game Copies"
+{
+    GameCopy_pool = [];
+    // 普通副本 1
+    new GameCopy(
+        vararea: new Area(Vector(-30.689, 6.515, 91.470),15,[Vector(0, 0, 0),Vector(-30.689, 10, 91.470)],'0号区域'),
+        varname: "测试副本1",
+        varintroduction: "清除指定区域的敌人以完成任务",
+        varLockLevel: 1,
+        varTime: 600,
+        varMin_p: 2,
+        varMax_p: 4,
+        varawards: new Awards(),
+        varequipmentPool: ["回复护符"]).SetCopyAction(()=>{
+            BigMessage(AllLivingPlayers(),'副本触发');
+        });
+    // 普通副本 2
+    new GameCopy(
+        vararea: new Area(Vector(-30.689, 6.515, 91.470),15,[Vector(0, 0, 0),Vector(-30.689, 10, 91.470)],'0号区域'),
+        varname: "测试副本2",
+        varintroduction: "清除指定区域的敌人以完成任务",
+        varLockLevel: 1,
+        varTime: 600,
+        varMin_p: 1,
+        varMax_p: 4,
+        varawards: new Awards(),
+        varequipmentPool: ["回复护符"]).SetCopyAction(()=>{
+            BigMessage(AllLivingPlayers(),'副本触发');
+        });
+}
+// 初始化区域
+rule: "Initialize Areas"
+{
+    Area oneArea! = new Area(Vector(-32.689, 6.515, 91.470),10,[Vector(-32.689, 6.515, 91.470),Vector(-32.689, 10, 91.470)],'1号区域');
+}
+// 根据名字获取副本
+GameCopy FindGameCopyByName(in String targetName)
+{
+    foreach (GameCopy copy in GameCopy_pool)
+    {
+        if (copy.name == targetName)
+        {
+            return copy;
+        }
+    }
+}
+
+// 整理出一份这个副本的 debug 文本，包含了副本的所有属性
+String GetGameCopy_debugmessage(in GameCopy copy)
+{
+    String[] debugMessage = [];
+    debugMessage = debugMessage + [copy.name+<'(Lv.<0>)',copy.LockLevel> + "\n\n"];
+    debugMessage = debugMessage + ["“" + copy.introduction + "”\n\n"];
+    debugMessage = debugMessage + ["机器人数量：" + copy.Bot_Number + "\n"];
+    debugMessage = debugMessage + ["MIN/MAX：" + copy.Min_p + '/' + copy.Max_p + "人      限时：" + copy.Time+'s\n'];
+    debugMessage = debugMessage + ["EXP: " + copy.awards.EXP + "\n"];
+    String debugmessage = "";
+    foreach (String i in debugMessage)
+    {
+        debugmessage = debugmessage + i;
+    }
+    return debugmessage;
+}
+
+playervar GameCopy[] GameCopy_locked = [];
+
+// 根据玩家等级解锁副本
+void AddGameCopytoPlayerByLockLevel()
+{
+    foreach (GameCopy copy in GameCopy_pool)
+    {
+        // 假设玩家有一个 playervar Number PlayerLevel 表示等级
+        if (EventPlayer().level >= copy.LockLevel && !EventPlayer().GameCopy_locked.Contains(copy))
+        {
+            EventPlayer().GameCopy_locked += copy;
+            MinWait();
+            SmallMessage(EventPlayer(), "已解锁副本: " + EvaluateOnce(copy.name));
+            CreateHudText(Header: EvaluateOnce(copy.name));
+        }
+    }
+}
+
+// 玩家变量：当前选中的副本
+playervar GameCopy current_selected_copy;
+
+// 玩家变量：当前副本列表
+playervar GameCopy[] current_copy_list;
+// 打开副本菜单初始化
+void OpenCopyMenu() "打开副本菜单" {
+    EventPlayer().Eye = Vector(0, 10, 2);
+    EventPlayer().Lookat = Vector(3, 324, -22);
+    EventPlayer().current_selected_copy = GameCopy_locked[0];
+    EventPlayer().current_description = GameCopy_locked[0].introduction;
+    EventPlayer().current_page = 0;
+    SmallMessage(AllLivingPlayers(),'why');
+    CreateHudText(Header: 'adwadawd');
+    UpdateCopyButtons();
+}
+
+// 更新副本和房间按钮
+void UpdateCopyButtons() "更新副本和房间按钮" {
+    for (Number i! = 0; i < 5; i = i + 1) {
+        define toreplacelabel;
+        define theCopy! = GameCopy_locked[i+current_page*5];
+        if(theCopy != 0){
+            if(CountOf(theCopy.CopyRoom)>0){
+                toreplacelabel = ((current_selected_copy ==  theCopy) ? IconString(Icon.ArrowRight) : '') + theCopy.name + <'(<2>：<0>/<1>)',CountOf(theCopy.CopyRoom),theCopy.Max_p,CountOf(theCopy.CopyRoom) < theCopy.Min_p ? '等待中' : '进行中'>;
+                GetButtonByName('承接或加入按钮').Label = '加入副本';
+            }
+            else{
+                toreplacelabel = ((current_selected_copy ==  theCopy) ? IconString(Icon.ArrowRight) : '') + theCopy.name;
+                GetButtonByName('承接或加入按钮').Label = '承接副本';
+            }
+            
+            
+        }
+        else{
+            toreplacelabel ='';
+        }
+        GetButtonByName(<String>i+'副本').Label = toreplacelabel;
+    }
+
+    GetButtonByName('副本描述按钮').Label = GetGameCopy_debugmessage(current_selected_copy);
+}
+
+// 左翻页按钮点击处理
+void CopyLeftPageOnClick() "左翻页按钮点击处理" {
+    if (EventPlayer().current_page > 0) {
+        EventPlayer().current_page -= 1;
+        UpdateCopyButtons();
+    }
+}   
+
+// 创建副本菜单按钮
+void CreateCopyMenuButtons() "创建副本菜单按钮" {
+    // 上方分隔线
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "———————当前副本————",
+        interactable: false,
+        name: "上方分隔线",
+        posX: -1.5,
+        posY: 1.1,
+        scale: ButtonScale.Large,
+        defaultColor: Color.Orange,
+        hoverColor: Color.White
+    );
+    
+    // 副本按钮（4个）
+    for (Number i! = 0; i < 5; i = i + 1) {
+        new MenuButton(
+            ofmenuActives: [MenuActive.CopyMenu],
+            label: "待定",
+            interactable: true,
+            name: <String>i + "副本",
+            posX: -1.4,
+            posY: 0.85 - i * 0.3,
+            scale: ButtonScale.Large,
+            defaultColor: Color.White,
+            hoverColor: Color.Yellow
+        ).SetOnClick(() => CopyButtonOnClick(i));
+    }
+    // 左翻页按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "<<",
+        interactable: true,
+        name: "左翻页按钮",
+        posX: -1.7,
+        posY: -0.65,
+        scale: ButtonScale.Large,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "上一页"
+    ).SetOnClick(CopyLeftPageOnClick);
+    
+    // 右翻页按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: ">>",
+        interactable: true,
+        name: "右翻页按钮",
+        posX: -1.1,
+        posY: -0.65,
+        scale: ButtonScale.Large,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "下一页"
+    );
+    
+    // 页码显示按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "1/1",
+        interactable: false,
+        name: "页码显示按钮",
+        posX: -1.4,
+        posY: -0.65,
+        scale: ButtonScale.Large,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+
+    //机器人皮肤数量按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "当前机器人占用：0/4个",
+        interactable: false,
+        name: "机器人占用按钮",
+        posX: -1.4,
+        posY: -0.9,
+        scale: ButtonScale.Medium,
+        defaultColor: Color.White,
+        hoverColor: Color.White
+    );
+
+    // 承接或加入按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "承接副本",
+        interactable: true,
+        name: "承接或加入按钮",
+        posX: 1,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "承接或加入选中的副本"
+    ).SetOnClick(()=>StartCopy(current_selected_copy));
+    
+    // 副本描述按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "未选中副本",
+        interactable: false,
+        name: "副本描述按钮",
+        posX: 0.7,
+        posY: -0.3,
+        scale: ButtonScale.Medium,
+        defaultColor: CustomColor(182, 114, 255, 255),
+        hoverColor: Color.White
+    );
+
+    // 在 CreateCopyMenuButtons 中添加退出按钮
+    new MenuButton(
+        ofmenuActives: [MenuActive.CopyMenu],
+        label: "退出",
+        interactable: true,
+        name: "退出副本房间按钮",
+        posX: 1.4,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        defaultColor: Color.White,
+        hoverColor: Color.Yellow,
+        Hoverlabel: "退出当前副本副本房间"
+    ).SetOnClick(ExitCopyRoom);
+}
+
+// 退出房间
+void ExitCopyRoom() {
+            define copy! = FilteredArray(GameCopy_pool, ArrayContains((<GameCopy>ArrayElement()).CopyRoom,EventPlayer()));
+            SmallMessage(EventPlayer(), "已退出副本");
+            UpdateCopyButtons();
+        }
+
+//副本按钮点击
+void CopyButtonOnClick(Number i!){
+    if(GameCopy_locked[i+current_page*5] == 0){
+        return;
+    }
+    current_selected_copy = GameCopy_locked[i+current_page*5];
+    Eye = <GameCopy>current_selected_copy.area.SetCamera[0];
+    Lookat = <GameCopy>current_selected_copy.area.SetCamera[1];
+    GetMenuBase();
+    UpdateCopyButtons();
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    level = 999;
+    AddGameCopytoPlayerByLockLevel();
+}
+
+Number AllBot_Number:
+    Sum_Number(MappedArray(GameCopy_pool,(<GameCopy>ArrayElement()).inprogress == 1?(<GameCopy>ArrayElement()).Bot_Number:0));
+
+Boolean isinCopyRoom:
+    IsTrueForAny(GameCopy_pool,ArrayContains((<GameCopy>ArrayElement()).CopyRoom,EventPlayer()) == true);
+
+//启动副本
+void StartCopy(GameCopy theCopy!) {
+    if(theCopy == 0){
+        return;
+    }
+    CreateHudText(Header: AllBot_Number);
+    // 检查机器人数量
+    if (4 - AllBot_Number < theCopy.Bot_Number) {
+        SmallMessage(EventPlayer(), "错误：机器人数量不足");
+        return;
+    }
+
+    // 检查玩家是否已加入其他副本
+    if (isinCopyRoom) {
+        SmallMessage(EventPlayer(), "错误：你已在其他副本中");
+        return;
+    }
+
+    // 检查副本是否已满
+    if (CountOf(theCopy.CopyRoom) >= theCopy.Max_p) {
+        SmallMessage(EventPlayer(), "错误：副本已满");
+        return;
+    }
+
+    theCopy.CopyRoom += EventPlayer();
+    SmallMessage(theCopy.CopyRoom, <"<0><1>已加入房间", HeroIconString(HeroOf(EventPlayer())), EventPlayer()>);
+    // 提示创建成功
+   
+
+    // 更新副本菜单
+    UpdateCopyButtons();
+
+
+    if (CountOf(theCopy.CopyRoom) >= theCopy.Min_p && !theCopy.inprogress) {
+        theCopy.inprogress = true;
+        SmallMessage(theCopy.CopyRoom, "副本已开始：[" + theCopy.name + "]");
+
+        //赋值房间内所有人的当前副本为此副本
+        theCopy.CopyRoom.P_CopyNow = theCopy; 
+
+    } else {
+        SmallMessage(theCopy.CopyRoom, "等待更多玩家加入（" + CountOf(theCopy.CopyRoom) + "/" + theCopy.Min_p + "）");
+    }
+}
+playervar GameCopy P_CopyNow;
+playervar GameCopy P_isinCopy;
+void LoadingCartoon(){
+
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(P_CopyNow != 0)
+{
+    CloseMenu();
+    LoadingCartoon();
+    Teleport(EventPlayer(),P_CopyNow.area.Location);
+    P_isinCopy = 1;
+}

@@ -1,0 +1,3920 @@
+﻿variables
+{
+	global:
+		0: Backpack_spot
+		1: TianFu
+		2: Backpack_i
+		4: ShangPing
+		26: Lock
+
+	player:
+		0: Backpack_open
+		1: Backpack_page
+		2: Backpack_button
+		3: Backpack_sensitivity
+		4: Backpack_orientation
+		5: LinShi
+		6: TianFu
+		8: GJ
+		9: ShangPing
+		10: FQ
+		11: HD
+		12: HJ
+		13: JC
+		14: SS
+		15: CD
+		16: SZ
+		17: BJ
+		18: SM
+		19: DD
+		20: YL
+		21: JT
+		22: DX
+		23: XX
+		24: YS
+		25: ZL
+		26: M
+		27: BS
+		28: DJ
+		29: JND
+		30: YiXuanTianFu
+		31: ShengJiLou
+		32: LinShi2
+		33: YinLiZhuangZhi
+		34: BingXiangJiao
+		35: LieRen
+		36: DiSan
+		37: CunQianGuan
+		38: FuNengDianHu
+		39: ZhanShuMuJing
+		40: LiangKeXin
+		41: KuangZhanShi
+		42: TouZi
+		43: DianCiPao
+		44: GuiDaoSheXian
+		45: DongNeng
+		46: ShengMingZhiWo
+		47: TeDingTianTu
+		48: YiCiXinShenMing
+		49: XuanShang
+		50: XuanShangDengJi
+		51: LianBai
+		52: TianFaCengShu
+		53: ShanShuXing
+		54: MingYunMoFang
+		70: BingDong
+		71: FuZhiQi
+		72: JiSuTeXiao
+		73: MeiLiDongReng
+		74: GuiYuDaDi
+		78: RongDing
+		79: Backpack_actionByIndex
+		80: Backpack_paramByIndex
+		81: Backpack_candidates_mode1
+		82: Backpack_candidates_mode2
+		83: Backpack_action_id
+		84: Backpack_action_param
+		85: Backpack_cursorY
+		86: Backpack_cursorZ
+		87: Backpack_hitButtons
+		88: Backpack_hitButton
+}
+
+subroutines
+{
+	0: OpenBackpack
+	4: ShangPingShuaXin
+	5: TianFuShuaXin
+	7: GouMaiGaoJi
+	8: Page1
+	9: XuanZeTianFu
+	10: ShengJi
+	11: RenZheZuJu1
+	12: RenZheZuJu2
+	13: DiSan
+	14: Sheng
+	15: ShenSheShou
+	16: ZhongTa
+	17: KuangZhanShi
+	18: BingDong
+	19: KuWei
+	20: ChaoNeng
+	21: HanDi
+	22: JiSu
+	23: ZhuMie
+	24: ZhuoRi
+	25: GuiYuDaDi
+	26: MeiLiDongReng
+	28: YinLiZhuangZhi
+	29: NvWuShen
+	30: GuiDaoSheXian
+	31: DongNeng
+	32: ShengMingZhiWo
+	33: XuanZeTianFu2
+	34: FindBackpackActionByCursor
+	35: DispatchBackpackAction
+	36: ShuxingInit
+	37: ButtonInit
+}
+
+rule("人物属性初始化")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Call Subroutine(ShuxingInit);
+	}
+}
+
+rule("升级子程序")
+{
+	event
+	{
+		Subroutine;
+		ShengJi;
+	}
+
+	actions
+	{
+		Event Player.DJ[0] += 1;
+		Event Player.DJ[1] = 0;
+		Event Player.BS += 1;
+		Event Player.JND += 0.340;
+		Event Player.TouZi += 0.500;
+		If(Array Contains(All Tank Heroes, Hero Of(Event Player)) == True);
+			Event Player.JC += 10 + 3 * Event Player.DJ[0];
+			Set Max Health(Event Player, Event Player.JC);
+			Event Player.GJ[0] += 2 + 1 * Event Player.DJ[0];
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.SS *= 0.990;
+		Else If(Array Contains(All Damage Heroes, Hero Of(Event Player)) == True);
+			Event Player.GJ[0] += 3 + 1 * Event Player.DJ[0];
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.JC += 5 + 1 * Event Player.DJ[0];
+			Set Max Health(Event Player, Event Player.JC);
+		Else If(Array Contains(All Support Heroes, Hero Of(Event Player)) == True);
+			Event Player.JC += 5 + 1.500 * Event Player.DJ[0];
+			Set Max Health(Event Player, Event Player.JC);
+			Event Player.GJ[0] += 1 + 1 * Event Player.DJ[0];
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.ZL[0] += 2 + 1 * Event Player.DJ[0];
+			Set Healing Dealt(Event Player, (Event Player.ZL[0] + Event Player.ZL[1]) * (Event Player.ZL[2] + Event Player.ZL[3]));
+		End;
+		"升级咯"
+		If(Event Player.YiXuanTianFu[4]);
+			If(Event Player.DJ[0] == 15 && !Event Player.YiXuanTianFu[0]);
+				Event Player.ShengJiLou = Event Player.YiXuanTianFu[4] + 1;
+				Abort;
+			End;
+			Event Player.ShengJiLou -= 1;
+			Wait(0.250, Ignore Condition);
+			Loop If(Event Player.ShengJiLou > 0);
+			Event Player.ShengJiLou = Event Player.YiXuanTianFu[4] + 1;
+		End;
+	}
+}
+
+rule("hud文本")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Local Player.Backpack_open[0] == 0 ? Local Player : Null, Null, Custom String(
+			"欢迎来到天赋角斗场，代码6d7v5\n击杀敌人或被击杀获得经验和货币\n被击杀时会叠加连败层数，连败越高死亡获得的奖励越高\n喷漆打开天赋选择/商店界面，互动选择\n商店出bug面朝空旷方向重新开启即可\n{0}", Custom String(
+			"升级获得宝石，每三级获得一个天赋，满级15级\n蹲加跳切换人称，50消灭时游戏结束")), Null, Left, -1, Color(White), Color(Rose), Color(Yellow), Visible To and String,
+			Default Visibility);
+		Create HUD Text(Local Player, Null, Null, Custom String("{0}\n{1}\n{2}", Custom String("{0}\n{1}\n{2}", Custom String(
+			"攻击力：{0}|{1}%", (Local Player.GJ[0] + Local Player.GJ[1]) * (Local Player.GJ[2] + Local Player.GJ[3]), (
+			Local Player.GJ[3] + Local Player.GJ[2] - 1) * 100), Custom String("技能伤害：{0}|{1}%", Local Player.FQ[0] + Local Player.FQ[1], (
+			Local Player.FQ[3] + Local Player.FQ[2] + 1) * 100), Custom String("生命值：{0}|{1}%", Max Health Of Type(Local Player, Health), (
+			Local Player.SM[1] + Local Player.SM[2] - 1) * 100)), Custom String("{0}\n{1}\n{2}", Custom String("护盾：{0}|{1}%",
+			Max Health Of Type(Local Player, Shields), 100 * (Local Player.HD[1] + Local Player.HD[2] - 1)), Custom String("护甲：{0}|{1}%",
+			Max Health Of Type(Local Player, Armor), 100 * (Local Player.HJ[1] + Local Player.HJ[2] - 1)), Custom String("冷却：{0}%",
+			100 * 1 / Local Player.CD)), Custom String("{0}\n{1}\n{2}", Custom String("{0}\n{1}\n{2}", Custom String("移速：{0}", (
+			Local Player.YS[0] + Local Player.YS[1]) * (Local Player.YS[2] + Local Player.YS[3])), Custom String("治疗量：{0}|{1}%", (
+			Local Player.ZL[0] + Local Player.ZL[1]) * (Local Player.ZL[2] + Local Player.ZL[3]), (
+			Local Player.ZL[2] + Local Player.ZL[3] - 1) * 100), Custom String("受治疗量：{0}", (Local Player.SZ[0] + Local Player.SZ[1]) * (
+			Local Player.SZ[2] + Local Player.SZ[3]))), Custom String("{0}\n{1}\n{2}", Custom String("吸血：{0}%", (
+			Local Player.XX[0] + Local Player.XX[1]) * 100), Custom String("弹道速度：{0}%", Local Player.DD), Custom String("受伤害量：{0}%",
+			Local Player.SS)), Custom String("{0}\n	{1}\n{2}", Custom String("击退倍率：{0}%", Local Player.JT), Custom String("引力：{0}",
+			Local Player.YL[0] + Local Player.YL[1]), Custom String("{0}\n	{1}", Custom String("基础生命值：{0}%", Local Player.JC),
+			Custom String("暴伤倍率：{0}%", 100 * (1 + Local Player.BJ)))))), Right, -1, Color(White), Color(White), Custom Color(255, 142, 12,
+			200), Visible To Sort Order String and Color, Default Visibility);
+		Create HUD Text(Local Player, Null, Null, Custom String("货币：{0}宝石：{1}等级：{2}", Local Player.M, Local Player.BS, Local Player.DJ[0]),
+			Right, 1, Null, Null, Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.YiXuanTianFu[3] >= 1 ? Local Player : Null, Custom String("{0} {1}{2}", Custom String("冰香蕉"),
+			Ability Icon String(Hero(Winston), Button(Ultimate)), Round To Integer(Local Player.YiXuanTianFu[3], Down)), Null, Null, Right,
+			2, Color(Aqua), Null, Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.TouZi >= 1 ? Local Player : Null, Custom String("{0} {1}", Custom String("刷新骰子{0}", Round To Integer(
+			Local Player.TouZi, Down)), Ability Icon String(Hero(Cassidy), Button(Ability 1))), Null, Null, Right, 2, Color(White), Null,
+			Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.DX[0] + Local Player.DX[1] >= 2.500 ? Local Player : Null, Custom String("{0} {1}", Custom String(
+			"战争巨兽"), Ability Icon String(Hero(Bastion), Button(Ultimate))), Null, Null, Right, 2, Color(White), Null, Null,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.TeDingTianTu[0] >= 1 ? Local Player : Null, Custom String("{0} {1}", Custom String("水绿宝石{0}",
+			Local Player.TeDingTianTu[0]), Ability Icon String(Hero(Kiriko), Button(Ability 2))), Null, Null, Right, 2, Color(White), Null,
+			Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.TeDingTianTu[1] >= 1 ? Local Player : Null, Custom String("{0} {1}", Custom String("传说金币{0}",
+			Local Player.TeDingTianTu[1]), Ability Icon String(Hero(Kiriko), Button(Ability 2))), Null, Null, Right, 2, Color(White), Null,
+			Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.LieRen != 0 ? Local Player : Null, Custom String("{0} {1}", Custom String("赏金猎人{0}", Round To Integer(
+			Local Player.LieRen, Down)), Ability Icon String(Hero(Cassidy), Button(Ultimate))), Null, Null, Right, 2, Custom Color(205,
+			133, 63, 200), Null, Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.YiXuanTianFu[68] ? Local Player : Null, Custom String("{0} {1}", Custom String("猪猪存钱罐{0}",
+			Local Player.CunQianGuan), Ability Icon String(Hero(Roadhog), Button(Ultimate))), Null, Null, Right, 2, Color(White), Null,
+			Null, Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.LianBai >= 3 ? Local Player : Null, Custom String("{0} {1}", Custom String("连败 {0}", Round To Integer(
+			Local Player.LianBai, Down)), Ability Icon String(Hero(Ashe), Button(Ultimate))), Null, Null, Right, 2, Color(White), Null,
+			Null, Visible To and String, Default Visibility);
+	}
+}
+
+rule("选择天赋的子程序")
+{
+	event
+	{
+		Subroutine;
+		XuanZeTianFu;
+	}
+
+	actions
+	{
+		If(Event Player.YiXuanTianFu[56] == -1);
+			Event Player.YiXuanTianFu[56] = Event Player.LinShi;
+		End;
+		If(Event Player.LinShi == Global.TianFu[0]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("成长，生命，幸福，还有朋友"), Ability Icon String(Hero(Mercy), Button(
+				Ability 2))), Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[0] = 1;
+		Else If(Event Player.LinShi == Global.TianFu[1]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("宝石批发"), Ability Icon String(Hero(Sombra), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.BS += Random Integer(1, 15);
+		Else If(Event Player.LinShi == Global.TianFu[2]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("猿神启动"), Ability Icon String(Hero(Winston), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Start Forcing Player To Be Hero(Event Player, Hero(Winston));
+			Event Player.JC += 100;
+			Set Max Health(Event Player, Event Player.JC);
+			Event Player.YS[0] += 15;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+			Event Player.DX[0] += 0.500;
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Event Player.YiXuanTianFu[2] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[3]);
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"));
+			Event Player.YiXuanTianFu[3] += 1.010;
+		Else If(Event Player.LinShi == Global.TianFu[4]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("升级咯"), Ability Icon String(Hero(Mercy), Button(Ability 2))),
+				Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[4] += 1;
+			Event Player.ShengJiLou = Event Player.YiXuanTianFu[4] + 1;
+		Else If(Event Player.LinShi == Global.TianFu[5]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("高级会员"), Ability Icon String(Hero(Sigma), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[5] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[6]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("无中生有"), Ability Icon String(Hero(Moira), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.JND += 2;
+		Else If(Event Player.LinShi == Global.TianFu[7]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("龙神之刃"), Ability Icon String(Hero(Genji), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.GJ[0] += 65;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[8]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("防御矩阵"), Ability Icon String(Hero(D.Va), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.SS = Event Player.SS * 0.700;
+			Set Damage Received(Event Player, Event Player.SS);
+		Else If(Event Player.LinShi == Global.TianFu[9]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("屏障与巨甲"), Ability Icon String(Hero(Reinhardt), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.HD[0] += 400;
+			Event Player.HJ[0] += 400;
+		Else If(Event Player.LinShi == Global.TianFu[10]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("地狱火"), Ability Icon String(Hero(Reaper), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.XX[0] += 0.300;
+		Else If(Event Player.LinShi == Global.TianFu[11]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("能量标枪"), Ability Icon String(Hero(Orisa), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.FQ[0] += 75;
+		Else If(Event Player.LinShi == Global.TianFu[12]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("忍者足具"), Ability Icon String(Hero(Kiriko), Button(
+				Ability 1))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[12] += 1;
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[13]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("兔子跳"), Ability Icon String(Hero(D.Va), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Rose), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[13] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[14]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("一拳"), Ability Icon String(Hero(Doomfist), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[14] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[15]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("火箭重锤"), Ability Icon String(Hero(Reinhardt), Button(
+				Ability 2))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[15] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[16]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("灭"), Ability Icon String(Hero(Zenyatta), Button(Ability 2))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[16] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[17]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("圣"), Ability Icon String(Hero(Zenyatta), Button(Ability 1))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[17] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[18]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("熔火核心"), Ability Icon String(Hero(Torbjörn), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[18] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[19]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("太阳光塔"), Ability Icon String(Hero(Illari), Button(
+				Ability 2))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[19] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[20]);
+			Event Player.JC += 300;
+			Set Max Health(Event Player, Event Player.JC);
+			Event Player.SS = Event Player.SS * 0.800;
+			Set Damage Received(Event Player, Event Player.SS);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("猪神"), Ability Icon String(Hero(Roadhog), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[20] >= 0);
+				Event Player.YiXuanTianFu[20] += 1;
+			Else If(Event Player.YiXuanTianFu[20] < 0);
+				Event Player.YiXuanTianFu[20] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[21]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("神射手"), Ability Icon String(Hero(Cassidy), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[21] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[22]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("强固防御"), Ability Icon String(Hero(Orisa), Button(Ability 1))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Remove Health Pool From Player(Event Player.SM[3]);
+			Remove Health Pool From Player(Event Player.HD[3]);
+			Remove Health Pool From Player(Event Player.HJ[3]);
+			Add Health Pool To Player(Event Player, Armor, Event Player.SM[0] * (Event Player.SM[1] + Event Player.SM[2]), True, True);
+			Event Player.SM[3] = Last Created Health Pool;
+			Add Health Pool To Player(Event Player, Armor, Event Player.HD[0] * (Event Player.HD[1] + Event Player.HD[2]), True, True);
+			Event Player.HD[3] = Last Created Health Pool;
+			Add Health Pool To Player(Event Player, Armor, Event Player.HJ[0] * (Event Player.HJ[1] + Event Player.HJ[2]), True, True);
+			Event Player.HJ[3] = Last Created Health Pool;
+		Else If(Event Player.LinShi == Global.TianFu[23]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("龙魂"), Ability Icon String(Hero(Genji), Button(Ability 1))),
+				Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[23] += 1;
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[24]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("战术目镜"), Ability Icon String(Hero(Soldier: 76), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[24] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[25]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("临别礼物"), Ability Icon String(Hero(Junkrat), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[25] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[26]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("百合之吻"), Ability Icon String(Hero(Widowmaker), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[26] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[27]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("两颗心脏"), Ability Icon String(Hero(Mauga), Button(Ability 2))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[27] >= 0);
+				Event Player.YiXuanTianFu[27] += 1;
+			Else If(Event Player.YiXuanTianFu[27] < 0);
+				Event Player.YiXuanTianFu[27] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[28]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("重踏"), Ability Icon String(Hero(Wrecking Ball), Button(
+				Crouch))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[28] >= 0);
+				Event Player.YiXuanTianFu[28] += 1;
+			Else If(Event Player.YiXuanTianFu[28] < 0);
+				Event Player.YiXuanTianFu[28] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[29]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("猛击"), Ability Icon String(Hero(Reinhardt), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[29] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[30]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("流水禅杖"), Ability Icon String(Hero(Wuyang), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[30] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[31]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("无情连打"), Ability Icon String(Hero(Brigitte), Button(
+				Ability 1))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[31] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[32]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("狂战士"), Ability Icon String(Hero(Mauga), Button(Ability 2))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[32] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[33]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("枯萎凋零"), Ability Icon String(Hero(Moira), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[33] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[34]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("冰冻冲击枪"), Ability Icon String(Hero(Mei), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[34] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[35]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("无限火力"), Ability Icon String(Hero(Sojourn), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Set Max Ammo(Event Player, 0, 1000);
+			Set Ammo(Event Player, 0, 1000);
+			Event Player.YiXuanTianFu[35] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[36]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("德国工艺"), Ability Icon String(Hero(Reinhardt), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.SM[1] += 0.400;
+			Event Player.HD[1] += 0.400;
+			Event Player.HJ[1] += 0.400;
+		Else If(Event Player.LinShi == Global.TianFu[37]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("赏金狩猎"), Ability Icon String(Hero(Cassidy), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			If(Event Player.LieRen == 0);
+				Event Player.LieRen += 3;
+			Else If(Event Player.LieRen != 0);
+				Event Player.LieRen *= 3;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[38]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("音波"), Ability Icon String(Hero(Lúcio), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.JT *= 5;
+			Set Knockback Dealt(Event Player, Event Player.JT);
+		Else If(Event Player.LinShi == Global.TianFu[39]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("撼地猛刺"), Ability Icon String(Hero(Orisa), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[39] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[40]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("超能之球"), Ability Icon String(Hero(Sigma), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[40] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[41]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("巨人英雄"), Ability Icon String(Hero(Lúcio), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[0] += 0.500;
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Event Player.SS = Event Player.SS * 0.800;
+			Set Damage Received(Event Player, Event Player.SS);
+		Else If(Event Player.LinShi == Global.TianFu[42]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("小小英雄"), Ability Icon String(Hero(Lúcio), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[0] -= 0.200;
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+		Else If(Event Player.LinShi == Global.TianFu[43]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("迷你英雄"), Ability Icon String(Hero(Lúcio), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.SS = Event Player.SS * 1.500;
+			Set Damage Received(Event Player, Event Player.SS);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[0] -= 0.500;
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+		Else If(Event Player.LinShi == Global.TianFu[44]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("不动如山"), Ability Icon String(Hero(Orisa), Button(Ability 1))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Set Knockback Received(Event Player, 0);
+			Event Player.SM[1] += 0.400;
+		Else If(Event Player.LinShi == Global.TianFu[45]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("诛"), Ability Icon String(Hero(Ramattra), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[45] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[46]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("激素"), Ability Icon String(Hero(Ana), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[46] += 1;
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+		Else If(Event Player.LinShi == Global.TianFu[47]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("风"), Ability Icon String(Hero(Hanzo), Button(Primary Fire))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[47] += 1.500;
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[48]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("岚"), Ability Icon String(Hero(Hanzo), Button(Ability 2))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Set Projectile Gravity(Event Player, 0);
+			Event Player.DD += 200;
+			Set Projectile Speed(Event Player, Event Player.DD);
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[49]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("灵符"), Ability Icon String(Hero(Kiriko), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[49] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[50]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("呼吸器"), Ability Icon String(Hero(Roadhog), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[50] += 1;
+			Event Player.SM[0] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[51]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("愈合冲击"), Ability Icon String(Hero(Baptiste), Button(
+				Ability 1))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[51] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[52]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("灵狐"), Ability Icon String(Hero(Kiriko), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.CD += 0.020 * 100;
+		Else If(Event Player.LinShi == Global.TianFu[53]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("桎梏灼日"), Ability Icon String(Hero(Illari), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[53] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[54]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("毒蛇"), Ability Icon String(Hero(Ashe), Button(Primary Fire))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[54] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[55]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("死亡绽放"), Ability Icon String(Hero(Reaper), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[55] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[56]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("再来！"), Ability Icon String(Hero(Kiriko), Button(Ability 2))),
+				Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[56] = -1;
+		Else If(Event Player.LinShi == Global.TianFu[57]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("美丽冻人"), Ability Icon String(Hero(Mei), Button(Ability 1))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[57] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[58]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("地壳震击"), Ability Icon String(Hero(Venture), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[58] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[59]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("细胞能量"), Ability Icon String(Hero(Moira), Button(Ability 2))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[59] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[60]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("归于大地"), Ability Icon String(Hero(Ramattra), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[60] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[61]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("锻造"), Ability Icon String(Hero(Torbjörn), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[61] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[62]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("跃"), Ability Icon String(Hero(Hanzo), Button(Jump))), Null,
+				Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[62] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[63]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("律动连打"), Ability Icon String(Hero(Doomfist), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[63] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[64]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("骨刺"), Ability Icon String(Hero(Hazard), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[64] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[65]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("刷新骰盒"), Ability Icon String(Hero(Cassidy), Button(
+				Ability 1))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.TouZi += 9;
+		Else If(Event Player.LinShi == Global.TianFu[66]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("引力装置"), Ability Icon String(Hero(Sigma), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[66] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[67]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("十二面骰"), Ability Icon String(Hero(Roadhog), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[67] += 1;
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+		Else If(Event Player.LinShi == Global.TianFu[68]);
+			Event Player.YiXuanTianFu[68] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[69]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("金猪商店"), Ability Icon String(Hero(Roadhog), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Yellow), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[69] += 1;
+			Event Player.ShangPing = Array(Custom String("    |猪猪币-100货币|\n		获得10%基础生命值\n		"), Custom String(
+				"    |猪猪币-100货币|\n		获得10%基础生命值\n		"), Custom String("    |猪猪币-100货币|\n		获得10%基础生命值\n		"), Custom String(
+				"    |猪猪币-100货币|\n		获得10%基础生命值\n		"), Custom String("    |猪猪币-100货币|\n		获得10%基础生命值\n		"), Custom String(
+				"    |猪猪币-100货币|\n		获得10%基础生命值\n		"));
+			Call Subroutine(ShangPingShuaXin);
+			Call Subroutine(Page1);
+		Else If(Event Player.LinShi == Global.TianFu[70]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("5A连招"), Ability Icon String(Hero(Sojourn), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Event Player.GJ[0] *= 2;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.YiXuanTianFu[70] += 1;
+			Set Ability 1 Enabled(Event Player, !Event Player.YiXuanTianFu[70]);
+			Set Ability 2 Enabled(Event Player, !Event Player.YiXuanTianFu[70]);
+			Set Ultimate Ability Enabled(Event Player, !Event Player.YiXuanTianFu[70]);
+		Else If(Event Player.LinShi == Global.TianFu[71]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("灌铅骰子"), Ability Icon String(Hero(Roadhog), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[71] += 1;
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		"));
+		Else If(Event Player.LinShi == Global.TianFu[72]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("英雄集结"), Ability Icon String(Hero(Brigitte), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[72] >= 0);
+				Event Player.YiXuanTianFu[72] += 1;
+			Else If(Event Player.YiXuanTianFu[72] < 0);
+				Event Player.YiXuanTianFu[72] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[73]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("缚能电弧"), Ability Icon String(Hero(Moira), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[73] >= 0);
+				Event Player.YiXuanTianFu[73] += 1;
+			Else If(Event Player.YiXuanTianFu[73] < 0);
+				Event Player.YiXuanTianFu[73] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[74]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("超电磁炮"), Ability Icon String(Hero(Sojourn), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[74] >= 0);
+				Event Player.YiXuanTianFu[74] += 1;
+			Else If(Event Player.YiXuanTianFu[74] < 0);
+				Event Player.YiXuanTianFu[74] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[75]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("女武神"), Ability Icon String(Hero(Mercy), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[75] >= 0);
+				Event Player.YiXuanTianFu[75] += 1;
+			Else If(Event Player.YiXuanTianFu[75] < 0);
+				Event Player.YiXuanTianFu[75] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[76]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("轨道镭射"), Ability Icon String(Hero(Juno), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[76] >= 0);
+				Event Player.YiXuanTianFu[76] += 1;
+			Else If(Event Player.YiXuanTianFu[76] < 0);
+				Event Player.YiXuanTianFu[76] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[77]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("动能俘获"), Ability Icon String(Hero(Sigma), Button(Ability 1))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			If(Event Player.YiXuanTianFu[77] >= 0);
+				Event Player.YiXuanTianFu[77] += 1;
+			Else If(Event Player.YiXuanTianFu[77] < 0);
+				Event Player.YiXuanTianFu[77] -= 1;
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[78]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("破甲熔钉"), Ability Icon String(Hero(Junkrat), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[78] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[79]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("生命之握"), Ability Icon String(Hero(Lifeweaver), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[79] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[80]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("双龙"), Ability Icon String(Hero(Hanzo), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[80] += 1.010;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		End;
+		Call Subroutine(XuanZeTianFu2);
+		If(Event Player.FuZhiQi);
+			Event Player.FuZhiQi -= 1;
+			Wait(0.100, Ignore Condition);
+			Loop;
+		End;
+		Event Player.TianFu = 0;
+	}
+}
+
+rule("选择天赋的子程序")
+{
+	event
+	{
+		Subroutine;
+		XuanZeTianFu2;
+	}
+
+	actions
+	{
+		If(Event Player.LinShi == Global.TianFu[81]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("人见人厌"), Ability Icon String(Hero(Sigma), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[81] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[82]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("三原色：红"), Ability Icon String(Hero(Kiriko), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[82] += 2;
+		Else If(Event Player.LinShi == Global.TianFu[83]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("三原色：蓝"), Ability Icon String(Hero(Kiriko), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[83] += 2;
+		Else If(Event Player.LinShi == Global.TianFu[84]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("三原色：绿"), Ability Icon String(Hero(Kiriko), Button(
+				Ability 2))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[84] += 2;
+		Else If(Event Player.LinShi == Global.TianFu[85]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("绿闪"), Ability Icon String(Hero(Reinhardt), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Green), Null, Null, Visible To, Default Visibility);
+			Event Player.ShanShuXing = Color(Green);
+		Else If(Event Player.LinShi == Global.TianFu[86]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("红闪"), Ability Icon String(Hero(Reinhardt), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Red), Null, Null, Visible To, Default Visibility);
+			Event Player.ShanShuXing = Color(Red);
+		Else If(Event Player.LinShi == Global.TianFu[87]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("青闪"), Ability Icon String(Hero(Reinhardt), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Aqua), Null, Null, Visible To, Default Visibility);
+			Event Player.ShanShuXing = Color(Aqua);
+		Else If(Event Player.LinShi == Global.TianFu[88]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("黑闪"), Ability Icon String(Hero(Reinhardt), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Black), Null, Null, Visible To, Default Visibility);
+			Event Player.ShanShuXing = Color(Black);
+			Event Player.YiXuanTianFu[88] += 1;
+			Set Primary Fire Enabled(Event Player, !Event Player.YiXuanTianFu[88]);
+		Else If(Event Player.LinShi == Global.TianFu[89]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("灭绝"), Ability Icon String(Hero(Cassidy), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.GJ[2] += 30 * 0.010;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.FQ[2] += 30 * 0.010;
+		Else If(Event Player.LinShi == Global.TianFu[90]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("红外侦测"), Ability Icon String(Hero(Widowmaker), Button(
+				Ultimate))), Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[90] = 1;
+		Else If(Event Player.LinShi == Global.TianFu[91]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("龙锤"), Ability Icon String(Hero(Torbjörn), Button(
+				Ability 2))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(
+				"              |龙锤-4宝石|\n		将你的英雄替换为锤形态托比\n		昂,并极大强化平a"));
+		Else If(Event Player.LinShi == Global.TianFu[92]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("变态发育"), Ability Icon String(Hero(Echo), Button(Ultimate))),
+				Null, Null, Right, 3, Color(Blue), Null, Null, Visible To, Default Visibility);
+			Start Forcing Player To Be Hero(Event Player, Random Value In Array(All Heroes));
+			"经验"
+			Event Player.DJ[1] += 50 * Event Player.DJ[0];
+			"升级/古夫"
+			If(Event Player.DJ[1] >= 50 * Event Player.DJ[0] && Event Player.DJ[0] < 15);
+				Start Rule(ShengJi, Do Nothing);
+			Else If(Event Player.DJ[1] >= 750 && Event Player.DJ[0] >= 15 && Event Player.YiXuanTianFu[1]);
+				Start Rule(ShengJi, Do Nothing);
+			End;
+			Wait(0.250, Ignore Condition);
+			"经验"
+			Event Player.DJ[1] += 50 * Event Player.DJ[0];
+			"升级/古夫"
+			If(Event Player.DJ[1] >= 50 * Event Player.DJ[0] && Event Player.DJ[0] < 15);
+				Start Rule(ShengJi, Do Nothing);
+			Else If(Event Player.DJ[1] >= 750 && Event Player.DJ[0] >= 15 && Event Player.YiXuanTianFu[1]);
+				Start Rule(ShengJi, Do Nothing);
+			End;
+			Wait(0.250, Ignore Condition);
+			"经验"
+			Event Player.DJ[1] += 50 * Event Player.DJ[0];
+			"升级/古夫"
+			If(Event Player.DJ[1] >= 50 * Event Player.DJ[0] && Event Player.DJ[0] < 15);
+				Start Rule(ShengJi, Do Nothing);
+			Else If(Event Player.DJ[1] >= 750 && Event Player.DJ[0] >= 15 && Event Player.YiXuanTianFu[1]);
+				Start Rule(ShengJi, Do Nothing);
+			End;
+			Wait(0.250, Ignore Condition);
+			"经验"
+			Event Player.DJ[1] += 50 * Event Player.DJ[0];
+			"升级/古夫"
+			If(Event Player.DJ[1] >= 50 * Event Player.DJ[0] && Event Player.DJ[0] < 15);
+				Start Rule(ShengJi, Do Nothing);
+			Else If(Event Player.DJ[1] >= 750 && Event Player.DJ[0] >= 15 && Event Player.YiXuanTianFu[1]);
+				Start Rule(ShengJi, Do Nothing);
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[93]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("宝箱"), Ability Icon String(Hero(Ramattra), Button(
+				Secondary Fire))), Null, Null, Right, 3, Color(Orange), Null, Null, Visible To, Default Visibility);
+			Event Player.BS += Random Integer(1, 5);
+			Event Player.M += Random Integer(500, 5000);
+			Event Player.TouZi += Random Integer(1, 3);
+			Event Player.LinShi2 = Random Integer(1, 7);
+			If(Event Player.LinShi2 == 1);
+				Event Player.BS += 5;
+			Else If(Event Player.LinShi2 == 2);
+				Event Player.TouZi += 3;
+			Else If(Event Player.LinShi2 == 3);
+				Event Player.M += 3000;
+			Else If(Event Player.LinShi2 == 4);
+				Event Player.FuZhiQi += 1;
+				Small Message(Event Player, Custom String("天赋复制器*1"));
+			Else If(Event Player.LinShi2 == 5);
+				Event Player.LieRen += 4;
+				Small Message(Event Player, Custom String("赏金猎人*4"));
+			Else If(Event Player.LinShi2 == 6);
+				Event Player.JND += 1;
+				Event Player.TeDingTianTu[0] += 1;
+				Small Message(Event Player, Custom String("水绿色天赋点*1"));
+			Else If(Event Player.LinShi2 == 7);
+				Event Player.MingYunMoFang += 1;
+				Small Message(Event Player, Custom String("命运魔方*1"));
+			End;
+		Else If(Event Player.LinShi == Global.TianFu[94]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("果篮"), Ability Icon String(Hero(Mercy), Button(Ultimate))),
+				Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.GJ[2] += 5 * 0.010;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.FQ[0] += 10;
+			Event Player.GJ[0] += 1;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.SM[0] += 10;
+			If(Event Player.YiXuanTianFu[2]);
+				Event Player.JC += 1;
+				Set Max Health(Event Player, Event Player.JC);
+				Event Player.DX[0] += 0.100;
+				Stop Scaling Player(Event Player);
+				Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			End;
+			Event Player.SM[1] += 0.400;
+			Event Player.XX[0] += Event Player.XX[0] * 0.100;
+			Event Player.CD += Event Player.CD * 0.200;
+			Event Player.YS[2] += 0.050;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+			Event Player.YiXuanTianFu[3] += 1;
+		Else If(Event Player.LinShi == Global.TianFu[95]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("生命之树"), Ability Icon String(Hero(Lifeweaver), Button(
+				Ultimate))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[95] += 1;
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+			Modify Player Variable(Event Player, ShangPing, Append To Array, Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		"));
+		Else If(Event Player.LinShi == Global.TianFu[96]);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Custom String("镜像增殖"), Ability Icon String(Hero(Sigma), Button(
+				Primary Fire))), Null, Null, Right, 3, Color(White), Null, Null, Visible To, Default Visibility);
+			Event Player.YiXuanTianFu[96] += 1;
+		End;
+	}
+}
+
+rule("购买高级商品的子程序")
+{
+	event
+	{
+		Subroutine;
+		GouMaiGaoJi;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Custom String(""), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		"镜像增殖"
+		If(Event Player.YiXuanTianFu[96]);
+			Event Player.LinShi2 = 0;
+			While(Event Player.LinShi2 < Event Player.YiXuanTianFu[96]);
+				Modify Player Variable(Event Player, ShangPing, Append To Array, Event Player.LinShi);
+				Event Player.LinShi2 += 1;
+			End;
+		End;
+		Event Player.LinShi2 = 0;
+		"子程序"
+		If(Event Player.LinShi == Global.ShangPing[0] && Event Player.BS >= 1);
+			Event Player.LinShi = 2;
+			Event Player.GJ[2] += 5 * 0.010;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.BS -= 1;
+		Else If(Event Player.LinShi == Global.ShangPing[1] && Event Player.BS >= 1);
+			Event Player.LinShi = 2;
+			Event Player.FQ[0] += 10;
+			Event Player.BS -= 1;
+		Else If(Event Player.LinShi == Global.ShangPing[2] && Event Player.BS >= 2);
+			Event Player.LinShi = 2;
+			Event Player.CD += 0.400;
+			Event Player.YS[0] += 20;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+			Event Player.BS -= 2;
+		Else If(Event Player.LinShi == Global.ShangPing[3] && Event Player.BS >= 2);
+			Event Player.GJ[0] += (Event Player.DX[0] + Event Player.DX[1] - 1) * Max Health(Event Player) * 0.005;
+			Event Player.LinShi = 2;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.BS -= 2;
+		Else If(Event Player.LinShi == Global.ShangPing[4] && Event Player.BS >= 1);
+			Event Player.LinShi = 2;
+			Event Player.BS -= 1;
+			Event Player.JC += 50;
+			Set Max Health(Event Player, Event Player.JC);
+		Else If(Event Player.LinShi == Global.ShangPing[5] && Event Player.BS >= 3);
+			Event Player.BS -= 3;
+			If(Event Player.YiXuanTianFu[67]);
+				If(Event Player.YiXuanTianFu[71]);
+					Event Player.LinShi2 = 12;
+				Else;
+					Event Player.LinShi2 = Random Integer(1, 12);
+				End;
+			Else;
+				If(Event Player.YiXuanTianFu[71]);
+					Event Player.LinShi2 = 6;
+				Else;
+					Event Player.LinShi2 = Random Integer(1, 6);
+				End;
+			End;
+			Event Player.JC += Event Player.LinShi2 * 50;
+			Set Max Health(Event Player, Event Player.JC);
+			Wait(0.500, Ignore Condition);
+			Small Message(Event Player, Custom String("{0}", Event Player.LinShi2));
+			Event Player.LinShi = 2;
+		Else If(Event Player.LinShi == Global.ShangPing[6] && Event Player.M >= 100);
+			Event Player.M -= 100;
+			Event Player.GJ[0] += 1;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.SM[0] += 10;
+			If(Event Player.YiXuanTianFu[2]);
+				Event Player.JC += 1;
+				Set Max Health(Event Player, Event Player.JC);
+				Event Player.DX[0] += 0.100;
+				Stop Scaling Player(Event Player);
+				Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			End;
+			Event Player.LinShi = 2;
+		Else If(Event Player.LinShi == Global.ShangPing[7] && Event Player.BS >= 5);
+			Event Player.BS -= 5;
+			Event Player.LinShi = 2;
+			Event Player.YS[0] += 50;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+		Else If(Event Player.LinShi == Global.ShangPing[8] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.GJ[0] += 30;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.YiXuanTianFu[80] += 1;
+			If(Event Player.YiXuanTianFu[80] % 1 && Event Player.YiXuanTianFu[80] > 3);
+				Event Player.LinShi2 = Random Integer(1, 2);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+				If(Event Player.LinShi2 == 1);
+					Start Forcing Player To Be Hero(Event Player, Hero(Genji));
+					Event Player.CD += 100;
+				Else If(Event Player.LinShi2 == 2);
+					Start Forcing Player To Be Hero(Event Player, Hero(Hanzo));
+					Event Player.GJ[0] += 500;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+				End;
+			End;
+		Else If(Event Player.LinShi == Global.ShangPing[9] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.SS *= 0.900;
+			Set Damage Received(Event Player, Event Player.SS);
+		Else If(Event Player.LinShi == Global.ShangPing[10] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.HD[0] += 150;
+			Event Player.HJ[0] += 150;
+		Else If(Event Player.LinShi == Global.ShangPing[11] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.XX[0] += 0.100;
+		Else If(Event Player.LinShi == Global.ShangPing[12] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.FQ[0] += 35;
+		Else If(Event Player.LinShi == Global.ShangPing[13] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.YS[0] += 20;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+		Else If(Event Player.LinShi == Global.ShangPing[14] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.TouZi += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[15] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.TouZi += 2;
+		Else If(Event Player.LinShi == Global.ShangPing[16] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.LieRen += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[17] && Event Player.M >= 1000);
+			Event Player.M -= 1000;
+			Event Player.LinShi = 2;
+			Event Player.LinShi2 = Random Integer(5, 15);
+			Event Player.GJ[0] += 1 * Event Player.LinShi2;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.SM[0] += 10 * Event Player.LinShi2;
+			If(Event Player.YiXuanTianFu[2]);
+				Event Player.JC += 1 * Event Player.LinShi2;
+				Set Max Health(Event Player, Event Player.JC);
+				Event Player.DX[0] += 0.100 * Event Player.LinShi2;
+				Stop Scaling Player(Event Player);
+				Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			End;
+		Else If(Event Player.LinShi == Global.ShangPing[18] && Event Player.BS >= 5);
+			Event Player.BS -= 5;
+			Event Player.LinShi = 2;
+			Event Player.FuZhiQi += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[19] && Event Player.BS >= 5);
+			Event Player.BS -= 5;
+			Event Player.LinShi = 2;
+			Event Player.JND += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[20] && Event Player.BS >= 4);
+			Event Player.BS -= 4;
+			If(Event Player.YiXuanTianFu[67]);
+				If(Event Player.YiXuanTianFu[71]);
+					Event Player.LinShi2 = 12;
+				Else;
+					Event Player.LinShi2 = Random Integer(1, 12);
+				End;
+			Else;
+				If(Event Player.YiXuanTianFu[71]);
+					Event Player.LinShi2 = 6;
+				Else;
+					Event Player.LinShi2 = Random Integer(1, 6);
+				End;
+			End;
+			Event Player.JC += Event Player.LinShi2 * 50;
+			Set Max Health(Event Player, Event Player.JC);
+			Wait(0.500, Ignore Condition);
+			Small Message(Event Player, Custom String("{0}", Event Player.LinShi2));
+			Event Player.LinShi = 2;
+		Else If(Event Player.LinShi == Global.ShangPing[21] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.SM[1] += 0.400;
+		Else If(Event Player.LinShi == Global.ShangPing[22] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.XX[0] += Event Player.XX[0] * 0.100;
+		Else If(Event Player.LinShi == Global.ShangPing[23] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.CD += Event Player.CD * 0.200;
+		Else If(Event Player.LinShi == Global.ShangPing[24] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.YS[2] += 0.050;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+		Else If(Event Player.LinShi == Global.ShangPing[25] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.TeDingTianTu[0] += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[26] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.TeDingTianTu[1] += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[27] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Event Player.ZL[2] += 0.050;
+			Set Healing Dealt(Event Player, (Event Player.ZL[0] + Event Player.ZL[1]) * (Event Player.ZL[2] + Event Player.ZL[3]));
+			If(Event Player.YiXuanTianFu[95]);
+				Event Player.SZ[2] += 0.050 * Event Player.YiXuanTianFu[95];
+				Set Healing Received(Event Player, (Event Player.SZ[0] + Event Player.SZ[1]) * (Event Player.SZ[2] + Event Player.SZ[3]));
+			End;
+		Else If(Event Player.LinShi == Global.ShangPing[28] && Event Player.M >= 200);
+			Event Player.M -= 200;
+			Event Player.LinShi = 2;
+			Event Player.YiCiXinShenMing[0] += 500;
+			Remove Health Pool From Player(Event Player.YiCiXinShenMing[1]);
+			Add Health Pool To Player(Event Player, Health, Event Player.YiCiXinShenMing[0], False, True);
+			Event Player.YiCiXinShenMing[1] = Last Created Health Pool;
+		Else If(Event Player.LinShi == Global.ShangPing[29] && Event Player.M >= 300);
+			Event Player.M -= 300;
+			Event Player.LinShi = 2;
+			Event Player.HJ[0] += 50;
+		Else If(Event Player.LinShi == Global.ShangPing[30] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+		Else If(Event Player.LinShi == Global.ShangPing[31] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.GJ[0] += Round To Integer(Player Stat(Event Player, Healing Dealt) / 5000, Down) * 20;
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.FQ[0] += Round To Integer(Player Stat(Event Player, Healing Dealt) / 5000, Down) * 20;
+			Event Player.YS[0] += Round To Integer(Player Stat(Event Player, Healing Dealt) / 5000, Down) * 20;
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+			Event Player.SM[1] += Round To Integer(Player Stat(Event Player, Healing Dealt) / 5000, Down) * 200;
+		Else If(Event Player.LinShi == Global.ShangPing[32] && Event Player.BS >= 2);
+			Event Player.BS -= 2;
+			Event Player.LinShi = 2;
+			Event Player.TouZi += 1;
+			Event Player.MingYunMoFang += 1;
+		Else If(Event Player.LinShi == Global.ShangPing[33] && Event Player.M >= 500);
+			Event Player.M -= 500;
+			Event Player.LinShi = 2;
+			Event Player.BS += Random Integer(0, 2);
+		Else If(Event Player.LinShi == Global.ShangPing[34] && Event Player.M >= 200);
+			Event Player.M -= 200;
+			Event Player.LinShi = 2;
+			Event Player.M += Random Integer(0, 500);
+		Else If(Event Player.LinShi == Global.ShangPing[35] && Event Player.BS >= 4);
+			Event Player.BS -= 4;
+			Event Player.LinShi = Random Value In Array(Global.TianFu);
+			Call Subroutine(XuanZeTianFu);
+			Event Player.LinShi = 2;
+		Else If(Event Player.LinShi == Global.ShangPing[36] && Event Player.BS >= 1);
+			Event Player.BS -= 1;
+			Event Player.LinShi = 2;
+			Set Player Allowed Heroes(Event Player, Remove From Array(All Heroes, Hero Of(Event Player)));
+		Else If(Event Player.LinShi == Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	") && Event Player.M >= 100);
+			Event Player.M -= 100;
+			Event Player.LinShi = 2;
+			Event Player.YiXuanTianFu[3] += 1;
+		Else If(Event Player.LinShi == Custom String("    |猪猪币-100货币|\n		获得10%基础生命值\n		") && Event Player.M >= 100);
+			Event Player.M -= 100;
+			Event Player.LinShi = 2;
+			Event Player.JC += 10;
+			Set Max Health(Event Player, Event Player.JC);
+		Else If(Event Player.LinShi == Custom String("              |龙锤-4宝石|\n		将你的英雄替换为锤形态托比\n		昂,并极大强化平a") && Event Player.BS >= 4);
+			Event Player.BS -= 4;
+			Event Player.LinShi = 2;
+			Start Forcing Player To Be Hero(Event Player, Hero(Torbjörn));
+			Set Ammo(Event Player, 0, 0);
+			Set Max Ammo(Event Player, 0, 0);
+			Set Ability 1 Enabled(Event Player, False);
+			Event Player.YiXuanTianFu[91] += 1;
+			Modify Player Variable(Event Player, ShangPing, Remove From Array By Value, Custom String(
+				"              |龙锤-4宝石|\n		将你的英雄替换为锤形态托比\n		昂,并极大强化平a"));
+		End;
+		"高级会员"
+		Skip If(Event Player.LinShi != 2, 3);
+		If(Event Player.YiXuanTianFu[5]);
+			Event Player.BS += Event Player.YiXuanTianFu[5];
+		End;
+	}
+}
+
+rule("天赋界面随机获取天赋子程序")
+{
+	event
+	{
+		Subroutine;
+		TianFuShuaXin;
+	}
+
+	actions
+	{
+		Event Player.TianFu = Global.TianFu;
+		If(Event Player.TeDingTianTu[0]);
+			Event Player.TianFu = Array(Global.TianFu[0], Global.TianFu[1], Global.TianFu[2], Global.TianFu[3], Global.TianFu[4],
+				Global.TianFu[5], Global.TianFu[6], Global.TianFu[56]);
+			Event Player.TeDingTianTu[0] -= 1;
+		Else If(Event Player.TeDingTianTu[1]);
+			Event Player.TianFu = Array(Global.TianFu[7], Global.TianFu[14], Global.TianFu[15], Global.TianFu[18], Global.TianFu[20],
+				Global.TianFu[21], Global.TianFu[23], Global.TianFu[24], Global.TianFu[35], Global.TianFu[49], Global.TianFu[55],
+				Global.TianFu[63], Global.TianFu[72], Global.TianFu[73], Global.TianFu[80]);
+			Event Player.TeDingTianTu[1] -= 1;
+		End;
+		Event Player.LinShi = Random Value In Array(Event Player.TianFu);
+		If(Event Player.YiXuanTianFu[56] != -1 && Event Player.YiXuanTianFu[56] != 0);
+			Event Player.LinShi = Event Player.YiXuanTianFu[56];
+		End;
+		Event Player.Backpack_button[17] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 3, 5.500), Vector(0, 6.350,
+			8), Vector(0, 2.200, 4));
+		Modify Player Variable(Event Player, TianFu, Remove From Array By Value, Event Player.LinShi);
+		Event Player.LinShi = Random Value In Array(Event Player.TianFu);
+		Event Player.Backpack_button[18] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 3, 1), Vector(0, 6.350,
+			3.550), Vector(0, 2.200, -0.500));
+		Modify Player Variable(Event Player, TianFu, Remove From Array By Value, Event Player.LinShi);
+		Event Player.LinShi = Random Value In Array(Event Player.TianFu);
+		Event Player.Backpack_button[19] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 3, -3.500), Vector(0, 6.350,
+			-1), Vector(0, 2.200, -5));
+		Modify Player Variable(Event Player, TianFu, Remove From Array By Value, Event Player.LinShi);
+	}
+}
+
+rule("这里存放所有天赋")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.TianFu[0] = Custom String("\n	\n		\n\n	|成长，生命，幸福，还有朋友|\n          解除你的等级上限\n\n\n\n");
+		Global.TianFu[1] = Custom String("\n	\n		\n\n	        |宝石批发|\n随机获得1-15枚宝石\n\n\n\n");
+		Global.TianFu[2] = Custom String("\n	\n		\n\n	            |猿神启动|\n将你的英雄替换为温斯顿并\n获得大量属性，并且食用香\n蕉可以获得额外的属性增益\n\n");
+		Global.TianFu[3] = Custom String("\n	\n		\n\n	                 |冰香蕉|\n你的高级商店现在会出现冰香蕉\n\n\n\n");
+		Global.TianFu[4] = Custom String("\n	\n		\n\n	            |升级咯|\n每当你升级时，多升一级\n\n\n\n");
+		Global.TianFu[5] = Custom String("\n	\n		\n\n	           |高级会员|\n购买高级商品后返还1宝石\n\n\n\n");
+		Global.TianFu[6] = Custom String("\n	\n		\n\n	 |无中生有|\n获得2个天赋\n\n\n\n");
+		Global.TianFu[7] = Custom String("\n	\n		\n\n	  |龙神之刃|\n获得65攻击力\n\n\n\n");
+		Global.TianFu[8] = Custom String("\n	\n		\n\n	  |防御矩阵|\n获得30%免伤\n\n\n\n");
+		Global.TianFu[9] = Custom String("\n	\n		\n\n	          |屏障与巨甲|\n获得400点护盾，400点护甲\n\n\n\n");
+		Global.TianFu[10] = Custom String("\n	\n		\n\n	   |地狱火|\n获得30%吸血\n\n\n\n");
+		Global.TianFu[11] = Custom String("\n	\n		\n\n	         |能量标枪|\n获得75点技能额外伤害\n\n\n\n");
+		Global.TianFu[12] = Custom String("\n	\n		\n\n	|忍者足具|\n可以二段跳\n\n\n\n");
+		Global.TianFu[13] = Custom String("\n	\n		\n\n	       |兔子跳|\n跳跃回复30点血量\n\n\n\n");
+		Global.TianFu[14] = Custom String("\n	\n		\n\n	              |一拳|\n近战可以触发技能伤害\n\n\n\n");
+		Global.TianFu[15] = Custom String("\n	\n		\n\n	           |火箭重锤|\n近战攻击可以发出一焰浪并\n且会击晕敌人\n\n\n");
+		Global.TianFu[16] = Custom String("\n	\n		\n\n	                 |灭|\n攻击附带0.5%的最大生命值\n百分比伤害，并斩杀生命值\n低于5%的敌人\n\n");
+		Global.TianFu[17] = Custom String("\n	\n		\n\n	            |圣|\n使用终极技能时无敌\n\n\n\n");
+		Global.TianFu[18] = Custom String("\n	\n		\n\n	            |熔火核心|\n持续对周围敌人造成你5%最\n大生命值的伤害\n\n\n");
+		Global.TianFu[19] = Custom String("\n	\n		\n\n	              |太阳光塔|\n参与击杀获得20终极技能能量\n\n\n\n");
+		Global.TianFu[20] = Custom String("\n	\n		\n\n	              |猪神|\n获得巨量属性，受到伤害会\n不断增大体型，直到死亡恢\n复原来的体型，濒死时恢复\n生命值，每条命一次\n");
+		Global.TianFu[21] = Custom String("\n	\n		\n\n	          |神射手|\n任务：持有10000货币\n奖励：攻击可以穿墙并\n且一定范围跟踪\n\n");
+		Global.TianFu[22] = Custom String("\n	\n		\n\n	            |强固防御|\n将你的额外生命值和护盾全\n部升级为护甲\n\n\n");
+		Global.TianFu[23] = Custom String("\n	\n		\n\n	           |龙魂|\n参与击杀刷新小技能cd\n\n\n\n");
+		Global.TianFu[24] = Custom String("\n	\n		\n\n	|战术目镜|\n简易版自瞄\n\n\n\n");
+		Global.TianFu[25] = Custom String("\n	\n		\n\n	            |临别礼物|\n死亡后自爆，对周围敌人造\n成高额伤害\n\n\n");
+		Global.TianFu[26] = Custom String("\n	\n		\n\n	             |百合之吻|\n暴击击杀永久获得5点攻击力\n\n\n\n");
+		Global.TianFu[27] = Custom String("\n	\n		\n\n	              |两颗心脏|\n生命值降至50%时获得一个基于\n消灭数的临时护甲\n   (消灭数*80点，30秒冷却)\n\n");
+		Global.TianFu[28] = Custom String(
+			"\n	\n		\n\n	                    |重踏|\n按下跳跃向下猛踏大地，对周围敌\n人造成(0.1*最大生命值)的伤害，\n(0.002*最大生命值)的控制时间\n  (控制时间最多5秒，冷却30秒)\n");
+		Global.TianFu[29] = Custom String("\n	\n		\n\n	               |猛击|\n击退敌人时造成基于你击退\n倍率的百分比伤害\n  （每100击退倍率5%）\n \n");
+		Global.TianFu[30] = Custom String("\n	\n		\n\n	             |流水禅杖|\n造成击退时，治疗周围右方\n角色，治疗量基于击退倍率\n(每100点击退倍率造成50点\n治疗量)\n");
+		Global.TianFu[31] = Custom String("\n	\n		\n\n	              |无情连打|\n造成击退效果后获得1点永久\n攻击力，1点临时攻击力，临\n时攻击力持续至死亡\n\n");
+		Global.TianFu[32] = Custom String(
+			"\n	\n		\n\n	              |狂战士|\n攻击提供一层狂战士层数,每\n层狂战士提供(0.001*最大生\n命值)的百分比攻击力和(0.0\n01*最大生命值)的临时吸血,\n最多50层，持续5秒");
+		Global.TianFu[33] = Custom String("\n	\n		\n\n	           |枯萎凋零|\n造成伤害使目标衰老，减少\n其50%受治疗量和30点移动\n速度\n\n");
+		Global.TianFu[34] = Custom String("\n	\n		\n\n	          |冰冻冲击枪|\n攻击减少目标30%的移动速\n速，持续攻击一个目标可以\n冻住目标\n\n");
+		Global.TianFu[35] = Custom String("\n	\n		\n\n	             |无限火力|\n无限弹药，按下换弹可以重置\n该效果\n  (毛家花男无法使用该天赋)\n\n");
+		Global.TianFu[36] = Custom String("\n	\n		\n\n	     |德国工艺|\n获得40%额外生命\n获得40%额外护盾\n获得40%额外护甲\n\n");
+		Global.TianFu[37] = Custom String("\n	\n		\n\n	            |赏金狩猎|\n获得3层赏金猎人，如果你有\n赏金猎人层数，则将你的赏\n金猎人层数*3\n\n");
+		Global.TianFu[38] = Custom String("\n	\n		\n\n	        |音波|\n将你的击退倍率*5\n\n\n\n");
+		Global.TianFu[39] = Custom String("\n	\n		\n\n	            |撼地猛刺|\n 站住不动时周期性反弹受到\n 的伤害,该技能不受攻击力\n 加成\n(反弹100%伤害，每3秒一次)\n");
+		Global.TianFu[40] = Custom String("\n	\n		\n\n	           |超能之球|\n任务：达到15级\n奖励：攻击会附带爆破效果\n\n\n");
+		Global.TianFu[41] = Custom String("\n	\n		\n\n	         |巨人英雄|\n体型增大并获得20%免伤\n\n\n\n");
+		Global.TianFu[42] = Custom String("\n	\n		\n\n	  |小小英雄|\n体型略微减小\n\n\n\n");
+		Global.TianFu[43] = Custom String("\n	\n		\n\n	         |迷你英雄|\n体型减小但增加受到伤害\n\n\n\n");
+		Global.TianFu[44] = Custom String("\n	\n		\n\n	        |不动如山|\n不会被击退，获得200%\n额外生命值\n\n\n");
+		Global.TianFu[45] = Custom String("\n	\n		\n\n	               |诛|\n使用大招后引发诛灭之灾，\n消灭所有生命值小于30%\n的角色，包括友方\n\n");
+		Global.TianFu[46] = Custom String("\n	\n		\n\n	               |激素|\n使用大招时获得激素，持续 \n至大招结束\n\n\n");
+		Global.TianFu[47] = Custom String("\n	\n		\n\n	           |风|\n暴击可以暴上加暴\n\n\n\n");
+		Global.TianFu[48] = Custom String("\n	\n		\n\n	                  |岚|\n弹道不会下落，获得200弹道\n速度\n\n\n");
+		Global.TianFu[49] = Custom String("\n	\n		\n\n	              |灵符|\n每当你造成治疗时获得1%\n能量\n\n\n");
+		Global.TianFu[50] = Custom String("\n	\n		\n\n	             |呼吸器|\n每当你治疗时，获得15%治\n疗数额的生命值\n\n\n");
+		Global.TianFu[51] = Custom String("\n	\n		\n\n	            |愈合冲击|\n治疗会对周围敌人造成100%\n治疗数额的伤害\n\n\n");
+		Global.TianFu[52] = Custom String("\n	\n		\n\n	          |灵狐|\n获得100点技能极速\n\n\n\n");
+		Global.TianFu[53] = Custom String("\n	\n		\n\n	         |桎梏灼日|\n使用大招后返还50%终极\n技能能量\n\n\n");
+		Global.TianFu[54] = Custom String("\n	\n		\n\n	              |毒蛇|\n击杀敌人夺取其货币，夺取\n值为你的赏金猎人层数*20\n\n\n");
+		Global.TianFu[55] = Custom String("\n	\n		\n\n	         |死亡绽放|\n参与击杀回复500点血量\n\n\n\n");
+		Global.TianFu[56] = Custom String("\n	\n		\n\n	               |再来|\n你的下一个天赋将会永久留\n在第一个天赋位\n\n\n");
+		Global.TianFu[57] = Custom String("\n	\n		\n\n	            |美丽冻人|\n按下终极技能，消耗20点能量\n冻结自己并无敌5秒，在此期\n再次按下终极技能，额外消耗\n30点能量使身体能够活动\n");
+		Global.TianFu[58] = Custom String("\n	\n		\n\n	           |地壳震击|\n按下终极技能，消耗30点终\n极技能能量，击飞并眩晕周\n围的敌人\n\n");
+		Global.TianFu[59] = Custom String("\n	\n		\n\n	          |细胞能量|\n按下终极技能消耗1%生命\n值换取1%终极技能能量\n\n\n");
+		Global.TianFu[60] = Custom String("\n	\n		\n\n	           |归于大地|\n按下终极技能使用，消耗10\n点能量击落距离准星最近的\n角色，并减少其30点移动速\n度，持续3秒\n");
+		Global.TianFu[61] = Custom String("\n	\n		\n\n	               |锻造|\n按下终极技能使用，消耗25\n点能量并获取50点护甲\n\n\n");
+		Global.TianFu[62] = Custom String("\n	\n		\n\n	                |跃|\n按下终极技能使用，消耗15\n能量水平跃出一段距离\n\n\n");
+		Global.TianFu[63] = Custom String("\n	\n		\n\n	             |律动连打|\n主要攻击会减少你小技能的cd\n\n\n\n");
+		Global.TianFu[64] = Custom String("\n	\n		\n\n	              |骨刺|\n获得基于你护甲值的斩杀效\n果，每1000点护甲5%\n\n\n");
+		Global.TianFu[65] = Custom String("\n	\n		\n\n	    |刷新骰盒|\n获得9个刷新骰子\n\n\n\n");
+		Global.TianFu[66] = Custom String("\n	\n		\n\n	            |引力装置|\n按下终极技能使用，消耗40\n点能量，使周围所有角色的\n引力降低90点，持续10秒\n\n       ");
+		Global.TianFu[67] = Custom String("\n	\n		\n\n	             |12面骰|\n现在你的猪猪骰子有12种点\n数字，在你的商店随机池中\n添加三枚猪猪骰子\n\n       ");
+		Global.TianFu[68] = Custom String("\n	\n		\n\n	           |猪猪存钱罐|\n每当你受到大于100点的伤害\n时，存下一枚猪猪币，这个效\n果持续至你参与击杀为止\n\n       ");
+		Global.TianFu[69] = Custom String("\n	\n		\n\n	             |金猪商店|\n将你的高级商店替换为金猪商\n店，金猪商店中只会刷出特殊\n的猪猪币\n\n       ");
+		Global.TianFu[70] = Custom String("\n	\n		\n\n	      |5a连招|\n禁用你所有的技能\n 你的攻击力翻倍\n\n\n       ");
+		Global.TianFu[71] = Custom String("\n	\n		\n\n	            |灌铅骰子|\n你的猪猪骰子永远是最大值\n，在你的商店随机池中添加\n三枚猪猪骰子\n\n       ");
+		Global.TianFu[72] = Custom String("\n	\n		\n\n	            |英雄集结|\n按下集合将所有队友召唤至\n身边(120秒冷却)\n\n\n       ");
+		Global.TianFu[73] = Custom String("\n	\n		\n\n	            |缚能电弧|\n按下受到使用，接下来12秒\n内造成伤害将击晕目标，60\n秒冷却\n\n       ");
+		Global.TianFu[74] = Custom String("\n	\n		\n\n	          |超电磁炮|\n主要攻击提供点临时百分\n比技能伤害，持续至下\n次触发技能伤害为止\n(最多提供50%技能额外\n伤害）");
+		Global.TianFu[75] = Custom String("\n	\n		\n\n	            |女武神|\n按下跳跃飞向并治疗自身，\n治疗你20%的最大生命值\n15秒冷却\n\n       ");
+		Global.TianFu[76] = Custom String("\n	\n		\n\n	            |轨道镭射|\n造成伤害引导一道激光对目\n标在5秒内持续造成300点\n伤害，60秒冷却\n\n       ");
+		Global.TianFu[77] = Custom String("\n	\n		\n\n	           |动能俘获|\n主要攻击将目标吸向自己一\n断距离，10秒冷却\n\n\n       ");
+		Global.TianFu[78] = Custom String("\n	\n		\n\n	            |破甲熔钉|\n攻击会点燃目标，再次攻击\n目标可以破除目标30%的护\n甲值\n\n       ");
+		Global.TianFu[79] = Custom String("\n	\n		\n\n	            |生命之握|\n每当你治疗一名生命值低于\n30%的友方角色时，获得等\n同于其30%治疗量的临时治\n疗量,持续4秒\n       ");
+		Global.TianFu[80] = Custom String("\n	\n		\n\n	              |双龙|\n任务:同时拥有忍者足具，龙\n神之刃，双龙，风，岚中的\n任意3个，可重复\n奖励:将你的英雄替换为强化\n过的源氏或半藏");
+		Global.TianFu[81] = Custom String("\n	\n		\n\n	    |人见人厌|\n初始赏金减少400\n\n\n\n");
+		Global.TianFu[82] = Custom String("\n	\n		\n\n	            |三原色：红|\n你的技能1受到双倍的技能极速\n\n\n\n");
+		Global.TianFu[83] = Custom String("\n	\n		\n\n	            |三原色：蓝|\n你的技能2受到双倍的技能极速\n\n\n\n");
+		Global.TianFu[84] = Custom String("\n	\n		\n\n	            |三原色：绿|\n你的辅助攻击模式受到双倍的\n技能极速\n\n\n");
+		Global.TianFu[85] = Custom String(" \n	\n		\n\n	               |绿闪|\n触发技能额外伤害时对自身\n施加同等数额的治疗效果\n\n\n");
+		Global.TianFu[86] = Custom String("\n	\n		\n\n	              |红闪|\n触发技能额外伤害时附带受\n益于百分比技能伤害的百分\n比伤害\n	\n		");
+		Global.TianFu[87] = Custom String("\n	\n		\n\n	               |青闪|\n触发技能额外伤害时附带短\n暂的眩晕效果\n\n\r\n	");
+		Global.TianFu[88] = Custom String(
+			"\n	\n		\n\n	              |黑闪|\n禁用你的主要攻击模式并暂\n	件时移除你的技能额外伤害\n	任务:造成1万点伤害\n		奖励:重新获得技能额外伤害\n		并且该伤害会收益于攻击力");
+		Global.TianFu[89] = Custom String("\n	\n		\n\n	               |灭绝|\n获得30%攻击力和30%技能\n\r伤害“或许还有其他方法可\n	以获得这个天赋”\n	\n		");
+		Global.TianFu[90] = Custom String("\n	\n		\n\n	       |红外侦测|\n显示所有玩家的位置\r\n	\n	\n		\n");
+		Global.TianFu[91] = Custom String("\n	\n		\n\n	             |龙锤|\n将一把龙锤洗入你的商店\n	\n\n\n		");
+		Global.TianFu[92] = Custom String("\n	\n		\n\n	           |变态发育|\n立刻提升4级,变为随机英雄\n	\n		\n\n");
+		Global.TianFu[93] = Custom String("\n	\n		\n\n	       |宝箱|\n获得随机的奖励\n\n		\n\n");
+		Global.TianFu[94] = Custom String("\n	\n		\n\n	         |果篮|\n获得每种水果各一个\n\n		\n\n");
+		Global.TianFu[95] = Custom String("\n	\n		\n\n	           |生命之树|\n你的疗愈灵花会附带等量的\n受治疗量，在你的商店随机\n池中添加10朵疗愈灵花\n\n");
+		Global.TianFu[96] = Custom String("\n	\n		\n\n	           |镜像增值|\n在你购买高级商品后，向商\n店池中添加一个相同的商品\n\n\n");
+	}
+}
+
+rule("高级商店随机获取物品子程序")
+{
+	event
+	{
+		Subroutine;
+		ShangPingShuaXin;
+	}
+
+	actions
+	{
+		If(Event Player.MingYunMoFang >= 1);
+			Event Player.MingYunMoFang -= 1;
+			Event Player.LinShi = Random Integer(1, 6);
+			If(Event Player.LinShi == 1);
+				Event Player.Backpack_button[11] = Array(Custom String("|盗版龙神之刃-2宝石|\n		   获得30点攻击力\n		"), Color(White), Color(Yellow), Vector(0,
+					2.900, 4.800), Vector(0, 3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Custom String("|盗版防御矩阵-2宝石|\n		     获得10%免伤\n		"), Color(White), Color(Yellow), Vector(0,
+					2.900, -1), Vector(0, 3.750, 1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Custom String("|盗版屏障与巨甲-2宝石|\n		  获得150护盾150护甲\n		"), Color(White), Color(Yellow), Vector(
+					0, 1.500, 4.800), Vector(0, 2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Custom String("|盗版地狱火-2宝石|\n		    获得10%吸血\n		"), Color(White), Color(Yellow), Vector(0,
+					1.500, -1), Vector(0, 2.350, 1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Custom String("|盗版能量标枪-2宝石|\n		 获得35点技能额外伤害\n		"), Color(White), Color(Yellow), Vector(0,
+					0.120, 4.800), Vector(0, 0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Custom String("|盗版足力健-2宝石|\n		  获得20移动速度\n		"), Color(White), Color(Yellow), Vector(0,
+					0.120, -1), Vector(0, 0.950, 1.800), Vector(0, -0.150, -3.800));
+			Else If(Event Player.LinShi == 2);
+				Event Player.Backpack_button[11] = Array(Custom String("    |天赋复制器-5宝石|\n		你的下一个天赋将被复制\n		"), Color(White), Color(Yellow), Vector(
+					0, 2.900, 4.800), Vector(0, 3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Custom String("    |天赋复制器-5宝石|\n		你的下一个天赋将被复制\n		"), Color(White), Color(Yellow), Vector(
+					0, 2.900, -1), Vector(0, 3.750, 1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Custom String("    |天赋复制器-5宝石|\n		你的下一个天赋将被复制\n		"), Color(White), Color(Yellow), Vector(
+					0, 1.500, 4.800), Vector(0, 2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Global.ShangPing[14], Color(White), Color(Yellow), Vector(0, 1.500, -1), Vector(0, 2.350,
+					1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Global.ShangPing[15], Color(White), Color(Yellow), Vector(0, 0.120, 4.800), Vector(0,
+					0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Custom String("  |天赋点-5宝石|\n		 获得一个天赋点\n		"), Color(White), Color(Yellow), Vector(0,
+					0.120, -1), Vector(0, 0.950, 1.800), Vector(0, -0.150, -3.800));
+			Else If(Event Player.LinShi == 3);
+				Event Player.Backpack_button[11] = Array(Custom String("      |力量石榴-1宝石|\n		获得5点百分比攻击力加成\n		"), Color(White), Color(Yellow),
+					Vector(0, 2.900, 4.800), Vector(0, 3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Custom String("           |威能蓝莓-1宝石|\n		获得10点技能额外伤害加成\n		"), Color(White), Color(Yellow),
+					Vector(0, 2.900, -1), Vector(0, 3.750, 1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Custom String("  |方糖苹果-1宝石|\n		获得40%额外生命值\n		"), Color(White), Color(Yellow), Vector(0,
+					1.500, 4.800), Vector(0, 2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Custom String("       |酒酿葡萄-1宝石|\n		获得你吸血值10%的吸血值\n		"), Color(White), Color(Yellow),
+					Vector(0, 1.500, -1), Vector(0, 2.350, 1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Custom String("  |往复柠檬-1宝石|\n		获得20%的技能极速\n		"), Color(White), Color(Yellow), Vector(0,
+					0.120, 4.800), Vector(0, 0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Custom String("    |流星杨桃-1宝石|\n	获得5点百分比移动速度\n		"), Color(White), Color(Yellow), Vector(0,
+					0.120, -1), Vector(0, 0.950, 1.800), Vector(0, -0.150, -3.800));
+			Else If(Event Player.LinShi == 4);
+				Event Player.Backpack_button[11] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 2.900, 4.800), Vector(0, 3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 2.900, -1), Vector(0, 3.750, 1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 1.500, 4.800), Vector(0, 2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 1.500, -1), Vector(0, 2.350, 1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 0.120, 4.800), Vector(0, 0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Custom String("              |冰香蕉-100货币|\n		可以冻结时间的香蕉，按下感谢使用\n	"), Color(White), Color(
+					Yellow), Vector(0, 0.120, -1), Vector(0, 0.950, 1.800), Vector(0, -0.150, -3.800));
+			Else If(Event Player.LinShi == 5);
+				Event Player.Backpack_button[11] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 2.900, 4.800), Vector(0,
+					3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 2.900, -1), Vector(0, 3.750,
+					1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 1.500, 4.800), Vector(0,
+					2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 1.500, -1), Vector(0, 2.350,
+					1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 0.120, 4.800), Vector(0,
+					0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Global.ShangPing[33], Color(White), Color(Yellow), Vector(0, 0.120, -1), Vector(0, 0.950,
+					1.800), Vector(0, -0.150, -3.800));
+			Else If(Event Player.LinShi == 6);
+				Event Player.Backpack_button[11] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 2.900, 4.800), Vector(0,
+					3.750, 7.650), Vector(0, 2.600, 2));
+				Event Player.Backpack_button[12] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 2.900, -1), Vector(0, 3.750,
+					1.800), Vector(0, 2.600, -3.800));
+				Event Player.Backpack_button[13] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 1.500, 4.800), Vector(0,
+					2.350, 7.650), Vector(0, 1.200, 2));
+				Event Player.Backpack_button[14] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 1.500, -1), Vector(0, 2.350,
+					1.800), Vector(0, 1.200, -3.800));
+				Event Player.Backpack_button[15] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 0.120, 4.800), Vector(0,
+					0.950, 7.650), Vector(0, -0.150, 2));
+				Event Player.Backpack_button[16] = Array(Global.ShangPing[35], Color(White), Color(Yellow), Vector(0, 0.120, -1), Vector(0, 0.950,
+					1.800), Vector(0, -0.150, -3.800));
+			End;
+		Else;
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[11] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 2.900, 4.800), Vector(0,
+				3.750, 7.650), Vector(0, 2.600, 2));
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[12] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 2.900, -1), Vector(0, 3.750,
+				1.800), Vector(0, 2.600, -3.800));
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[13] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 1.500, 4.800), Vector(0,
+				2.350, 7.650), Vector(0, 1.200, 2));
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[14] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 1.500, -1), Vector(0, 2.350,
+				1.800), Vector(0, 1.200, -3.800));
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[15] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 0.120, 4.800), Vector(0,
+				0.950, 7.650), Vector(0, -0.150, 2));
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[16] = Array(Event Player.LinShi, Color(White), Color(Yellow), Vector(0, 0.120, -1), Vector(0, 0.950,
+				1.800), Vector(0, -0.150, -3.800));
+			Event Player.LinShi = 0;
+		End;
+	}
+}
+
+rule("这里存放高级商品物品变量")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.ShangPing[0] = Custom String("      |力量石榴-1宝石|\n		获得5点百分比攻击力加成\n		");
+		Global.ShangPing[1] = Custom String("           |威能蓝莓-1宝石|\n		获得10点技能额外伤害加成\n		");
+		Global.ShangPing[2] = Custom String("        |充电特饮-2宝石|\n		获得20技能极速20移动速度\n		");
+		Global.ShangPing[3] = Custom String("        |巨人威化-2宝石|\n		根据体型和生命值提供攻击力\n（额外体型*最大生命值*0.005）");
+		Global.ShangPing[4] = Custom String("    |猪猪币-1宝石|\n		获得50%基础生命值\n		");
+		Global.ShangPing[5] = Custom String("              |猪猪骰子-3宝石|\n		扔一个猪猪骰子，根据点数获得猪猪币\n		");
+		Global.ShangPing[6] = Custom String("   |香蕉-100货币|\n		1攻击力，10生命值\n		");
+		Global.ShangPing[7] = Custom String(" |足力健-5宝石|\n		获得50移动速度\n		");
+		Global.ShangPing[8] = Custom String("|盗版龙神之刃-2宝石|\n		   获得30点攻击力\n		");
+		Global.ShangPing[9] = Custom String("|盗版防御矩阵-2宝石|\n		     获得10%免伤\n		");
+		Global.ShangPing[10] = Custom String("|盗版屏障与巨甲-2宝石|\n		  获得150护盾150护甲\n		");
+		Global.ShangPing[11] = Custom String("|盗版地狱火-2宝石|\n		    获得10%吸血\n		");
+		Global.ShangPing[12] = Custom String("|盗版能量标枪-2宝石|\n		 获得35点技能额外伤害\n		");
+		Global.ShangPing[13] = Custom String("|盗版足力健-2宝石|\n		  获得20移动速度\n		");
+		Global.ShangPing[14] = Custom String("|小袋骰子-1宝石|\n		  两个刷新骰子\n		");
+		Global.ShangPing[15] = Custom String("|大袋骰子-2宝石|\n		  五个刷新骰子\n		");
+		Global.ShangPing[16] = Custom String("        |赏金猎人-1宝石|\n		获得一层赏金猎人，参与击杀\n		提供200点额外货币");
+		Global.ShangPing[17] = Custom String("|一把香蕉-1000货币|\n		随机获得5-15根香蕉\n		");
+		Global.ShangPing[18] = Custom String("    |天赋复制器-5宝石|\n		你的下一个天赋将被复制\n		");
+		Global.ShangPing[19] = Custom String("  |天赋点-5宝石|\n		 获得一个天赋点\n		");
+		Global.ShangPing[20] = Custom String("      |猪猪福袋-4宝石|\n		获得5枚猪猪币,1枚猪猪骰子\n		");
+		Global.ShangPing[21] = Custom String("  |方糖苹果-1宝石|\n		获得40%额外生命值\n		");
+		Global.ShangPing[22] = Custom String("       |酒酿葡萄-1宝石|\n		获得你吸血值10%的吸血值\n		");
+		Global.ShangPing[23] = Custom String("  |往复柠檬-1宝石|\n		获得20%的技能极速\n		");
+		Global.ShangPing[24] = Custom String("    |流星杨桃-1宝石|\n	获得5点百分比移动速度\n		");
+		Global.ShangPing[25] = Custom String("       |水绿宝石-1宝石|\n	下次天赋选择只会出现水绿\n		色天赋");
+		Global.ShangPing[26] = Custom String("       |传说金币-1宝石|\n	下次天赋选择只会出现橙色\n		天赋");
+		Global.ShangPing[27] = Custom String(" |疗愈灵花-500货币|\n	获得5%百分比治疗量\n		");
+		Global.ShangPing[28] = Custom String("|实验护盾-200货币|\n	500点一次性生命值\n		");
+		Global.ShangPing[29] = Custom String("|护甲包-300货币|\n	     50点护甲\n		");
+		Global.ShangPing[30] = Custom String(" |绝招加速器-1宝石|\n	 获得一次终极技能\n		");
+		Global.ShangPing[31] = Custom String("       |治疗新星-2宝石|\n	根据你本局的治疗量获得各种\n		属性值");
+		Global.ShangPing[32] = Custom String("|命运魔方-2宝石|\n	获得一次特殊的刷新\n		");
+		Global.ShangPing[33] = Custom String("|小袋宝石-500货币|\n	 随机获得0-2枚宝石\n		");
+		Global.ShangPing[34] = Custom String("     |小袋钱币-200宝石|\n	随机获得0-500货币\n		");
+		Global.ShangPing[35] = Custom String("  |随机天赋-4宝石|\n	获得一个随机的天赋\n		");
+		Global.ShangPing[36] = Custom String("         |英雄币-1宝石|\n获得一次重新选择英雄的机会\n		");
+	}
+}
+
+disabled rule("基本信息HUD")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Host Player, Custom String("{0}", Position Of(Host Player)), Null, Null, Left, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Host Player, Custom String("{0}", Server Load), Null, Null, Top, 1, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Host Player, Custom String("鼠标位置：{0}", Update Every Frame(Vector(0, 4 + -1 * Local Player.Backpack_sensitivity * (
+			Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]), Local Player.Backpack_sensitivity * (
+			Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0])))), Null, Null, Right, 0, Color(White), Color(
+			White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("开启背包子程序(必须要的)")
+{
+	event
+	{
+		Subroutine;
+		OpenBackpack;
+	}
+
+	actions
+	{
+		Event Player.Backpack_orientation[0] = Horizontal Facing Angle Of(Event Player);
+		Event Player.Backpack_orientation[1] = Vertical Facing Angle Of(Event Player);
+		disabled Create Dummy Bot(Hero Of(Event Player), Team Of(Event Player), 11, Global.Backpack_spot + Vector(0, 5, 6.500), Vector(1, 0, 0));
+		disabled Start Forcing Player Position(Players In Slot(11, Team Of(Event Player)), Vector(0, 5, 6.500) + Global.Backpack_spot, True);
+		disabled Start Forcing Dummy Bot Name(Players In Slot(11, Team Of(Event Player)), Custom String("{0}", Event Player));
+		Disable Hero HUD(Event Player);
+		Disable Game Mode HUD(Event Player);
+		Disable Text Chat(Event Player);
+		Set Status(Event Player, Null, Rooted, 9999);
+		Set Primary Fire Enabled(Event Player, False);
+		Set Secondary Fire Enabled(Event Player, False);
+		Set Melee Enabled(Event Player, False);
+		Disable Movement Collision With Players(Event Player);
+		Start Camera(Event Player, Vector(6.750, 4, 0) + Global.Backpack_spot, Vector(0, 4, 0) + Global.Backpack_spot, 0);
+		Event Player.Backpack_open[1] = 0;
+		If(Event Player.JND >= 1);
+			Event Player.Backpack_open[0] = 2;
+			Wait Until(Event Player.Backpack_open[1] == 1, 99999);
+			Event Player.Backpack_open[0] = 1;
+			Event Player.JND -= 1;
+		Else If(Event Player.JND < 1);
+			Event Player.Backpack_open[0] = 1;
+		End;
+		Wait Until(Is Communicating Any Spray(Event Player) == False, 99999);
+		Wait Until(Is Communicating Any Spray(Event Player) == True, 99999);
+		disabled Destroy Dummy Bot(Team Of(Event Player), 11);
+		Event Player.Backpack_open[0] = 0;
+		Stop Camera(Event Player);
+		Clear Status(Event Player, Rooted);
+		Set Primary Fire Enabled(Event Player, !Event Player.YiXuanTianFu[88]);
+		Set Secondary Fire Enabled(Event Player, True);
+		Set Melee Enabled(Event Player, True);
+		Enable Movement Collision With Players(Event Player);
+		Enable Hero HUD(Event Player);
+		Enable Game Mode HUD(Event Player);
+		Enable Text Chat(Event Player);
+		Skip If(Event Player.HD[3] || !Event Player.HD[0], 2);
+		Add Health Pool To Player(Event Player, Shields, Event Player.HD[0] * (Event Player.HD[1] + Event Player.HD[2]), True, True);
+		Event Player.HD[3] = Last Created Health Pool;
+		Skip If(Event Player.HJ[3] || !Event Player.HJ[0], 2);
+		Add Health Pool To Player(Event Player, Armor, Event Player.HJ[0] * (Event Player.HJ[1] + Event Player.HJ[2]), True, True);
+		Event Player.HJ[3] = Last Created Health Pool;
+		Skip If(Event Player.SM[3] || !Event Player.SM[0], 2);
+		Add Health Pool To Player(Event Player, Health, Event Player.SM[0] * (Event Player.SM[1] + Event Player.SM[2]), True, True);
+		Event Player.SM[3] = Last Created Health Pool;
+	}
+}
+
+rule("这里是存放页面的")
+{
+	event
+	{
+		Subroutine;
+		Page1;
+	}
+
+	actions
+	{
+		Event Player.Backpack_page = Array(Event Player.Backpack_button[0], Event Player.Backpack_button[1],
+			Event Player.Backpack_button[2], Event Player.Backpack_button[3], Event Player.Backpack_button[4],
+			Event Player.Backpack_button[5], Event Player.Backpack_button[6], Event Player.Backpack_button[7],
+			Event Player.Backpack_button[8], Event Player.Backpack_button[9], Event Player.Backpack_button[10],
+			Event Player.Backpack_button[11], Event Player.Backpack_button[12], Event Player.Backpack_button[13],
+			Event Player.Backpack_button[14], Event Player.Backpack_button[15], Event Player.Backpack_button[16],
+			Event Player.Backpack_button[17], Event Player.Backpack_button[18], Event Player.Backpack_button[19],
+			Event Player.Backpack_button[20]);
+	}
+}
+
+rule("这里便是界面的UI面板")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.Backpack_spot = Vector(0, 5, 0);
+		Global.Backpack_i[1] = 17;
+		Global.Backpack_i[2] = 3;
+		Global.Backpack_i[3] = 1;
+		Create In-World Text(Filtered Array(All Players(All Teams), Local Player.Backpack_open[0] >= 1), Custom String("{0}",
+			Input Binding String(Button(Interact))), Update Every Frame(Vector(0, 4 + -1 * Local Player.Backpack_sensitivity * (
+			Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]), Local Player.Backpack_sensitivity * (
+			Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0])) + Global.Backpack_spot), 2, Do Not Clip,
+			Visible To Position and String, Color(White), Default Visibility);
+		While(Global.Backpack_i[0] < Global.Backpack_i[1]);
+			Create In-World Text(Filtered Array(All Players(All Teams), Local Player.Backpack_open[0] == 1), Custom String("{0}",
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][0]), Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][3] + Global.Backpack_spot, 2, Do Not Clip, Visible To Position String and Color, Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) ? Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][2] : Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][1], Default Visibility);
+			Global.Backpack_i[0] += 1;
+			Wait(0.016, Ignore Condition);
+		End;
+		While(Global.Backpack_i[0] < Global.Backpack_i[1] + Global.Backpack_i[2]);
+			Create In-World Text(Filtered Array(All Players(All Teams), Local Player.Backpack_open[0] == 2), Custom String("{0}",
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][0]), Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][3] + Global.Backpack_spot, 2, Do Not Clip, Visible To Position String and Color, Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) ? Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][2] : Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][1], Default Visibility);
+			Global.Backpack_i[0] += 1;
+			Wait(0.016, Ignore Condition);
+		End;
+		While(Global.Backpack_i[0] < Global.Backpack_i[1] + Global.Backpack_i[2] + Global.Backpack_i[3]);
+			Create In-World Text(Filtered Array(All Players(All Teams), Local Player.Backpack_open[0] >= 1), Custom String("{0}",
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][0]), Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][3] + Global.Backpack_spot, 2, Do Not Clip, Visible To Position String and Color, Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Y Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= 4 + -1 * Local Player.Backpack_sensitivity * (
+				Vertical Facing Angle Of(Local Player) - Local Player.Backpack_orientation[1]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][4]) >= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) && Z Component Of(
+				Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][5]) <= Local Player.Backpack_sensitivity * (
+				Horizontal Facing Angle Of(Local Player) - Local Player.Backpack_orientation[0]) ? Local Player.Backpack_page[Evaluate Once(
+				Global.Backpack_i[0])][2] : Local Player.Backpack_page[Evaluate Once(Global.Backpack_i[0])][1], Default Visibility);
+			Global.Backpack_i[0] += 1;
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("这里是存放按钮的")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.Lock == 0;
+	}
+
+	actions
+	{
+		Wait(0.100, Abort When False);
+		Global.Lock = 1;
+		Call Subroutine(ButtonInit);
+		Wait(0.100, Ignore Condition);
+		Global.Lock = 0;
+	}
+}
+
+rule("按下按钮打开页面")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating Any Spray(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(TianFuShuaXin);
+		Call Subroutine(Page1);
+		Call Subroutine(OpenBackpack);
+	}
+}
+
+rule("按下主动按钮")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		"没开商店"
+		If(Event Player.Backpack_open[0] == 0);
+			Abort;
+		End;
+		If(Event Player.Backpack_open[1] != 0);
+			Abort;
+		End;
+		Call Subroutine(FindBackpackActionByCursor);
+		If(Event Player.Backpack_action_id == 0);
+			Abort;
+		End;
+		Call Subroutine(DispatchBackpackAction);
+	}
+}
+
+rule("sub根据光标查找背包动作")
+{
+	event
+	{
+		Subroutine;
+		FindBackpackActionByCursor;
+	}
+
+	actions
+	{
+		Event Player.Backpack_action_id = 0;
+		Event Player.Backpack_action_param = 0;
+		Event Player.Backpack_hitButton = -1;
+		Event Player.Backpack_cursorY = 4 + -1 * Event Player.Backpack_sensitivity * (Vertical Facing Angle Of(Event Player)
+			- Event Player.Backpack_orientation[1]);
+		Event Player.Backpack_cursorZ = Event Player.Backpack_sensitivity * (Horizontal Facing Angle Of(Event Player)
+			- Event Player.Backpack_orientation[0]);
+		If(Event Player.Backpack_open[0] == 1);
+			Event Player.Backpack_hitButtons = Filtered Array(Event Player.Backpack_candidates_mode1, Event Player.Backpack_cursorY >= Min(
+				Y Component Of(Event Player.Backpack_page[Current Array Element][4]), Y Component Of(
+				Event Player.Backpack_page[Current Array Element][5])) && Event Player.Backpack_cursorY <= Max(Y Component Of(
+				Event Player.Backpack_page[Current Array Element][4]), Y Component Of(Event Player.Backpack_page[Current Array Element][5]))
+				&& Event Player.Backpack_cursorZ >= Min(Z Component Of(Event Player.Backpack_page[Current Array Element][4]), Z Component Of(
+				Event Player.Backpack_page[Current Array Element][5])) && Event Player.Backpack_cursorZ <= Max(Z Component Of(
+				Event Player.Backpack_page[Current Array Element][4]), Z Component Of(Event Player.Backpack_page[Current Array Element][5])));
+		Else If(Event Player.Backpack_open[0] == 2);
+			Event Player.Backpack_hitButtons = Filtered Array(Event Player.Backpack_candidates_mode2, Event Player.Backpack_cursorY >= Min(
+				Y Component Of(Event Player.Backpack_page[Current Array Element][4]), Y Component Of(
+				Event Player.Backpack_page[Current Array Element][5])) && Event Player.Backpack_cursorY <= Max(Y Component Of(
+				Event Player.Backpack_page[Current Array Element][4]), Y Component Of(Event Player.Backpack_page[Current Array Element][5]))
+				&& Event Player.Backpack_cursorZ >= Min(Z Component Of(Event Player.Backpack_page[Current Array Element][4]), Z Component Of(
+				Event Player.Backpack_page[Current Array Element][5])) && Event Player.Backpack_cursorZ <= Max(Z Component Of(
+				Event Player.Backpack_page[Current Array Element][4]), Z Component Of(Event Player.Backpack_page[Current Array Element][5])));
+		Else;
+			Event Player.Backpack_hitButtons = Empty Array;
+			Abort;
+		End;
+		Event Player.Backpack_hitButtons = Sorted Array(Event Player.Backpack_hitButtons, (Event Player.Backpack_cursorY - Y Component Of(
+			Event Player.Backpack_page[Current Array Element][3])) * (Event Player.Backpack_cursorY - Y Component Of(
+			Event Player.Backpack_page[Current Array Element][3])) + (Event Player.Backpack_cursorZ - Z Component Of(
+			Event Player.Backpack_page[Current Array Element][3])) * (Event Player.Backpack_cursorZ - Z Component Of(
+			Event Player.Backpack_page[Current Array Element][3])));
+		If(Count Of(Event Player.Backpack_hitButtons) == 0);
+			Abort;
+		End;
+		Event Player.Backpack_hitButton = First Of(Event Player.Backpack_hitButtons);
+		Event Player.Backpack_action_id = Event Player.Backpack_actionByIndex[Event Player.Backpack_hitButton];
+		Event Player.Backpack_action_param = Event Player.Backpack_paramByIndex[Event Player.Backpack_hitButton];
+	}
+}
+
+rule("sub分发执行背包动作")
+{
+	event
+	{
+		Subroutine;
+		DispatchBackpackAction;
+	}
+
+	actions
+	{
+		"刷新"
+		If(Event Player.Backpack_action_id == 1 && Event Player.Backpack_open[0] >= 1 && Event Player.Backpack_open[1] == 0);
+			If(Event Player.TouZi >= 1);
+				Event Player.TouZi -= 1;
+			Else If(Event Player.BS >= 1);
+				Event Player.BS -= 1;
+			Else;
+				Abort;
+			End;
+			Event Player.Backpack_open[1] = 1;
+			If(Event Player.Backpack_open[0] == 1);
+				Call Subroutine(ShangPingShuaXin);
+			Else If(Event Player.Backpack_open[0] == 2);
+				Call Subroutine(TianFuShuaXin);
+			End;
+			Call Subroutine(Page1);
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+		End;
+		If(
+			Event Player.Backpack_open[0] == 1 && Event Player.Backpack_open[1] == 0 && Event Player.Backpack_action_id >= 100 && Event Player.Backpack_action_id <= 110);
+			Skip If(Event Player.Backpack_action_id <= 101 || Array Contains(Event Player.Backpack_page, Event Player.Backpack_button[0])
+				== True, 1);
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 100 && Event Player.M >= 300), 6);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.GJ[0] += Random Integer(1, 5);
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+			Event Player.M -= 300;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 101 && Event Player.M >= 300), 5);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.FQ[2] += Random Integer(3, 6) * 0.010;
+			Event Player.M -= 300;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 102 && Event Player.M >= 300), 8);
+			Event Player.Backpack_open[1] = 1;
+			Skip If(Event Player.SM[3] != 0, 2);
+			Add Health Pool To Player(Event Player, Health, Event Player.SM[0] * (Event Player.SM[1] + Event Player.SM[2]), True, True);
+			Event Player.SM[3] = Last Created Health Pool;
+			Event Player.SM[0] += Random Integer(30, 50);
+			Event Player.M -= 300;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 103 && Event Player.M >= 300), 8);
+			Event Player.Backpack_open[1] = 1;
+			Skip If(Event Player.HD[3] != 0, 2);
+			Add Health Pool To Player(Event Player, Shields, Event Player.HD[0] * (Event Player.HD[1] + Event Player.HD[2]), True, True);
+			Event Player.HD[3] = Last Created Health Pool;
+			Event Player.HD[0] += Random Integer(25, 50);
+			Event Player.M -= 300;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 104 && Event Player.M >= 400), 8);
+			Event Player.Backpack_open[1] = 1;
+			Skip If(Event Player.HJ[3] != 0, 2);
+			Add Health Pool To Player(Event Player, Armor, Event Player.HJ[0] * (Event Player.HJ[1] + Event Player.HJ[2]), True, True);
+			Event Player.HJ[3] = Last Created Health Pool;
+			Event Player.HJ[0] += Random Integer(20, 40);
+			Event Player.M -= 400;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 105 && Event Player.M >= 200), 5);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.CD += Random Integer(1, 2) * 0.020;
+			Event Player.M -= 200;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 106 && Event Player.M >= 200), 6);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.ZL[0] += Random Integer(2, 4);
+			Set Healing Dealt(Event Player, (Event Player.ZL[0] + Event Player.ZL[1]) * (Event Player.ZL[2] + Event Player.ZL[3]));
+			Event Player.M -= 200;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 107 && Event Player.M >= 500), 6);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.YS[0] += Random Integer(1, 5);
+			Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+			Event Player.M -= 500;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 108 && Event Player.M >= 500), 5);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.XX[0] += Random Integer(1, 3) * 0.010;
+			Event Player.M -= 500;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 109 && Event Player.M >= 250), 6);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.JT += Random Integer(5, 10);
+			Event Player.M -= 250;
+			Set Knockback Dealt(Event Player, Event Player.JT);
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Skip If(!(Event Player.Backpack_action_id == 110 && Event Player.M >= 2000), 5);
+			Event Player.Backpack_open[1] = 1;
+			Event Player.BS += 1;
+			Event Player.M -= 2000;
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+			Abort;
+		End;
+		If(Event Player.Backpack_action_id == 200 && Event Player.Backpack_open[0] == 1 && Event Player.Backpack_open[1] == 0);
+			Skip If(Event Player.Backpack_action_param >= 11 && Event Player.Backpack_action_param <= 16, 1);
+			Abort;
+			Event Player.Backpack_open[1] = 1;
+			Event Player.LinShi = Event Player.Backpack_button[Event Player.Backpack_action_param][0];
+			Call Subroutine(GouMaiGaoJi);
+			Skip If(Event Player.LinShi != 2, 4);
+			Event Player.LinShi = Random Value In Array(Event Player.ShangPing);
+			Event Player.Backpack_button[Event Player.Backpack_action_param] = Array(Event Player.LinShi, Color(White), Color(Yellow),
+				Event Player.Backpack_button[Event Player.Backpack_action_param][3],
+				Event Player.Backpack_button[Event Player.Backpack_action_param][4],
+				Event Player.Backpack_button[Event Player.Backpack_action_param][5]);
+			Event Player.LinShi = 0;
+			Call Subroutine(Page1);
+			Event Player.Backpack_open[1] = 0;
+			Abort;
+		End;
+		If(Event Player.Backpack_action_id == 300 && Event Player.Backpack_open[0] == 2 && Event Player.Backpack_open[1] == 0);
+			Skip If(Event Player.Backpack_action_param >= 17 && Event Player.Backpack_action_param <= 19, 1);
+			Abort;
+			Event Player.Backpack_open[1] = 1;
+			Event Player.LinShi = Event Player.Backpack_button[Event Player.Backpack_action_param][0];
+			Call Subroutine(XuanZeTianFu);
+			Event Player.LinShi = 0;
+			Wait(0.250, Ignore Condition);
+			Event Player.Backpack_open[1] = 0;
+		End;
+	}
+}
+
+rule("技能1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait Until(!Is Using Ability 1(Event Player), 99999);
+		If(Event Player.YiXuanTianFu[82]);
+			If(Hero Of(Event Player) == Hero(Genji));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 8 / (Event Player.CD * Event Player.YiXuanTianFu[82]));
+			Else If(Hero Of(Event Player) == Hero(Zarya));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 11 / (Event Player.CD * Event Player.YiXuanTianFu[82]));
+			Else If(Hero Of(Event Player) == Hero(Freja));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 4.500 / (Event Player.CD * Event Player.YiXuanTianFu[82]));
+			Else If(Hero Of(Event Player) == Hero(Ramattra));
+				Wait(0.500, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 1), 8 / (Event Player.CD * Event Player.YiXuanTianFu[82]));
+			Else If(Hero Of(Event Player) == Hero(Tracer));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 3 / (Event Player.CD * Event Player.YiXuanTianFu[82]));
+			Else;
+				Set Ability Cooldown(Event Player, Button(Ability 1), Ability Cooldown(Event Player, Button(Ability 1)) / (
+					Event Player.CD * Event Player.YiXuanTianFu[82]));
+			End;
+		Else;
+			If(Hero Of(Event Player) == Hero(Genji));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 8 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Zarya));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 11 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Freja));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 4.500 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Ramattra));
+				Wait(0.500, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 1), 8 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Tracer));
+				Set Ability Cooldown(Event Player, Button(Ability 1), 3 / Event Player.CD);
+			Else;
+				Set Ability Cooldown(Event Player, Button(Ability 1), Ability Cooldown(Event Player, Button(Ability 1)) / Event Player.CD);
+			End;
+		End;
+	}
+}
+
+rule("技能2|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait Until(!Is Using Ability 2(Event Player), 99999);
+		If(Event Player.YiXuanTianFu[83] * Event Player.YiXuanTianFu[83]);
+			If(Hero Of(Event Player) == Hero(Tracer));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 12 / Event Player.CD * Event Player.YiXuanTianFu[83]);
+			Else If(Hero Of(Event Player) == Hero(Zarya));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 11 / Event Player.CD * Event Player.YiXuanTianFu[83]);
+			Else If(Hero Of(Event Player) == Hero(D.Va));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 7 / Event Player.CD * Event Player.YiXuanTianFu[83]);
+			Else If(Hero Of(Event Player) == Hero(Baptiste));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 25 / Event Player.CD * Event Player.YiXuanTianFu[83]);
+			Else If(Hero Of(Event Player) == Hero(Reinhardt));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 6 / Event Player.CD * Event Player.YiXuanTianFu[83]);
+			Else If(Hero Of(Event Player) == Hero(Junker Queen));
+				Wait(0.250, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / (
+					Event Player.CD * Event Player.YiXuanTianFu[83]));
+			Else If(Hero Of(Event Player) == Hero(Genji));
+				Wait(0.180, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / (
+					Event Player.CD * Event Player.YiXuanTianFu[83]));
+			Else;
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / (
+					Event Player.CD * Event Player.YiXuanTianFu[83]));
+			End;
+		Else;
+			If(Hero Of(Event Player) == Hero(Tracer));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 12 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Zarya));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 11 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(D.Va));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 7 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Baptiste));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 25 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Reinhardt));
+				Set Ability Cooldown(Event Player, Button(Ability 2), 6 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Junker Queen));
+				Wait(0.250, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Genji));
+				Wait(0.180, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / Event Player.CD);
+			Else;
+				Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2)) / Event Player.CD);
+			End;
+		End;
+	}
+}
+
+rule("右键|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Secondary(Event Player) == False;
+	}
+
+	actions
+	{
+		Wait Until(!Is Firing Secondary(Event Player), 99999);
+		If(Event Player.YiXuanTianFu[84]);
+			If(Hero Of(Event Player) == Hero(Soldier: 76));
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), 6 / (Event Player.CD * Event Player.YiXuanTianFu[84]));
+			Else If(Hero Of(Event Player) == Hero(Bastion));
+				Wait(0.600, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), 8 / (Event Player.CD * Event Player.YiXuanTianFu[84]));
+			Else;
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), Ability Cooldown(Event Player, Button(Secondary Fire)) / (
+					Event Player.CD * Event Player.YiXuanTianFu[84]));
+			End;
+		Else;
+			If(Hero Of(Event Player) == Hero(Soldier: 76));
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), 6 / Event Player.CD);
+			Else If(Hero Of(Event Player) == Hero(Bastion));
+				Wait(0.600, Ignore Condition);
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), 8 / Event Player.CD);
+			Else;
+				Set Ability Cooldown(Event Player, Button(Secondary Fire), Ability Cooldown(Event Player, Button(Secondary Fire))
+					/ Event Player.CD);
+			End;
+	}
+}
+
+rule("正在使用终极技能|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		"圣"
+		If(Event Player.YiXuanTianFu[17]);
+			Start Rule(Sheng, Do Nothing);
+		End;
+		"诛"
+		If(Event Player.YiXuanTianFu[45]);
+			Start Rule(ZhuMie, Do Nothing);
+		End;
+		"激素"
+		If(Event Player.YiXuanTianFu[46]);
+			Start Rule(JiSu, Do Nothing);
+		End;
+		"桎梏灼日"
+		If(Event Player.YiXuanTianFu[53]);
+			Start Rule(ZhuoRi, Do Nothing);
+		End;
+	}
+}
+
+rule("跳跃|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Jump)) == True;
+	}
+
+	actions
+	{
+		If(Is Button Held(Event Player, Button(Crouch)) && Event Player.Backpack_open[0] == 0);
+			Start Rule(DiSan, Do Nothing);
+		End;
+		"兔子跳"
+		If(Event Player.YiXuanTianFu[13] && Is Jumping(Event Player));
+			Heal(Event Player, Event Player, 30 * Event Player.YiXuanTianFu[13]);
+		End;
+		"忍者足具1"
+		If(Event Player.YiXuanTianFu[12] == 1 && Is In Air(Event Player));
+			Start Rule(RenZheZuJu1, Do Nothing);
+		"忍者足具2"
+		Else If(Event Player.YiXuanTianFu[12] > 1 && Is In Air(Event Player));
+			Start Rule(RenZheZuJu2, Do Nothing);
+		End;
+		"重踏"
+		If(Event Player.YiXuanTianFu[28] > 0 && Is Alive(Event Player) == True);
+			Start Rule(ZhongTa, Do Nothing);
+		End;
+		"女武神"
+		If(Event Player.YiXuanTianFu[75] > 0 && Is Alive(Event Player) == True);
+			Start Rule(NvWuShen, Do Nothing);
+		End;
+	}
+}
+
+rule("蹲下|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Crouch)) == True;
+	}
+
+	actions
+	{
+		If(Is Button Held(Event Player, Button(Jump)) && Event Player.Backpack_open[0] == 0);
+			Start Rule(DiSan, Do Nothing);
+		End;
+	}
+}
+
+rule("第三人称")
+{
+	event
+	{
+		Subroutine;
+		DiSan;
+	}
+
+	actions
+	{
+		Event Player.DiSan = !Event Player.DiSan;
+		If(Event Player.DiSan);
+			Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player) + 0.500 * Direction From Angles(
+				Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 120), Eye Position(Event Player)
+				+ 0.500 * Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 120)
+				+ Facing Direction Of(Event Player) * Absolute Value(Eye Position(Event Player) - Event Player) * -2, Null, Event Player,
+				False), Eye Position(Event Player) + 0.500 * Direction From Angles(Horizontal Facing Angle Of(Event Player),
+				Vertical Facing Angle Of(Event Player) - 120) + Facing Direction Of(Event Player) * Absolute Value(Eye Position(Event Player)
+				- Event Player) * 80 + Down, 666);
+		Else;
+			Stop Camera(Event Player);
+		End;
+		Wait(0.250, Ignore Condition);
+	}
+}
+
+rule("造成伤害|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"吸血"
+		Heal(Attacker, Null, Event Damage * (Attacker.XX[0] + Attacker.XX[1]));
+		"技能额外伤害"
+		If(Attacker.FQ[0] + Attacker.FQ[1] + Attacker.FQ[2] + Attacker.FQ[3]);
+			If(Event Player.YiXuanTianFu[14] && Event Ability == Button(Melee));
+				"一拳"
+				If(Attacker.ShanShuXing == Color(Violet));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Green));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Heal(Attacker, Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Red));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]) + 0.010 * (Attacker.FQ[2] + Attacker.FQ[3]) * Max Health(Victim)) / (0.010 * (
+						Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Aqua));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Set Status(Victim, Null, Stunned, 0.010);
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Black) && Player Stat(Attacker, All Damage Dealt) >= 10000);
+					Damage(Remove From Array(Victim, Attacker), Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				End;
+				"超电磁炮"
+				If(Attacker.YiXuanTianFu[74]);
+					Attacker.FQ[3] -= Attacker.DianCiPao;
+					Attacker.DianCiPao = 0;
+				End;
+			Else If(Event Ability == Button(Ability 1));
+				If(Attacker.ShanShuXing == Color(Violet));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Green));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Heal(Attacker, Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Red));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]) + 0.010 * (Attacker.FQ[2] + Attacker.FQ[3]) * Max Health(Victim)) / (0.010 * (
+						Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Aqua));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Set Status(Victim, Null, Stunned, 0.010);
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Black) && Player Stat(Attacker, All Damage Dealt) >= 10000);
+					Damage(Remove From Array(Victim, Attacker), Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				End;
+				"超电磁炮"
+				If(Attacker.YiXuanTianFu[74]);
+					Attacker.FQ[3] -= Attacker.DianCiPao;
+					Attacker.DianCiPao = 0;
+				End;
+			Else If(Event Ability == Button(Ability 2));
+				If(Attacker.ShanShuXing == Color(Violet));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Green));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Heal(Attacker, Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Red));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]) + 0.010 * (Attacker.FQ[2] + Attacker.FQ[3]) * Max Health(Victim)) / (0.010 * (
+						Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Aqua));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Set Status(Victim, Null, Stunned, 0.010);
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Black) && Player Stat(Attacker, All Damage Dealt) >= 10000);
+					Damage(Remove From Array(Victim, Attacker), Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				End;
+				"超电磁炮"
+				If(Attacker.YiXuanTianFu[74]);
+					Attacker.FQ[3] -= Attacker.DianCiPao;
+					Attacker.DianCiPao = 0;
+				End;
+			Else If(Event Ability == Button(Ultimate));
+				If(Attacker.ShanShuXing == Color(Violet));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Green));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Heal(Attacker, Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Red));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]) + 0.010 * (Attacker.FQ[2] + Attacker.FQ[3]) * Max Health(Victim)) / (0.010 * (
+						Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Aqua));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Set Status(Victim, Null, Stunned, 0.010);
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Black) && Player Stat(Attacker, All Damage Dealt) >= 10000);
+					Damage(Remove From Array(Victim, Attacker), Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				End;
+				"超电磁炮"
+				If(Attacker.YiXuanTianFu[74]);
+					Attacker.FQ[3] -= Attacker.DianCiPao;
+					Attacker.DianCiPao = 0;
+				End;
+			Else If(Event Ability == Button(Secondary Fire) && Array Contains(Array(Hero(Lúcio), Hero(Echo), Hero(Sojourn), Hero(Bastion),
+					Hero(Soldier: 76), Hero(Orisa), Hero(Venture), Hero(Doomfist), Hero(Juno), Hero(Reaper), Hero(Junker Queen), Hero(Junkrat),
+					Hero(Wrecking Ball)), Hero Of(Attacker)));
+				If(Attacker.ShanShuXing == Color(Violet));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Green));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Heal(Attacker, Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Red));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]) + 0.010 * (Attacker.FQ[2] + Attacker.FQ[3]) * Max Health(Victim)) / (0.010 * (
+						Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Aqua));
+					Damage(Remove From Array(Victim, Attacker), Attacker, (Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3])) / (0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+					Set Status(Victim, Null, Stunned, 0.010);
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				Else If(Attacker.ShanShuXing == Color(Black) && Player Stat(Attacker, All Damage Dealt) >= 10000);
+					Damage(Remove From Array(Victim, Attacker), Attacker, Attacker.FQ[0] + Attacker.FQ[1] + Event Damage * (
+						Attacker.FQ[2] + Attacker.FQ[3]));
+					Play Effect(All Players(All Teams), Bad Explosion, Attacker.ShanShuXing, Victim, 1);
+				End;
+				"超电磁炮"
+				If(Attacker.YiXuanTianFu[74]);
+					Attacker.FQ[3] -= Attacker.DianCiPao;
+					Attacker.DianCiPao = 0;
+				End;
+			End;
+		End;
+		"灭"
+		If(Attacker.YiXuanTianFu[16]);
+			Damage(Victim, Null, Max Health(Victim) * 0.005 * Attacker.YiXuanTianFu[16]);
+			If(Normalized Health(Victim) <= 0.050 * Attacker.YiXuanTianFu[16]);
+				Kill(Victim, Attacker);
+			End;
+		End;
+		"火箭重锤"
+		If(Attacker.YiXuanTianFu[15] && Event Ability == Button(Melee));
+			Set Status(Victim, Attacker, Stunned, 0.300);
+		End;
+		"狂战士"
+		If(Attacker.YiXuanTianFu[32]);
+			If(Attacker.KuangZhanShi < 0.001 * Max Health(Attacker) * Attacker.YiXuanTianFu[32] * 0.500);
+				Attacker.GJ[3] += 0.001 * Max Health(Attacker) * Attacker.YiXuanTianFu[32] * 0.010;
+				Set Damage Dealt(Attacker, (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]));
+				Attacker.XX[1] += 0.001 * Max Health(Attacker) * Attacker.YiXuanTianFu[32] * 0.010;
+				Attacker.KuangZhanShi += 0.001 * Max Health(Attacker) * Attacker.YiXuanTianFu[32] * 0.010;
+			End;
+			Start Rule(KuangZhanShi, Restart Rule);
+		End;
+		"超电磁炮"
+		If(Attacker.YiXuanTianFu[74] && Event Ability == Button(Primary Fire));
+			If(Attacker.DianCiPao < Attacker.YiXuanTianFu[74]);
+				Attacker.FQ[3] += Attacker.YiXuanTianFu[74] * 0.010;
+				Attacker.DianCiPao += Attacker.YiXuanTianFu[74] * 0.010;
+			End;
+		End;
+		"龙锤"
+		If(Attacker.YiXuanTianFu[91] && Event Ability == Button(Primary Fire));
+			Set Status(Victim, Attacker, Stunned, 0.200);
+			Damage(Victim, Attacker, Max Health(Victim) * Attacker.YiXuanTianFu[91] * 0.100 * Max Health Of Type(Attacker, Armor) * 0.001 / (
+				0.010 * (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3])));
+		End;
+		"枯萎凋零"
+		If(Attacker.YiXuanTianFu[33]);
+			Start Rule(KuWei, Do Nothing);
+		End;
+		"冰冻冲击枪"
+		If(Attacker.YiXuanTianFu[34]);
+			If(Victim.BingDong < 100);
+				Victim.BingDong += 1;
+			Else If(Victim.BingDong == 100);
+				Set Status(Victim, Attacker, Frozen, 1);
+				Victim.BingDong = Is Match Complete;
+			End;
+			Start Rule(BingDong, Do Nothing);
+		End;
+		"超能之球"
+		If(Attacker.YiXuanTianFu[40] && Attacker.DJ[0] >= 15);
+			Start Rule(ChaoNeng, Do Nothing);
+		End;
+		"风"
+		If(Event Was Critical Hit);
+			Damage(Victim, Attacker, Event Damage * Random Real(Attacker.BJ, Attacker.YiXuanTianFu[47] + Attacker.BJ) / ((
+				Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]) / 100));
+		End;
+		"律动连打"
+		If(Attacker.YiXuanTianFu[63] && Event Ability == Button(Primary Fire));
+			Set Ability Cooldown(Event Player, Button(Ability 2), Ability Cooldown(Event Player, Button(Ability 2))
+				- 0.500 * Attacker.YiXuanTianFu[63]);
+			Set Ability Cooldown(Event Player, Button(Ability 1), Ability Cooldown(Event Player, Button(Ability 1))
+				- 0.500 * Attacker.YiXuanTianFu[63]);
+			Set Ability Cooldown(Event Player, Button(Secondary Fire), Ability Cooldown(Event Player, Button(Secondary Fire))
+				- 0.500 * Attacker.YiXuanTianFu[63]);
+		End;
+		"骨刺"
+		If(Attacker.YiXuanTianFu[64] && Normalized Health(Victim) <= Attacker.YiXuanTianFu[64] * Max Health Of Type(Attacker, Armor)
+			* 0.005 * 0.010);
+			Kill(Victim, Attacker);
+		End;
+		"缚能电弧"
+		If(Event Player.FuNengDianHu);
+			Play Effect(All Players(All Teams), Bad Explosion, Color(Blue), Victim, 1);
+			Set Status(Victim, Null, Stunned, 0.200);
+		End;
+		"轨道镭射"
+		If(Attacker.YiXuanTianFu[76]);
+			Start Rule(GuiDaoSheXian, Do Nothing);
+		End;
+		"破甲熔钉"
+		If(Attacker.YiXuanTianFu[78]);
+			If(Victim.RongDing == 1);
+				Damage(Victim, Null, Health Of Type(Victim, Armor) * 0.300 * Attacker.YiXuanTianFu[78] / ((Attacker.GJ[0] + Attacker.GJ[1]) * (
+					Attacker.GJ[2] + Attacker.GJ[3]) / 100));
+				Clear Status(Victim, Burning);
+				Victim.RongDing = Is Match Complete;
+			Else If(Victim.RongDing == Is Match Complete);
+				Set Status(Victim, Attacker, Burning, 5);
+				Victim.RongDing = 1;
+			End;
+		End;
+		"撼地猛刺"
+		If(Victim.YiXuanTianFu[39] && Is Standing(Victim));
+			Start Rule(HanDi, Do Nothing);
+		End;
+		"猪猪存钱罐"
+		If(Victim.YiXuanTianFu[68] && Event Damage > 100);
+			Victim.CunQianGuan += 1 * Victim.YiXuanTianFu[68];
+		End;
+		"实验护盾"
+		If(Victim.YiCiXinShenMing[0] > 0);
+			Victim.YiCiXinShenMing[0] -= Event Damage;
+		End;
+	}
+}
+
+rule("参与消灭|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Player Earned Elimination;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Attacker.M += 500;
+		"赏金猎人"
+		Attacker.M += 200 * Attacker.LieRen;
+		"辅助低保"
+		Players On Hero(All Support Heroes, Team Of(Event Player)).M += 100;
+		"经验"
+		Event Player.DJ[1] += 150;
+		"升级/古夫"
+		If(Event Player.DJ[1] >= 50 * Event Player.DJ[0] && Event Player.DJ[0] < 15);
+			Start Rule(ShengJi, Do Nothing);
+		Else If(Event Player.DJ[1] >= 750 && Event Player.DJ[0] >= 15 && Event Player.YiXuanTianFu[0]);
+			Start Rule(ShengJi, Do Nothing);
+		End;
+		"太阳光塔"
+		If(Attacker.YiXuanTianFu[19] && Is Using Ultimate(Attacker) == False);
+			Set Ultimate Charge(Attacker, Ultimate Charge Percent(Attacker) + Attacker.YiXuanTianFu[19] * 20);
+		End;
+		"龙神之刃"
+		If(Attacker.YiXuanTianFu[23]);
+			Set Ability Cooldown(Attacker, Button(Ability 1), 0);
+			Set Ability Cooldown(Attacker, Button(Ability 2), 0);
+			Set Ability Cooldown(Attacker, Button(Jump), 0);
+			Set Ability Cooldown(Attacker, Button(Crouch), 0);
+			Set Ability Cooldown(Attacker, Button(Secondary Fire), 0);
+		End;
+		"死亡绽放"
+		If(Attacker.YiXuanTianFu[55]);
+			Heal(Attacker, Attacker, 500 * Attacker.YiXuanTianFu[55]);
+		End;
+		"猪猪存钱罐"
+		If(Attacker.YiXuanTianFu[68]);
+			Attacker.JC += Attacker.CunQianGuan * 50;
+			Set Max Health(Attacker, Attacker.JC);
+		End;
+	}
+}
+
+rule("造成最后一击、阵亡|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Detach Players(Victim);
+		"无情连打攻击清零"
+		Victim.GJ[1] = 0;
+		Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+		"自爆"
+		If(Victim.YiXuanTianFu[25]);
+			Play Effect(All Players(All Teams), Bad Explosion, Color(Red), Victim, (Victim.DX[0] + Victim.DX[1]) * 5);
+			Damage(Players Within Radius(Victim, (Victim.DX[0] + Victim.DX[1]) * 5, Opposite Team Of(Team Of(Event Player)), Off), Victim,
+				500 * Victim.YiXuanTianFu[25]);
+		End;
+		If(Attacker != Victim);
+			"百合之吻"
+			If(Attacker.YiXuanTianFu[26] && Event Was Critical Hit);
+				Attacker.GJ[0] += 5 * Attacker.YiXuanTianFu[26];
+				Set Damage Dealt(Attacker, (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]));
+			End;
+			"毒蛇"
+			If(Attacker.YiXuanTianFu[54]);
+				Attacker.M += 20 * Attacker.LieRen * Attacker.YiXuanTianFu[54];
+				Victim.M -= 20 * Attacker.LieRen * Attacker.YiXuanTianFu[54];
+			End;
+			"连败"
+			Victim.LianBai += 1;
+			Attacker.LianBai = 0;
+			If(Victim.LianBai < 3);
+				Victim.DJ[1] += 50;
+			Else If(Victim.LianBai >= 3);
+				Victim.DJ[1] += 50 + 10 * Victim.LianBai;
+			End;
+			"升级/古夫"
+			If(Victim.DJ[1] >= 50 * Victim.DJ[0] && Victim.DJ[0] < 15);
+				Start Rule(ShengJi, Do Nothing);
+			Else If(Victim.DJ[1] >= 750 && Victim.DJ[0] >= 15 && Victim.YiXuanTianFu[0]);
+				Start Rule(ShengJi, Do Nothing);
+			End;
+			If(Victim.LianBai < 10 && Victim.LianBai > 2);
+				Victim.M += 50 * Victim.LianBai;
+			Else If(Victim.LianBai >= 10);
+				Event Player.LinShi2 = Random Integer(1, 20);
+				If(Event Player.LinShi2 >= 1 && Event Player.LinShi2 <= 2);
+					Event Player.GJ[2] += 5 * 0.010;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+					Small Message(Event Player, Custom String("力量石榴"));
+				Else If(Event Player.LinShi2 >= 3 && Event Player.LinShi2 <= 4);
+					Event Player.FQ[2] += 6 * 0.010;
+					Small Message(Event Player, Custom String("威能蓝莓"));
+				Else If(Event Player.LinShi2 >= 5 && Event Player.LinShi2 <= 6);
+					Event Player.SM[1] += 40;
+					Small Message(Event Player, Custom String("方糖苹果"));
+				Else If(Event Player.LinShi2 >= 7 && Event Player.LinShi2 <= 8);
+					Event Player.XX[0] += Event Player.XX[0] * 0.100;
+					Small Message(Event Player, Custom String("酒酿葡萄"));
+				Else If(Event Player.LinShi2 >= 9 && Event Player.LinShi2 <= 10);
+					Event Player.CD += Event Player.CD * 0.200;
+					Small Message(Event Player, Custom String("往复柠檬"));
+				Else If(Event Player.LinShi2 >= 11 && Event Player.LinShi2 <= 12);
+					Event Player.YS[2] += 0.050;
+					Set Move Speed(Event Player, (Event Player.YS[0] + Event Player.YS[1]) * (Event Player.YS[2] + Event Player.YS[3]));
+					Small Message(Event Player, Custom String("流星杨桃"));
+				Else If(Event Player.LinShi2 >= 13 && Event Player.LinShi2 <= 14);
+					Event Player.BS += 1;
+					Small Message(Event Player, Custom String("1宝石"));
+				Else If(Event Player.LinShi2 >= 15 && Event Player.LinShi2 <= 16);
+					Event Player.GJ[0] += 1;
+					Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+					Event Player.SM[0] += 10;
+					If(Event Player.YiXuanTianFu[2]);
+						Event Player.JC += 1;
+						Set Max Health(Event Player, Event Player.JC);
+						Event Player.DX[0] += 0.100;
+						Stop Scaling Player(Event Player);
+						Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+					End;
+					Small Message(Event Player, Custom String("香蕉"));
+				Else If(Event Player.LinShi2 >= 17 && Event Player.LinShi2 <= 18);
+					Event Player.TouZi += 1;
+					Small Message(Event Player, Custom String("刷新骰子*1"));
+				Else If(Event Player.LinShi2 >= 19 && Event Player.LinShi2 <= 30);
+					Event Player.M += 100;
+					Small Message(Event Player, Custom String("100额外货币"));
+				Else If(Event Player.LinShi2 == 31);
+					Event Player.FuZhiQi += 1;
+					Small Message(Event Player, Custom String("终极大奖"));
+					Small Message(Event Player, Custom String("天赋复制器！！！"));
+				End;
+				Victim.M += 75 * Victim.LianBai;
+			End;
+			"悬赏"
+			Attacker.XuanShang += 100;
+			If(Attacker.XuanShang >= 4500);
+				Attacker.XuanShang += 1000;
+			Else If(Attacker.XuanShang >= 3000);
+				Attacker.XuanShang += 400;
+			Else If(Attacker.XuanShang >= 1000);
+				Attacker.XuanShang += 150;
+			End;
+			If(Attacker.XuanShang >= 4500 && (Attacker.XuanShangDengJi == 1 || Attacker.XuanShangDengJi == 2));
+				Attacker.XuanShangDengJi = 3;
+				Attacker.XuanShang = Attacker.XuanShang * 2;
+				Wait(0.250, Ignore Condition);
+				Big Message(All Players(All Teams), Custom String("\n\n\n三级悬赏:{0}\n\n\n\n击杀获得{1}+货币", Attacker, Attacker.XuanShang));
+				Big Message(All Players(All Teams), Custom String("天罚"));
+				Big Message(All Players(All Teams), Custom String("疲劳，虚弱效果持续增强", Attacker));
+			Else If(Attacker.XuanShang >= 2000 && (Attacker.XuanShangDengJi == 0 || Attacker.XuanShangDengJi == 1));
+				Attacker.XuanShangDengJi = 2;
+				Attacker.XuanShang = Attacker.XuanShang * 1.500;
+				Wait(0.250, Ignore Condition);
+				Big Message(All Players(All Teams), Custom String("\n\n\n二级悬赏:{0}\n\n\n\n击杀获得{1}+货币", Attacker, Attacker.XuanShang));
+				Big Message(All Players(All Teams), Custom String("天罚"));
+				Big Message(All Players(All Teams), Custom String("{0}进入虚弱状态", Attacker));
+				Big Message(All Players(All Teams), Custom String("死亡解除"));
+			Else If(Attacker.XuanShang >= 400 && Attacker.XuanShangDengJi == 0);
+				Attacker.XuanShangDengJi = 1;
+				Attacker.XuanShang = Attacker.XuanShang * 2.500;
+				Wait(0.250, Ignore Condition);
+				Big Message(All Players(All Teams), Custom String("\n\n\n一级悬赏:{0}\n\n\n\n击杀获得{1}+货币", Attacker, Attacker.XuanShang));
+			End;
+			If(Attacker.XuanShang > 2000);
+				If(Attacker.TianFaCengShu < 9);
+					Attacker.GJ[3] -= 0.100;
+					Set Damage Dealt(Attacker, (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]));
+					Attacker.SS = Attacker.SS * 1.200;
+					Set Damage Received(Attacker, Attacker.SS);
+					Attacker.TianFaCengShu += 1;
+					If(Attacker.TianFaCengShu == 9);
+						Big Message(All Players(All Teams), Custom String("\n\n\n终极悬赏:{0}\n\n\n\n击杀获得{1}+货币", Attacker, Attacker.XuanShang));
+						Big Message(All Players(All Teams), Custom String("终极天罚", Attacker, Attacker.XuanShang));
+						Big Message(All Players(All Teams), Custom String("{0}虚弱效果达到最高", Attacker));
+						Create HUD Text(Attacker, Custom String("{0} {1}", Custom String("灭绝"), Ability Icon String(Hero(Cassidy), Button(Ultimate))),
+							Null, Null, Right, 3, Color(Violet), Null, Null, Visible To, Default Visibility);
+						Attacker.GJ[2] += 30 * 0.010;
+						Set Damage Dealt(Attacker, (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]));
+						Attacker.FQ[2] += 30 * 0.010;
+						Attacker.XuanShang = Attacker.XuanShang * 2;
+					End;
+				End;
+			End;
+			"悬赏"
+			Attacker.M += Victim.XuanShang;
+			If(Victim.XuanShang >= 2000);
+				Victim.GJ[3] += 0.100 * Victim.TianFaCengShu;
+				Set Damage Dealt(Victim, (Victim.GJ[0] + Victim.GJ[1]) * (Victim.GJ[2] + Victim.GJ[3]));
+				Victim.SS = Victim.SS / 1.200 ^ Victim.TianFaCengShu;
+				Set Damage Received(Victim, Victim.SS);
+				Big Message(All Players(All Teams), Custom String("{0}虚弱解除", Victim));
+				Victim.TianFaCengShu = 0;
+			End;
+			Victim.XuanShang = 0;
+			If(Victim.YiXuanTianFu[81]);
+				Victim.XuanShang = -400 * Victim.YiXuanTianFu[81];
+			End;
+			Victim.XuanShangDengJi = 0;
+		End;
+	}
+}
+
+rule("造成治疗|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Player Dealt Healing;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"灵符"
+		If(Event Player.YiXuanTianFu[49]);
+			Set Ultimate Charge(Healer, Ultimate Charge Percent(Healer) + 1 * Event Player.YiXuanTianFu[49]);
+		End;
+		"愈合冲击"
+		If(Event Player.YiXuanTianFu[51]);
+			Damage(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, Opposite Team Of(
+				Team Of(Event Player)), Off), Event Player), Event Player, Event Healing * Event Player.YiXuanTianFu[51] / ((
+				Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]) / 100));
+		End;
+		"呼吸器"
+		If(Event Player.YiXuanTianFu[50]);
+			Event Player.SM[0] += 0.150 * Event Player.YiXuanTianFu[50] * Event Healing;
+		End;
+		"生命之握"
+		If(Event Player.YiXuanTianFu[79] && Normalized Health(Healee) <= 0.300);
+			Event Player.ZL[1] += Event Player.YiXuanTianFu[79] * 0.300 * Healee.ZL[0];
+			Set Healing Dealt(Event Player, (Event Player.ZL[0] + Event Player.ZL[1]) * (Event Player.ZL[2] + Event Player.ZL[3]));
+			Event Player.ShengMingZhiWo += Event Player.YiXuanTianFu[79] * 0.300 * Healee.ZL[0];
+			Start Rule(ShengMingZhiWo, Restart Rule);
+		End;
+	}
+}
+
+rule("造成击退|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Player Dealt Knockback;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"无情连打"
+		If(Event Player.YiXuanTianFu[31]);
+			Event Player.GJ[0] += 1 * Event Player.YiXuanTianFu[31];
+			Event Player.GJ[1] += 1 * Event Player.YiXuanTianFu[31];
+			Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+		End;
+		"猛击"
+		If(Event Player.YiXuanTianFu[29]);
+			Damage(Victim, Attacker, Max Health(Victim) * Event Player.YiXuanTianFu[29] * 0.050 * (Attacker.JT / 100) / ((
+				Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]) / 100));
+		End;
+		"流水禅杖"
+		If(Event Player.YiXuanTianFu[30]);
+			Heal(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, Team Of(Event Player), Off), Event Player,
+				50 * Event Player.YiXuanTianFu[30] * (Attacker.JT / 100));
+		End;
+	}
+}
+
+rule("感谢")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		"冰香蕉"
+		If(Event Player.YiXuanTianFu[3] >= 1);
+			Event Player.YiXuanTianFu[3] -= 1;
+			Set Status(Remove From Array(Players Within Radius(Event Player, 25, Opposite Team Of(Team Of(Event Player)), Off), Event Player),
+				Event Player, Frozen, 5);
+			Clear Status(Event Player, Frozen);
+			Create Effect(All Players(All Teams), Sphere, Color(Violet), Evaluate Once(Position Of(Event Player)), 25,
+				Visible To Position and Radius);
+			Event Player.BingXiangJiao = Last Created Entity;
+			Wait(5, Ignore Condition);
+			Destroy Effect(Event Player.BingXiangJiao);
+	}
+}
+
+rule("集合")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Group Up) == True;
+	}
+
+	actions
+	{
+		"集结号令"
+		If(Event Player.YiXuanTianFu[72] > 0);
+			Event Player.YiXuanTianFu[72] *= -1;
+			Teleport(All Players(All Teams), Event Player);
+			Wait(120 / Absolute Value(Event Player.YiXuanTianFu[72]), Ignore Condition);
+			Event Player.YiXuanTianFu[72] *= -1;
+			Small Message(Event Player, Custom String("集结号令已冷却"));
+	}
+}
+
+rule("忍者足具")
+{
+	event
+	{
+		Subroutine;
+		RenZheZuJu1;
+	}
+
+	actions
+	{
+		Wait Until(!Is Button Held(Event Player, Button(Jump)), 99999);
+		Wait Until(Is Button Held(Event Player, Button(Jump)) || !Is In Air(Event Player), 99999);
+		If(Is Button Held(Event Player, Button(Jump)));
+			"兔子跳"
+			If(Event Player.YiXuanTianFu[13]);
+				Heal(Event Player, Event Player, 30 * Event Player.YiXuanTianFu[13]);
+			End;
+			Apply Impulse(Event Player, Up, 10, To Player, Cancel Contrary Motion);
+		End;
+		Wait Until(Is On Ground(Event Player), 99999);
+	}
+}
+
+rule("忍者足具2级")
+{
+	event
+	{
+		Subroutine;
+		RenZheZuJu2;
+	}
+
+	actions
+	{
+		Wait Until(!Is Button Held(Event Player, Button(Jump)), 99999);
+		Wait Until(Is Button Held(Event Player, Button(Jump)) || !Is In Air(Event Player), 99999);
+		Apply Impulse(Event Player, Up, 10, To World, Cancel Contrary Motion);
+		If(Is Button Held(Event Player, Button(Jump)));
+			"兔子跳"
+			If(Event Player.YiXuanTianFu[13]);
+				Heal(Event Player, Event Player, 30 * Event Player.YiXuanTianFu[13]);
+			End;
+			Apply Impulse(Event Player, Up, 10, To Player, Cancel Contrary Motion);
+		End;
+	}
+}
+
+rule("近战攻击|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Meleeing(Event Player) == True;
+	}
+
+	actions
+	{
+		"火箭重锤"
+		If(Event Player.YiXuanTianFu[15]);
+			Create Projectile(Reinhardt Fire Strike, Event Player, Eye Position(Event Player), Null, To World, Damage, Opposite Team Of(
+				Team Of(Event Player)), 30 * Event Player.YiXuanTianFu[15], 2, 0, Bad Explosion, Explosion Sound, 0, 25, 5, 0, 0, 0);
+	}
+}
+
+rule("圣")
+{
+	event
+	{
+		Subroutine;
+		Sheng;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Invincible, 999999);
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Clear Status(Event Player, Invincible);
+	}
+}
+
+rule("熔火核心")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.YiXuanTianFu[18] == True;
+	}
+
+	actions
+	{
+		Damage(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, Opposite Team Of(
+			Team Of(Event Player)), Off), Event Player), Event Player, Max Health(Event Player) * 0.050 / ((
+			Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]) / 100));
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Orange), Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5);
+		Wait(1.500 / Event Player.YiXuanTianFu[18], Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("猪神")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Normalized Health(Event Player) <= 0.700;
+	}
+
+	actions
+	{
+		"猪神"
+		If(Event Player.YiXuanTianFu[20] > 0);
+			Event Player.DX[1] += Absolute Value(Event Player.YiXuanTianFu[20]);
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Wait Until(Normalized Health(Event Player) <= 0.500, 99999);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[1] += Absolute Value(Event Player.YiXuanTianFu[20]);
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Wait Until(Normalized Health(Event Player) <= 0.300, 99999);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[1] += 4 * Absolute Value(Event Player.YiXuanTianFu[20]);
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Heal(Event Player, Null, 1000000);
+			Event Player.YiXuanTianFu[20] *= -1;
+			Big Message(All Players(All Teams), Custom String("猪神降临！"));
+			Wait Until(Is Dead(Event Player), 99999);
+			Stop Scaling Player(Event Player);
+			Event Player.DX[1] = 0;
+			Start Scaling Player(Event Player, Event Player.DX[0] + Event Player.DX[1], True);
+			Wait Until(Is Alive(Event Player), 99999);
+			Event Player.YiXuanTianFu[20] *= -1;
+	}
+}
+
+rule("神射手")
+{
+	event
+	{
+		Subroutine;
+		ShenSheShou;
+	}
+
+	actions
+	{
+		While(Is Firing Primary(Event Player));
+			Damage(Players in View Angle(Event Player, All Teams, 15 * Event Player.YiXuanTianFu[21]), Event Player,
+				10 * Event Player.YiXuanTianFu[21]);
+			Wait(0.250, Ignore Condition);
+		End;
+	}
+}
+
+rule("使用主要武器|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		"火箭重锤"
+		If(Event Player.YiXuanTianFu[15] && Hero Of(Event Player) == Hero(Reinhardt));
+			Create Projectile(Reinhardt Fire Strike, Event Player, Eye Position(Event Player), Null, To World, Damage, Opposite Team Of(
+				Team Of(Event Player)), 50 * Event Player.YiXuanTianFu[15], 2, 0, Bad Explosion, Explosion Sound, 0, 25, 5, 0, 0, 0);
+		Else If(Event Player.YiXuanTianFu[15] && Hero Of(Event Player) == Hero(Brigitte));
+			Create Projectile(Reinhardt Fire Strike, Event Player, Eye Position(Event Player), Null, To World, Damage, Opposite Team Of(
+				Team Of(Event Player)), 50 * Event Player.YiXuanTianFu[15], 2, 0, Bad Explosion, Explosion Sound, 0, 25, 5, 0, 0, 0);
+		End;
+		"维和者"
+		If(Event Player.YiXuanTianFu[21] && Event Player.M >= 10000);
+			Start Rule(ShenSheShou, Do Nothing);
+		End;
+		"动能俘获"
+		If(Event Player.YiXuanTianFu[77] > 0);
+			Start Rule(DongNeng, Do Nothing);
+		End;
+		"战术目镜"
+		If(Event Player.YiXuanTianFu[24] == 1);
+			Skip If(Is In Line of Sight(Event Player, Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player))),
+				Barriers Do Not Block LOS) == False, 1);
+			Event Player.ZhanShuMuJing = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+			Skip If(Event Player.ZhanShuMuJing != Event Player && Event Player.ZhanShuMuJing != 0 && Is Alive(Event Player.ZhanShuMuJing), 1);
+			Event Player.ZhanShuMuJing = First Of(Sorted Array(Filtered Array(All Living Players(Opposite Team Of(Team Of(Event Player))),
+				Is In Line of Sight(Event Player, Current Array Element, Barriers Do Not Block LOS)), Distance Between(Current Array Element,
+				Event Player)));
+			Skip If(Event Player.ZhanShuMuJing == Event Player || Event Player.ZhanShuMuJing == 0, 1);
+			Start Facing(Event Player, Vector Towards(Eye Position(Event Player), Eye Position(Event Player.ZhanShuMuJing) + World Vector Of(
+				Up, Event Player.ZhanShuMuJing, Rotation) * 0.020 + World Vector Of(Vector(Speed Of In Direction(Event Player.ZhanShuMuJing,
+				World Vector Of(Left, Event Player, Rotation)) / 32 / 1, 0, 0), Event Player, Rotation)), Absolute Value(9999999.000),
+				To World, Direction and Turn Rate);
+			disabled Wait(0.233, Ignore Condition);
+			disabled Loop If Condition Is True;
+			Wait Until(!Is Firing Primary(Event Player), 99999);
+			Stop Facing(Event Player);
+			Event Player.ZhanShuMuJing = 0;
+		End;
+	}
+}
+
+rule("重踏")
+{
+	event
+	{
+		Subroutine;
+		ZhongTa;
+	}
+
+	actions
+	{
+		Wait(0.250, Ignore Condition);
+		Apply Impulse(Event Player, Down, 70, To World, Cancel Contrary Motion);
+		Wait(0.250, Ignore Condition);
+		Damage(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 7, Opposite Team Of(
+			Team Of(Event Player)), Off), Event Player), Event Player, Max Health(Event Player) * 0.100);
+		If(Max Health(Event Player) * 0.002 < 5);
+			Set Status(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 7, Opposite Team Of(
+				Team Of(Event Player)), Off), Event Player), Null, Knocked Down, Max Health(Event Player) * 0.002);
+		Else If(Max Health(Event Player) * 0.002 >= 5);
+			Set Status(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 7, Opposite Team Of(
+				Team Of(Event Player)), Off), Event Player), Null, Knocked Down, 5);
+		End;
+		Play Effect(All Players(All Teams), Ring Explosion, Color(White), Event Player + Vector(0, 0, 0), (
+			Event Player.DX[0] + Event Player.DX[1]) * 7);
+		Event Player.YiXuanTianFu[28] *= -1;
+		Wait(30 / Absolute Value(Event Player.YiXuanTianFu[28]), Ignore Condition);
+		Event Player.YiXuanTianFu[28] *= -1;
+		Small Message(Event Player, Custom String("重踏已冷却"));
+	}
+}
+
+rule("两颗心脏")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Normalized Health(Event Player) <= 0.500;
+	}
+
+	actions
+	{
+		If(Event Player.YiXuanTianFu[27] > 0);
+			Add Health Pool To Player(Event Player, Armor, Player Stat(Event Player, Eliminations) * 80 * Absolute Value(
+				Event Player.YiXuanTianFu[27]), False, True);
+			Event Player.LiangKeXin = Last Created Health Pool;
+			Play Effect(All Players(All Teams), Heal Target Active Effect, Color(White), Event Player, 1);
+			Wait(2, Ignore Condition);
+			Play Effect(All Players(All Teams), Heal Target Active Effect, Color(White), Event Player, 1);
+			Wait(2, Ignore Condition);
+			Play Effect(All Players(All Teams), Heal Target Active Effect, Color(White), Event Player, 1);
+			Wait(2, Ignore Condition);
+			Play Effect(All Players(All Teams), Heal Target Active Effect, Color(White), Event Player, 1);
+			Wait(2, Ignore Condition);
+			Play Effect(All Players(All Teams), Heal Target Active Effect, Color(White), Event Player, 1);
+			Remove Health Pool From Player(Event Player.LiangKeXin);
+			Event Player.YiXuanTianFu[27] *= -1;
+			Wait(25 / Absolute Value(Event Player.YiXuanTianFu[27]), Ignore Condition);
+			Event Player.YiXuanTianFu[27] *= -1;
+			Small Message(Event Player, Custom String("两颗心脏已冷却"));
+			Wait(1, Ignore Condition);
+		End;
+	}
+}
+
+rule("狂战士")
+{
+	event
+	{
+		Subroutine;
+		KuangZhanShi;
+	}
+
+	actions
+	{
+		Wait(5, Restart When True);
+		Attacker.GJ[3] -= Attacker.KuangZhanShi;
+		Set Damage Dealt(Attacker, (Attacker.GJ[0] + Attacker.GJ[1]) * (Attacker.GJ[2] + Attacker.GJ[3]));
+		Attacker.XX[1] -= Attacker.KuangZhanShi;
+		Attacker.KuangZhanShi = 0;
+	}
+}
+
+rule("生命之握")
+{
+	event
+	{
+		Subroutine;
+		ShengMingZhiWo;
+	}
+
+	actions
+	{
+		Wait(5, Restart When True);
+		Event Player.ZL[1] -= Event Player.ShengMingZhiWo;
+		Set Healing Dealt(Event Player, (Event Player.ZL[0] + Event Player.ZL[1]) * (Event Player.ZL[2] + Event Player.ZL[3]));
+		Event Player.ShengMingZhiWo = 0;
+	}
+}
+
+rule("冰冻冲击枪")
+{
+	event
+	{
+		Subroutine;
+		BingDong;
+	}
+
+	actions
+	{
+		Victim.YS[3] -= Attacker.YiXuanTianFu[34] * 0.300;
+		Set Move Speed(Victim, (Victim.YS[0] + Victim.YS[1]) * (Victim.YS[2] + Victim.YS[3]));
+		Wait(2, Ignore Condition);
+		Victim.YS[3] += Attacker.YiXuanTianFu[34] * 0.300;
+		Set Move Speed(Victim, (Victim.YS[0] + Victim.YS[1]) * (Victim.YS[2] + Victim.YS[3]));
+	}
+}
+
+rule("枯萎凋零")
+{
+	event
+	{
+		Subroutine;
+		KuWei;
+	}
+
+	actions
+	{
+		Victim.SZ[3] -= Attacker.YiXuanTianFu[33] * 0.500;
+		Set Healing Received(Victim, (Victim.SZ[0] + Victim.SZ[1]) * (Victim.SZ[2] + Victim.SZ[3]));
+		Victim.YS[1] -= Attacker.YiXuanTianFu[33] * 30;
+		Set Move Speed(Victim, (Victim.YS[0] + Victim.YS[1]) * (Victim.YS[2] + Victim.YS[3]));
+		Wait(2, Ignore Condition);
+		Victim.SZ[3] += Attacker.YiXuanTianFu[33] * 0.500;
+		Set Healing Received(Victim, (Victim.SZ[0] + Victim.SZ[1]) * (Victim.SZ[2] + Victim.SZ[3]));
+		Victim.YS[1] += Attacker.YiXuanTianFu[33] * 30;
+		Set Move Speed(Victim, (Victim.YS[0] + Victim.YS[1]) * (Victim.YS[2] + Victim.YS[3]));
+	}
+}
+
+rule("投入战场")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Need Healing) == True;
+		Event Player.DX[0] + Event Player.DX[1] >= 2.300;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Environment(Event Player, False);
+		Start Forcing Player Outlines(Event Player, Event Player, True, Color(Yellow), Always);
+		Wait(20, Ignore Condition);
+		Enable Movement Collision With Environment(Event Player);
+		Stop Forcing Player Outlines(Event Player, Event Player);
+		Wait Until(Is Dead(Event Player), 30);
+		Small Message(All Players(All Teams), Custom String("投入战场已冷却"));
+	}
+}
+
+rule("无限火力")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Reload)) == True;
+	}
+
+	actions
+	{
+		If(Event Player.YiXuanTianFu[35]);
+			Set Ammo(Event Player, 0, 1000);
+		End;
+	}
+}
+
+rule("撼地猛刺")
+{
+	event
+	{
+		Subroutine;
+		HanDi;
+	}
+
+	actions
+	{
+		Damage(Attacker, Victim, Event Damage * Victim.YiXuanTianFu[39] / ((Victim.GJ[0] + Victim.GJ[1]) * (Victim.GJ[2] + Victim.GJ[3])
+			/ 100));
+		Wait(2, Ignore Condition);
+	}
+}
+
+rule("超能之球")
+{
+	event
+	{
+		Subroutine;
+		ChaoNeng;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Blue), Victim, 6);
+		Damage(Remove From Array(Players Within Radius(Victim, 6, Opposite Team Of(Team Of(Attacker)), Off), Attacker), Attacker,
+			Attacker.YiXuanTianFu[40] * 30);
+		Wait(0.250, Ignore Condition);
+	}
+}
+
+rule("诛")
+{
+	event
+	{
+		Subroutine;
+		ZhuMie;
+	}
+
+	actions
+	{
+		Small Message(All Players(All Teams), Custom String("诛灭之灾即将降临"));
+		Wait(5, Ignore Condition);
+		Big Message(All Players(All Teams), Custom String("感受，我的痛苦！"));
+		Wait(0.250, Ignore Condition);
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Red), Event Player, 100);
+		Wait(0.250, Ignore Condition);
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Red), Event Player, 100);
+		Kill(Filtered Array(All Players(All Teams), Normalized Health(Current Array Element) <= 0.300 * Event Player.YiXuanTianFu[45]),
+			Event Player);
+		Set Ultimate Charge(Event Player, 0);
+	}
+}
+
+rule("激素")
+{
+	event
+	{
+		Subroutine;
+		JiSu;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Ana Nano Boosted Effect, Color(White), Event Player, 1, Visible To Position and Radius);
+		Event Player.JiSuTeXiao = Last Created Entity;
+		Event Player.GJ[3] += 0.500 * Event Player.YiXuanTianFu[46];
+		Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+		Event Player.SS = Event Player.SS * 0.500 ^ Event Player.YiXuanTianFu[46];
+		Set Damage Received(Event Player, Event Player.SS);
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Destroy Effect(Event Player.JiSuTeXiao);
+		Event Player.SS = Event Player.SS * 2 ^ Event Player.YiXuanTianFu[46];
+		Set Damage Received(Event Player, Event Player.SS);
+		Event Player.GJ[3] -= 0.500 * Event Player.YiXuanTianFu[46];
+		Set Damage Dealt(Event Player, (Event Player.GJ[0] + Event Player.GJ[1]) * (Event Player.GJ[2] + Event Player.GJ[3]));
+	}
+}
+
+rule("桎梏灼日")
+{
+	event
+	{
+		Subroutine;
+		ZhuoRi;
+	}
+
+	actions
+	{
+		Wait(7, Ignore Condition);
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + (100 - 50 / Event Player.YiXuanTianFu[53]));
+	}
+}
+
+rule("终极技能|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		"双龙"
+		If(Event Player.YiXuanTianFu[80] % 1 != 0 && Event Player.YiXuanTianFu[80] > 3);
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 100);
+		End;
+		"锻造"
+		If(Event Player.YiXuanTianFu[61] && Ultimate Charge Percent(Event Player) >= 25);
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 25 / Event Player.YiXuanTianFu[61]);
+			Event Player.HJ[0] += 50;
+		End;
+		"跃"
+		If(Event Player.YiXuanTianFu[62] && Ultimate Charge Percent(Event Player) >= 15);
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 15 / Event Player.YiXuanTianFu[62]);
+			Apply Impulse(Event Player, Up, 5, To Player, Cancel Contrary Motion);
+			Apply Impulse(Event Player, Throttle Of(Event Player), 20, To Player, Cancel Contrary Motion);
+		End;
+		"归于大地"
+		If(Event Player.YiXuanTianFu[60] && Ultimate Charge Percent(Event Player) >= 25 && Is Alive(Event Player)
+			&& Event Player.GuiYuDaDi == 0);
+			Start Rule(GuiYuDaDi, Do Nothing);
+		End;
+		"地壳震击"
+		If(Event Player.YiXuanTianFu[58] && Ultimate Charge Percent(Event Player) >= 30 / Event Player.YiXuanTianFu[58]);
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 30 / Event Player.YiXuanTianFu[58]);
+			Play Effect(All Players(All Teams), Ring Explosion, Color(Yellow), Event Player, 1);
+			Set Status(Remove From Array(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, All Teams, Off),
+				Event Player), Event Player, Stunned, 2);
+			Apply Impulse(Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, All Teams, Off), Up, 10, To World,
+				Cancel Contrary Motion);
+		End;
+		"美丽动人"
+		If(Event Player.YiXuanTianFu[57] && Ultimate Charge Percent(Event Player) >= 20 && Ultimate Charge Percent(Event Player) != 100);
+			If(Ultimate Charge Percent(Event Player) >= 30 && Event Player.MeiLiDongReng == 1);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 30 / Event Player.YiXuanTianFu[57]);
+				Clear Status(Event Player, Frozen);
+				Set Status(Event Player, Null, Invincible, 3);
+				Create Effect(All Players(All Teams), Mei Frozen Effect, Color(White), Event Player, 1, Visible To Position and Radius);
+				Event Player.MeiLiDongReng = Last Created Entity;
+			Else If(Ultimate Charge Percent(Event Player) >= 20 && Ultimate Charge Percent(Event Player)
+					!= 100 && Event Player.MeiLiDongReng == 0);
+				Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 20 / Event Player.YiXuanTianFu[57]);
+				Set Status(Event Player, Null, Frozen, 3);
+				Set Status(Event Player, Null, Invincible, 3);
+				Event Player.MeiLiDongReng = 1;
+			End;
+			Start Rule(MeiLiDongReng, Do Nothing);
+		End;
+		"引力装置"
+		If(Event Player.YiXuanTianFu[66] != 0 && Ultimate Charge Percent(Event Player) >= 40);
+			Start Rule(YinLiZhuangZhi, Do Nothing);
+		End;
+		"细胞能量"
+		If(Event Player.YiXuanTianFu[59] && Ultimate Charge Percent(Event Player) != 100);
+			Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) + 1 * Event Player.YiXuanTianFu[59]);
+			Damage(Event Player, Event Player, 0.010 * Max Health(Event Player) / ((Event Player.GJ[0] + Event Player.GJ[1]) * (
+				Event Player.GJ[2] + Event Player.GJ[3]) / 100));
+			Wait(0.100, Abort When False);
+			Loop;
+		End;
+	}
+}
+
+rule("引力装置")
+{
+	event
+	{
+		Subroutine;
+		YinLiZhuangZhi;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 40 / Event Player.YiXuanTianFu[66]);
+		Play Effect(All Players(All Teams), Ring Explosion, Color(Blue), Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5);
+		Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, All Teams, Off).YinLiZhuangZhi -= 90;
+		Players Within Radius(Event Player, (Event Player.DX[0] + Event Player.DX[1]) * 5, All Teams, Off).YL[1] -= 90;
+		Set Gravity(Filtered Array(All Players(All Teams), Current Array Element.YinLiZhuangZhi != 0), Filtered Array(All Players(
+			All Teams), Current Array Element.YinLiZhuangZhi != 0).YL[0] + Filtered Array(All Players(All Teams),
+			Current Array Element.YinLiZhuangZhi != 0).YL[1]);
+		Wait(10, Ignore Condition);
+		Filtered Array(All Players(All Teams), Current Array Element.YinLiZhuangZhi != 0).YL[1] += 90;
+		Set Gravity(Filtered Array(All Players(All Teams), Current Array Element.YinLiZhuangZhi != 0), Filtered Array(All Players(
+			All Teams), Current Array Element.YinLiZhuangZhi != 0).YL[0] + Filtered Array(All Players(All Teams),
+			Current Array Element.YinLiZhuangZhi != 0).YL[1]);
+		Filtered Array(All Players(All Teams), Current Array Element.YinLiZhuangZhi != 0).YinLiZhuangZhi += 90;
+	}
+}
+
+rule("美丽冻人")
+{
+	event
+	{
+		Subroutine;
+		MeiLiDongReng;
+	}
+
+	actions
+	{
+		Wait(5, Ignore Condition);
+		Destroy Effect(Event Player.MeiLiDongReng);
+		Event Player.MeiLiDongReng = 0;
+	}
+}
+
+rule("归于大地")
+{
+	event
+	{
+		Subroutine;
+		GuiYuDaDi;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, Ultimate Charge Percent(Event Player) - 25 / Event Player.YiXuanTianFu[60]);
+		Event Player.GuiYuDaDi = Players in View Angle(Event Player, Opposite Team Of(Team Of(Event Player)), 45);
+		Cancel Primary Action(Event Player.GuiYuDaDi);
+		Apply Impulse(Event Player.GuiYuDaDi, Down, 70, To World, Cancel Contrary Motion);
+		Play Effect(All Players(All Teams), Bad Pickup Effect, Color(Violet), Event Player.GuiYuDaDi, 1);
+		Event Player.GuiYuDaDi.YS[1] -= 30;
+		Set Move Speed(Victim, (Event Player.GuiYuDaDi.YS[0] + Event Player.GuiYuDaDi.YS[1]) * (
+			Event Player.GuiYuDaDi.YS[2] + Event Player.GuiYuDaDi.YS[3]));
+		Event Player.GuiYuDaDi.YL[1] += 1000;
+		Set Gravity(Event Player.GuiYuDaDi, Event Player.GuiYuDaDi.YL[0] + Event Player.GuiYuDaDi.YL[1]);
+		Wait(2, Ignore Condition);
+		Event Player.GuiYuDaDi.YS[1] += 30;
+		Set Move Speed(Victim, (Event Player.GuiYuDaDi.YS[0] + Event Player.GuiYuDaDi.YS[1]) * (
+			Event Player.GuiYuDaDi.YS[2] + Event Player.GuiYuDaDi.YS[3]));
+		Event Player.GuiYuDaDi.YL[1] -= 1000;
+		Set Gravity(Event Player.GuiYuDaDi, Event Player.GuiYuDaDi.YL[0] + Event Player.GuiYuDaDi.YL[1]);
+		Event Player.GuiYuDaDi = 0;
+	}
+}
+
+rule("缚能电弧")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Event Player.YiXuanTianFu[73] *= -1;
+		Create Effect(All Players(All Teams), Mercy Damage Boosted Effect, Color(White), Event Player, 1, Visible To Position and Radius);
+		Event Player.FuNengDianHu = Last Created Entity;
+		Wait(12, Ignore Condition);
+		Destroy Effect(Event Player.FuNengDianHu);
+		Event Player.FuNengDianHu = 0;
+		Wait(60 / Absolute Value(Event Player.YiXuanTianFu[73]), Ignore Condition);
+		Event Player.YiXuanTianFu[73] *= -1;
+		Small Message(Event Player, Custom String("缚能电弧已冷却"));
+	}
+}
+
+rule("女武神")
+{
+	event
+	{
+		Subroutine;
+		NvWuShen;
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Up, 35, To Player, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Forward, 35, To Player, Cancel Contrary Motion);
+		Heal(Event Player, Event Player, Max Health(Event Player) * 0.200);
+		Event Player.YiXuanTianFu[75] *= -1;
+		Wait(15 / Absolute Value(Event Player.YiXuanTianFu[75]), Ignore Condition);
+		Event Player.YiXuanTianFu[75] *= -1;
+		Small Message(Event Player, Custom String("女武神已冷却"));
+	}
+}
+
+rule("轨道射线")
+{
+	event
+	{
+		Subroutine;
+		GuiDaoSheXian;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Bad Beam, Victim, Victim + Vector(0, 50, 0), Color(Red),
+			Visible To Position and Radius);
+		Attacker.GuiDaoSheXian = Last Created Entity;
+		Attacker.YiXuanTianFu[76] *= -1;
+		Start Damage Over Time(Victim, Attacker, 5, 60 * Absolute Value(Event Player.YiXuanTianFu[76]));
+		Destroy Effect(Attacker.GuiDaoSheXian);
+		Wait(60 / Absolute Value(Event Player.YiXuanTianFu[76]), Ignore Condition);
+		Attacker.YiXuanTianFu[76] *= -1;
+		Small Message(Attacker, Custom String("轨道射线已冷却"));
+	}
+}
+
+rule("动能俘获")
+{
+	event
+	{
+		Subroutine;
+		DongNeng;
+	}
+
+	actions
+	{
+		Event Player.DongNeng = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+		Apply Impulse(Event Player.DongNeng, -1 * Facing Direction Of(Event Player), 50, To World, Cancel Contrary Motion);
+		Set Environment Credit Player(Event Player.DongNeng, Event Player);
+		Event Player.YiXuanTianFu[77] *= -1;
+		Wait(5 / Absolute Value(Event Player.YiXuanTianFu[77]), Ignore Condition);
+		Set Environment Credit Player(Event Player.DongNeng, Null);
+		Event Player.YiXuanTianFu[77] *= -1;
+		Small Message(Event Player, Custom String("动能俘获已冷却"));
+	}
+}
+
+disabled rule("负载降温")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		(Server Load Average >= 255 || Server Load >= 255 || Server Load Peak >= 255) == True;
+	}
+
+	actions
+	{
+		Global.Z = Is Match Complete;
+		Set Slow Motion(Is Match Complete);
+	}
+}
+
+disabled rule("负载降温")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		(Server Load Average < 255 && Server Load < 255 && Server Load Peak < 255) == True;
+		Global.Z < 100;
+	}
+
+	actions
+	{
+		Global.Z += 10;
+		Wait(Is Match Complete, Abort When False);
+		Set Slow Motion(Global.Z);
+		Loop;
+	}
+}
+
+rule("重开游戏")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Match Complete == True;
+	}
+
+	actions
+	{
+		Wait(2.850, Ignore Condition);
+		Restart Match;
+	}
+}
+
+rule("赏金")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Wait(Random Real(0.200, 1), Ignore Condition);
+		Create In-World Text(Hero Of(Event Player) != Hero(Sombra) ? All Players(All Teams) : Event Player, Custom String("\n		赏金：{0}",
+			Event Player.XuanShang), Event Player, 1, Clip Against Surfaces, Visible To Position and String, Color(White),
+			Default Visibility);
+		Create Icon(Local Player.YiXuanTianFu[90] && Is Alive(Event Player) == True ? Local Player : Null, Event Player, Arrow: Down,
+			Visible To and Position, Color(White), False);
+	}
+}
+
+rule("|全局设置|——————————————————————————————————————————————————————————————————")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"代码受到保护，请尊重作者劳动成果"
+		Disable Inspector Recording;
+		Set Match Time(False);
+		Disable Built-In Game Mode Announcer;
+		Disable Built-In Game Mode Music;
+		Disable Built-In Game Mode Completion;
+		Global.D = 50;
+	}
+}
+
+rule("集结时间")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == False;
+	}
+
+	actions
+	{
+		Set Match Time(False);
+	}
+}
+
+rule("玩家获胜")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Score Of(Event Player) >= Global.D;
+	}
+
+	actions
+	{
+		Declare Player Victory(Event Player);
+	}
+}
+
+rule("新手补偿")
+{
+	event
+	{
+		Player Joined Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Wait(5, Ignore Condition);
+		Event Player.M += Number Of Eliminations(Last Of(Sorted Array(All Players(All Teams), Number Of Eliminations(
+			Current Array Element)))) * 1500;
+	}
+}
+
+rule("Rule 71")
+{
+	event
+	{
+		Subroutine;
+		ShuxingInit;
+	}
+
+	actions
+	{
+		"(攻击力+临时攻击力)*(百分比攻击力+临时百分比攻击力)"
+		Event Player.GJ[0] = 100;
+		Event Player.GJ[1] = 0;
+		Event Player.GJ[2] = 1;
+		Event Player.GJ[3] = 0;
+		"(法强+临时法强)+技能伤害*(百分比法强+临时百分比法强)"
+		Event Player.FQ[0] = 0;
+		Event Player.FQ[1] = 0;
+		Event Player.FQ[2] = 0;
+		Event Player.FQ[3] = 0;
+		"(额外生命值)*(百分比额外生命值+临时百分比额外生命值)"
+		Event Player.SM[0] = 0;
+		Event Player.SM[1] = 1;
+		Event Player.SM[2] = 0;
+		"(额外护盾)*(百分比额外护盾+临时百分比额外护盾)"
+		Event Player.HD[0] = 0;
+		Event Player.HD[1] = 1;
+		Event Player.HD[2] = 0;
+		"(额外护甲)*(百分比额外护甲+临时百分比额外护甲)"
+		Event Player.HJ[0] = 0;
+		Event Player.HJ[1] = 1;
+		Event Player.HJ[2] = 0;
+		"基础生命值百分比"
+		Event Player.JC = 100;
+		"受到伤害"
+		Event Player.SS = 100;
+		"cd"
+		Event Player.CD = 1;
+		"(移速+临时移速)*(百分比移速+百分比临时移速)"
+		Event Player.YS[0] = 100;
+		Event Player.YS[1] = 0;
+		Event Player.YS[2] = 1;
+		Event Player.YS[3] = 0;
+		"吸血+临时吸血"
+		Event Player.XX[0] = 0;
+		Event Player.XX[1] = 0;
+		"(治疗量+临时治疗量)*(百分比治疗量+临时百分比治疗量)"
+		Event Player.ZL[0] = 100;
+		Event Player.ZL[1] = 0;
+		Event Player.ZL[2] = 1;
+		Event Player.ZL[3] = 0;
+		"(受到治疗量+临时受治疗量)*(百分比受治疗量+临时百分比受治疗量)"
+		Event Player.SZ[0] = 100;
+		Event Player.SZ[1] = 0;
+		Event Player.SZ[2] = 1;
+		Event Player.SZ[3] = 0;
+		"暴击倍率"
+		Event Player.BJ = 0;
+		"弹道速度"
+		Event Player.DD = 100;
+		"引力+临时引力"
+		Event Player.YL[0] = 100;
+		Event Player.YL[1] = 0;
+		"击退"
+		Event Player.JT = 100;
+		"大小+临时大小"
+		Event Player.DX[0] = 1;
+		Event Player.DX[1] = 0;
+		"钱"
+		Event Player.M = 1000;
+		"宝石"
+		Event Player.BS = 1;
+		"技能点"
+		Event Player.JND = 1;
+		"等级经验"
+		Event Player.DJ[0] = 1;
+		Event Player.DJ[1] = 0;
+		"商店随机池"
+		Event Player.ShangPing = Global.ShangPing;
+		"闪属性"
+		Event Player.ShanShuXing = Color(Violet);
+		"刷新骰子"
+		Event Player.TouZi = 5;
+	}
+}
+
+rule("Rule 72")
+{
+	event
+	{
+		Subroutine;
+		ButtonInit;
+	}
+
+	actions
+	{
+		Event Player.Backpack_sensitivity = 0.160;
+		Event Player.Backpack_button[0] = Array(Custom String("攻击力碎片-300货币\n			随机获得1-5点攻击力"), Color(White), Color(Yellow), Vector(0, 7.250,
+			6.050), Vector(0, 7.750, 7.800), Vector(0, 7, 4.500));
+		Event Player.Backpack_button[1] = Array(Custom String("技能伤害碎片-300货币\n			随机获得3%-6%技能伤害"), Color(White), Color(Yellow), Vector(0,
+			7.250, 1.230), Vector(0, 7.750, 4), Vector(0, 7, -1));
+		Event Player.Backpack_button[2] = Array(Custom String("生命碎片-300货币\n			随机获得30-50点生命值"), Color(White), Color(Yellow), Vector(0,
+			6.250, 5.900), Vector(0, 6.700, 7.800), Vector(0, 6, 4.300));
+		Event Player.Backpack_button[3] = Array(Custom String("护盾碎片-300货币\n			随机获得25-50点护盾"), Color(White), Color(Yellow), Vector(0, 6.250,
+			2.500), Vector(0, 6.700, 4), Vector(0, 6, 0.900));
+		Event Player.Backpack_button[4] = Array(Custom String("护甲碎片-400货币\n			随机获得20-40点护甲"), Color(White), Color(Yellow), Vector(0, 6.250,
+			-1.050), Vector(0, 6.700, 0.600), Vector(0, 6, -2.600));
+		Event Player.Backpack_button[5] = Array(Custom String("技能极速碎片-200货币\n随机获得1-2点技能极速"), Color(White), Color(Yellow), Vector(0, 5.250,
+			5.900), Vector(0, 5.700, 7.800), Vector(0, 5, 4.300));
+		Event Player.Backpack_button[6] = Array(Custom String("治疗量碎片-200货币\n			随机获得2-4治疗量"), Color(White), Color(Yellow), Vector(0, 5.250,
+			2.550), Vector(0, 5.700, 4), Vector(0, 5, 0.900));
+		Event Player.Backpack_button[7] = Array(Custom String("移速碎片-500货币\n			随机获得1-5点移动速度"), Color(White), Color(Yellow), Vector(0, 5.250,
+			-1.200), Vector(0, 5.700, 0.600), Vector(0, 5, -2.800));
+		Event Player.Backpack_button[8] = Array(Custom String("吸血碎片-500货币\n随机获得1%-3%吸血"), Color(White), Color(Yellow), Vector(0, 4.250,
+			6.100), Vector(0, 4.700, 7.800), Vector(0, 4, 4.300));
+		Event Player.Backpack_button[9] = Array(Custom String("击退碎片-250货币\n随机获得5-10点击退倍率"), Color(White), Color(Yellow), Vector(0, 4.250,
+			2.250), Vector(0, 4.700, 4), Vector(0, 4, 0.900));
+		Event Player.Backpack_button[10] = Array(Custom String("宝石兑换-2000货币\n获得1宝石"), Color(White), Color(Yellow), Vector(0, 4.250,
+			-0.950), Vector(0, 4.700, 0.600), Vector(0, 4, -2.450));
+		Call Subroutine(ShangPingShuaXin);
+		Wait(0.100, Ignore Condition);
+		Call Subroutine(TianFuShuaXin);
+		Wait(0.100, Ignore Condition);
+		Event Player.Backpack_button[20] = Array(Custom String("刷新-消耗一枚刷新骰子\n若没有骰子则消耗1宝石"), Color(White), Color(Yellow), Vector(0, 7.500,
+			-3.800), Vector(0, 7.650, -2.150), Vector(0, 7.350, -5.400));
+		Event Player.Backpack_actionByIndex = Array(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 200, 200, 200, 200, 200, 200,
+			300, 300, 300, 1);
+		Event Player.Backpack_paramByIndex = Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
+		Event Player.Backpack_candidates_mode1 = Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20);
+		Event Player.Backpack_candidates_mode2 = Array(17, 18, 19, 20);
+	}
+}

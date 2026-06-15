@@ -1,0 +1,145 @@
+import '装备.del';
+import '强化石数据结构.del';
+single struct DropitemData {
+    public Boolean isEquip;
+    public Number TypeID;
+    public Number Count;
+    public static DropitemData New(Boolean isequip,Number typeID,Number count=1): single { isEquip:isequip,TypeID: typeID,Count: count };
+}
+class DropItem {
+    public DropitemData Data;
+    public Any EffectID;
+    public Any WorldTextID;
+    public Vector Pos;
+    public constructor(in Boolean isequip, in Number typeID, in Number count = 1) {
+        Data = DropitemData.New(isequip,typeID,count);
+    }
+
+    public String GetItemString(){
+        return 
+        <'——————<1>——————\n[<2>]\n\n<0>\n\n按下蹲拾取该掉落物',Data.isEquip?
+        GetEquipString(EquipData_Pool[Data.TypeID])
+        :GetESDes(EnhanceStone_Pool[Data.TypeID]),<'<0>当前掉落物(x<1>)',IconString(Icon.ArrowDown),Data.Count>,Item_Dropped.Contains(this)?IconString(Icon.Spade)+'全局':IconString(Icon.Happy)+'独属于你'>
+        ;
+    }
+
+    public String GetItemName(){
+        return Data.isEquip?
+        (EquipData_Pool[Data.TypeID].Name)
+        :GetESName(EnhanceStone_Pool[Data.TypeID]);
+    }
+
+    public Color GetItemColor(){
+        return Data.isEquip?
+        GetEquipColor(EquipData_Pool[Data.TypeID])
+        :Color.Gray;
+    }
+}
+public void PickDropItem(in DropItem dropitem) {
+    DestroyEffect(dropitem.EffectID);
+    DestroyInWorldText(dropitem.WorldTextID);
+    for(define i! =0;i<dropitem.Data.Count;i++){
+        define Name! = dropitem.GetItemName();
+        SmallMessage(EventPlayer(),UpdateEveryFrame('获得 '+Name));
+        if(dropitem.Data.isEquip){
+            if(!equipBag.Contains(EquipData_Pool[dropitem.Data.TypeID])){
+                equipBag += EquipData_Pool[dropitem.Data.TypeID];
+            }else{
+                SmallMessage(EventPlayer(),'你已经拥有了该道具,转为100金币');
+            }
+        }else{
+            enhanceStones[dropitem.Data.TypeID] += 1;
+        }
+    }
+    PlayEffect(VisibleTo: AllPlayers(),PlayEffect.GoodPickupEffect,dropitem.GetItemColor(),dropitem.Pos,1);
+    PlayEffect(VisibleTo: AllPlayers(),PlayEffect.BuffImpactSound,dropitem.GetItemColor(),dropitem.Pos,200);
+    item_dropped = item_dropped.Filter(t=>t!=Selecting_DropItem);
+    Item_Dropped = Item_Dropped.Filter(t=>t!=Selecting_DropItem);
+}
+public void DropItemasGlobal(DropItem dropitem) ''{
+    dropitem.Pos = RayCastHitPosition(EyePosition(),EyePosition()+30*WorldVectorOf(Vector(RandomReal(-1,1),-1,RandomReal(-1,1)),EventPlayer(),<LocalVector>Transformation.Rotation))+Vector(0,1,0);
+    PlayEffect(VisibleTo: AllPlayers(),PlayEffect.GoodPickupEffect,dropitem.GetItemColor(),dropitem.Pos,1);
+    Item_Dropped += dropitem;
+    WaitAsync(0,()=>{
+            CreateEffect(VisibleTo: AllPlayers(),Type: Effect.Orb,Color: dropitem.Data.isEquip?GetEquipColor(EquipData_Pool[dropitem.Data.TypeID]):Color.Gray,Position: dropitem.Pos,Reevaluation: EffectRev.None);
+            dropitem.EffectID = LastCreatedEntity();
+            CreateInWorldText(Header: IconString(Icon.Spade)+dropitem.GetItemName()+'x'+dropitem.Data.Count,Position: dropitem.Pos,Reevaluation: InworldTextRev.None,Scale: 2,Clipping: Clipping.ClipAgainstSurfaces);
+            dropitem.WorldTextID = LastTextID();
+            SmallMessage(AllPlayers().Filter(t=>DistanceBetween(t,dropitem.Pos)<=30),<'掉落 <0>!!!',IconString(Icon.Spade)+dropitem.GetItemName()>);
+    });
+
+
+
+}
+public void DropItemasPlayer(DropItem dropitem,Player[] TargetPlayer = [EventPlayer()])'' {
+    dropitem.Pos = RayCastHitPosition(EyePosition(),EyePosition()+30*WorldVectorOf(Vector(RandomReal(-1,1),-1,RandomReal(-1,1)),EventPlayer(),<LocalVector>Transformation.Rotation))+Vector(0,1,0);
+    PlayEffect(VisibleTo: TargetPlayer,PlayEffect.GoodPickupEffect,dropitem.GetItemColor(),dropitem.Pos,1);
+    TargetPlayer.item_dropped += dropitem;
+    WaitAsync(0,()=>{
+            CreateEffect(VisibleTo: EvaluateOnce(TargetPlayer),Type: Effect.Orb,Color: dropitem.Data.isEquip?GetEquipColor(EquipData_Pool[dropitem.Data.TypeID]):Color.Gray,Position: dropitem.Pos,Reevaluation: EffectRev.None);
+            dropitem.EffectID = LastCreatedEntity();
+            CreateInWorldText(Header: dropitem.GetItemName()+'x'+dropitem.Data.Count,Position: dropitem.Pos,Reevaluation: InworldTextRev.None,Scale: 2,Clipping: Clipping.ClipAgainstSurfaces,VisibleTo: EvaluateOnce(TargetPlayer));
+            dropitem.WorldTextID = LastTextID();
+            SmallMessage(TargetPlayer,<'掉落 <0>!!!',dropitem.GetItemName()>);
+    });
+
+
+    define Name! = dropitem.GetItemName();
+    
+}
+globalvar DropItem[] Item_Dropped = [];
+playervar DropItem[] item_dropped = [];
+playervar String DropItem_String!;
+DropItem[] AllDropItems(in Player p = EventPlayer()): Append(p.item_dropped,Item_Dropped);
+DropItem[] AllDropItems_Local: Append(LocalPlayer().item_dropped,Item_Dropped);
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: LocalPlayer().DropItem_String,
+        HeaderColor: LocalPlayer().Selecting_DropItem.Data.isEquip?GetEquipColor(EquipData_Pool[LocalPlayer().Selecting_DropItem.Data.TypeID]):Color.White,
+        Location: Location.Top,
+        SortOrder: -1,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        VisibleTo: LocalPlayer().Selecting_DropItem!=null?LocalPlayer():null
+    );
+    CreateIcon(
+        VisibleTo: IsInLineOfSight(EyePosition(LocalPlayer()),LocalPlayer().Selecting_DropItem.Pos)&&LocalPlayer().Selecting_DropItem!=null?LocalPlayer():null,
+        Position: LocalPlayer().Selecting_DropItem.Pos,
+        Reevaluation: IconRev.VisibleToPositionAndColor,        
+        Icon: Icon.ArrowDown,
+        IconColor: Color.Yellow,
+        ShowWhenOffscreen: true
+    );
+    for(define i! = 0;i<6;i++){
+
+    }
+}
+playervar DropItem Selecting_DropItem;
+rule: '更新掉落物信息'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AllDropItems().Length>0)
+if(Selecting_DropItem != AllDropItems().Filter(t=>t!=null&&IsInLineOfSight(EyePosition(),t.Pos)&&DistanceBetween(t.Pos,EyePosition())<=30).Sort(t=>AbsoluteValue(AngleBetweenVectors(FacingDirectionOf(),DirectionTowards(EyePosition(),t.Pos)))).First)
+{
+    //Selecting_DropItem = AllDropItems.Filter(t=>t!=null).Sort(t=>DistanceBetween(t.Pos,EyePosition())).First;
+    PlayEffect(EventPlayer(),PlayEffect.RingExplosionSound,Color.Yellow,PositionOf(),100);
+    Selecting_DropItem = AllDropItems().Filter(t=>t!=null&&IsInLineOfSight(EyePosition(),t.Pos)&&DistanceBetween(t.Pos,EyePosition())<=30).Sort(t=>AbsoluteValue(AngleBetweenVectors(FacingDirectionOf(),DirectionTowards(EyePosition(),t.Pos)))).First;
+    DropItem_String = Selecting_DropItem.GetItemString();
+    Wait(0.1,WaitBehavior.RestartWhenTrue);
+    LoopIfConditionIsTrue();
+}
+
+
+rule: '捡起掉落物'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+if(Selecting_DropItem != null)
+{
+    if(Selecting_DropItem!=null){
+        PickDropItem(Selecting_DropItem);
+        Selecting_DropItem = null;
+    }
+}

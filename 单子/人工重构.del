@@ -1,0 +1,1156 @@
+import '地图文本菜单.del';
+single struct Item {
+    public Number ID;
+    public String Name;
+    public String Des;
+    public Number Price;
+    public PriceType PriceType;
+}
+single struct TF {
+    public Number ID;
+    public String Name;
+    public String Des;
+}
+
+enum PriceType{
+    Gem,
+    Gold
+}
+
+globalvar Item[] Items = [];
+globalvar TF[] TFs = [];
+globalvar Item[] BaseItems = [];
+
+rule: '天赋初始化'
+{
+    TFs = [
+        {
+            ID: 0,
+            Name: "成长，生命，幸福，还有朋友",
+            Des: "解除等级上限"
+        },
+        {
+            ID: 1,
+            Name: "宝石批发",
+            Des: "随机获得\n1-15枚宝石"
+        },
+        {
+            ID: 2,
+            Name: "猿神启动",
+            Des: "替换为温斯顿\n获得大量属性\n食用香蕉获得\n额外属性"
+        },
+        {
+            ID: 3,
+            Name: "冰香蕉",
+            Des: "高级商店\n出现冰香蕉"
+        },
+        {
+            ID: 4,
+            Name: "升级咯",
+            Des: "每次升级时\n多升一级"
+        },
+        {
+            ID: 5,
+            Name: "充值返利",
+            Des: "购买高级商品后\n返还500货币"
+        },
+        {
+            ID: 6,
+            Name: "无中生有",
+            Des: "获得2个天赋"
+        },
+        {
+            ID: 7,
+            Name: "龙神之刃",
+            Des: "获得65攻击力"
+        },
+        {
+            ID: 8,
+            Name: "防御矩阵",
+            Des: "获得40%免伤"
+        },
+        {
+            ID: 9,
+            Name: "屏障与巨甲",
+            Des: "获得600护盾\n600护甲"
+        },
+        {
+            ID: 10,
+            Name: "地狱火",
+            Des: "获得50%吸血"
+        },
+        {
+            ID: 11,
+            Name: "能量标枪",
+            Des: "获得70%\n技能额外伤害"
+        },
+        {
+            ID: 12,
+            Name: "忍者足具",
+            Des: "可以二段跳"
+        },
+        {
+            ID: 13,
+            Name: "兔子跳",
+            Des: "跳跃回复30点血量"
+        },
+        {
+            ID: 14,
+            Name: "一拳",
+            Des: "禁用主/辅攻击\n获得100%攻击力"
+        },
+        {
+            ID: 15,
+            Name: "火箭重锤",
+            Des: "近战发出焰浪\n并击晕敌人"
+        },
+        {
+            ID: 16,
+            Name: "灭",
+            Des: "攻击附带0.5%\n最大生命值伤害\n斩杀低于5%\n血量的敌人"
+        },
+        {
+            ID: 17,
+            Name: "圣",
+            Des: "使用终极技能时无敌"
+        },
+        {
+            ID: 18,
+            Name: "熔火核心",
+            Des: "持续对周围敌人\n造成5%最大生命值伤害"
+        },
+        {
+            ID: 19,
+            Name: "太阳光塔",
+            Des: "参与击杀获得\n20终极技能能量"
+        },
+        {
+            ID: 20,
+            Name: "猪神",
+            Des: "获得巨量属性\n受伤增大体型\n濒死恢复生命值\n（每条命一次）"
+        },
+        {
+            ID: 21,
+            Name: "神射手",
+            Des: "任务：持有10000货币\n奖励：攻击穿墙\n+一定范围跟踪"
+        },
+        {
+            ID: 22,
+            Name: "强固防御",
+            Des: "将额外生命值\n和护盾全部\n升级为护甲"
+        },
+        {
+            ID: 23,
+            Name: "龙魂",
+            Des: "参与击杀刷新\n小技能CD"
+        },
+        {
+            ID: 24,
+            Name: "战术目镜",
+            Des: "简易版自瞄"
+        },
+        {
+            ID: 25,
+            Name: "临别礼物",
+            Des: "死亡后自爆\n对周围敌人\n造成高额伤害"
+        },
+        {
+            ID: 26,
+            Name: "百合之吻",
+            Des: "暴击击杀\n永久获得\n5点攻击力"
+        },
+        {
+            ID: 27,
+            Name: "两颗心脏",
+            Des: "血量降至50%时\n获得消灭数×80点\n临时护甲\n（30秒冷却）"
+        },
+        {
+            ID: 28,
+            Name: "重踏",
+            Des: "跳跃向下猛踏\n造成0.1×最大生命值伤害和控制\n（最多5秒\n30秒冷却）"
+        },
+        {
+            ID: 29,
+            Name: "猛击",
+            Des: "击退敌人时造成\n基于击退倍率的百分比伤害\n（每100击退5%）"
+        },
+        {
+            ID: 30,
+            Name: "流水禅杖",
+            Des: "造成击退时\n治疗友方\n（每100击退倍率治疗50点）"
+        },
+        {
+            ID: 31,
+            Name: "无情连打",
+            Des: "造成击退后获得\n1点永久攻击力\n+2点临时攻击力"
+        },
+        {
+            ID: 32,
+            Name: "狂战士",
+            Des: "攻击叠层\n每层提供0.001×最大生命值的\n百分比攻击力\n和临时吸血\n（最多50层\n持续5秒）"
+        },
+        {
+            ID: 33,
+            Name: "枯萎凋零",
+            Des: "造成伤害使目标\n减少50%受治疗量\n和30移动速度"
+        },
+        {
+            ID: 34,
+            Name: "冰冻冲击枪",
+            Des: "攻击减少目标\n30%移动速度\n持续攻击可冻住目标"
+        },
+        {
+            ID: 35,
+            Name: "无限火力",
+            Des: "无限弹药\n按换弹重置\n（毛家花男\n无法使用）"
+        },
+        {
+            ID: 36,
+            Name: "德国工艺",
+            Des: "获得100%额外生命\n、护盾、护甲"
+        },
+        {
+            ID: 37,
+            Name: "赏金狩猎",
+            Des: "获得3层赏金猎人\n若已有则×3"
+        },
+        {
+            ID: 38,
+            Name: "音波",
+            Des: "击退倍率×5"
+        },
+        {
+            ID: 39,
+            Name: "撼地猛刺",
+            Des: "站立不动时\n周期性反弹100%伤害\n（每秒一次\n不受攻击力加成）"
+        },
+        {
+            ID: 40,
+            Name: "超能之球",
+            Des: "任务：达到15级\n奖励：攻击附带爆破效果"
+        },
+        {
+            ID: 41,
+            Name: "巨人英雄",
+            Des: "体型增大\n+20%免伤"
+        },
+        {
+            ID: 42,
+            Name: "小小英雄",
+            Des: "体型略微减小"
+        },
+        {
+            ID: 43,
+            Name: "迷你英雄",
+            Des: "体型减小但\n增加受到伤害"
+        },
+        {
+            ID: 44,
+            Name: "不动如山",
+            Des: "不被击退\n+200%额外生命值"
+        },
+        {
+            ID: 45,
+            Name: "诛",
+            Des: "使用大招后消灭\n所有低于30%血量的角色\n（包括友方）"
+        },
+        {
+            ID: 46,
+            Name: "激素",
+            Des: "使用大招时获得激素\n持续至大招结束"
+        },
+        {
+            ID: 47,
+            Name: "风暴击",
+            Des: "可以暴上加暴"
+        },
+        {
+            ID: 48,
+            Name: "岚",
+            Des: "弹道不下落\n+200弹道速度"
+        },
+        {
+            ID: 49,
+            Name: "灵符",
+            Des: "每次造成治疗时\n获得1%能量"
+        },
+        {
+            ID: 50,
+            Name: "呼吸器",
+            Des: "每次治疗时\n获得15%治疗数额的\n生命值"
+        },
+        {
+            ID: 51,
+            Name: "愈合冲击",
+            Des: "治疗对周围敌人\n造成100%治疗数额的\n伤害"
+        },
+        {
+            ID: 52,
+            Name: "灵狐",
+            Des: "获得50点技能极速"
+        },
+        {
+            ID: 53,
+            Name: "桎梏灼日",
+            Des: "使用大招后\n返还50%\n终极技能能量"
+        },
+        {
+            ID: 54,
+            Name: "毒蛇",
+            Des: "击杀敌人夺取\n赏金猎人层数×100货币"
+        },
+        {
+            ID: 55,
+            Name: "死亡绽放",
+            Des: "参与击杀回复500点血量"
+        },
+        {
+            ID: 56,
+            Name: "再来",
+            Des: "下一个天赋\n永久留在\n第一个天赋位"
+        },
+        {
+            ID: 57,
+            Name: "美丽冻人",
+            Des: "按终极技能消耗10能量\n冻结自身并无敌5秒\n再按消耗20能量\n使身体可活动"
+        },
+        {
+            ID: 58,
+            Name: "地壳震击",
+            Des: "按终极技能消耗30能量\n击飞并眩晕\n周围敌人"
+        },
+        {
+            ID: 59,
+            Name: "细胞能量",
+            Des: "按终极技能消耗1%生命值\n换取1%终极技能能量"
+        },
+        {
+            ID: 60,
+            Name: "归于大地",
+            Des: "按终极技能消耗20能量\n击落准星最近的\n角色并减速30\n持续3秒"
+        },
+        {
+            ID: 61,
+            Name: "锻造",
+            Des: "按终极技能消耗25能量\n获得50点护甲"
+        },
+        {
+            ID: 62,
+            Name: "跃",
+            Des: "按终极技能消耗5能量\n水平跃出"
+        },
+        {
+            ID: 63,
+            Name: "律动连打",
+            Des: "主要攻击减少\n小技能CD"
+        },
+        {
+            ID: 64,
+            Name: "骨刺",
+            Des: "基于护甲值的\n斩杀效果\n（每1000护甲5%）"
+        },
+        {
+            ID: 65,
+            Name: "刷新骰盒",
+            Des: "获得9个刷新骰子"
+        },
+        {
+            ID: 66,
+            Name: "引力装置",
+            Des: "按终极技能消耗10能量\n使周围角色引力\n降低90点\n持续10秒"
+        },
+        {
+            ID: 67,
+            Name: "12面骰",
+            Des: "猪猪骰子有12种点数\n商店随机池\n添加三枚猪猪骰子"
+        },
+        {
+            ID: 68,
+            Name: "猪猪存钱罐",
+            Des: "每次受到>100点伤害\n存一枚猪猪币\n持续至参与击杀为止"
+        },
+        {
+            ID: 69,
+            Name: "金猪商店",
+            Des: "高级商店替换为\n金猪商店\n只刷出特殊猪猪币"
+        },
+        {
+            ID: 70,
+            Name: "5a连招",
+            Des: "禁用所有技能\n攻击力翻倍"
+        },
+        {
+            ID: 71,
+            Name: "灌铅骰子",
+            Des: "猪猪骰子永远是最大值\n商店随机池添加\n三枚猪猪骰子"
+        },
+        {
+            ID: 72,
+            Name: "英雄集结",
+            Des: "按集合召唤\n所有队友至身边\n（120秒冷却）"
+        },
+        {
+            ID: 73,
+            Name: "缚能电弧",
+            Des: "按受到使用\n12秒内造成伤害\n击晕目标\n（60秒冷却）"
+        },
+        {
+            ID: 74,
+            Name: "超电磁炮",
+            Des: "主要攻击提供\n临时百分比技能伤害\n至下次触发技能伤害为止\n（最多50%）"
+        },
+        {
+            ID: 75,
+            Name: "女武神",
+            Des: "按跳跃飞向并治疗\n自身20%最大生命值\n（15秒冷却）"
+        },
+        {
+            ID: 76,
+            Name: "轨道镭射",
+            Des: "造成伤害引导激光\n5秒内持续造成300点伤害\n（60秒冷却）"
+        },
+        {
+            ID: 77,
+            Name: "动能俘获",
+            Des: "主要攻击将目标\n吸向自己\n（10秒冷却）"
+        },
+        {
+            ID: 78,
+            Name: "破甲熔钉",
+            Des: "攻击点燃目标\n再次攻击破除目标\n30%护甲值"
+        },
+        {
+            ID: 79,
+            Name: "生命之握",
+            Des: "治疗低于30%\n血量的友方时\n获得其30%治疗量的\n临时治疗量\n（持续4秒）"
+        },
+        {
+            ID: 80,
+            Name: "双龙",
+            Des: "任务：同时拥有\n指定5个天赋中的\n任意3个\n奖励：替换为强化版\n源氏或半藏"
+        },
+        {
+            ID: 81,
+            Name: "人见人厌",
+            Des: "初始赏金减少1000"
+        },
+        {
+            ID: 82,
+            Name: "三原色：红",
+            Des: "技能1受到\n双倍技能极速"
+        },
+        {
+            ID: 83,
+            Name: "三原色：蓝",
+            Des: "技能2受到\n双倍技能极速"
+        },
+        {
+            ID: 84,
+            Name: "三原色：绿",
+            Des: "辅助攻击模式受到\n双倍技能极速"
+        },
+        {
+            ID: 85,
+            Name: "绿闪",
+            Des: "触发技能额外伤害时\n对自身施加\n同等治疗效果"
+        },
+        {
+            ID: 86,
+            Name: "红闪",
+            Des: "触发技能额外伤害时\n附带受益于百分比技能伤害的\n百分比伤害"
+        },
+        {
+            ID: 87,
+            Name: "青闪",
+            Des: "触发技能额外伤害时\n附带短暂眩晕效果"
+        },
+        {
+            ID: 88,
+            Name: "黑闪",
+            Des: "技能额外伤害\n无视伤害减免\n造成真实伤害"
+        },
+        {
+            ID: 89,
+            Name: "灭绝",
+            Des: "获得30%攻击力\n和30%技能伤害"
+        },
+        {
+            ID: 90,
+            Name: "红外侦测",
+            Des: "显示所有玩家的位置"
+        },
+        {
+            ID: 91,
+            Name: "龙锤",
+            Des: "将一把龙锤\n洗入商店"
+        },
+        {
+            ID: 92,
+            Name: "变态发育",
+            Des: "立刻提升4级\n变为随机英雄"
+        },
+        {
+            ID: 93,
+            Name: "宝箱",
+            Des: "获得随机奖励"
+        },
+        {
+            ID: 94,
+            Name: "果篮",
+            Des: "获得每种水果\n各一个"
+        },
+        {
+            ID: 95,
+            Name: "生命之树",
+            Des: "疗愈灵花附带等量\n受治疗量\n商店随机池添加\n10朵疗愈灵花"
+        },
+        {
+            ID: 96,
+            Name: "镜像增值",
+            Des: "购买高级商品后\n商店池中添加\n一个相同的商品"
+        },
+        {
+            ID: 97,
+            Name: "生化之触",
+            Des: "治疗量≥200时\n获得等同治疗量的攻击力\n攻击力≥200时\n获得等同攻击力的治疗量"
+        },
+        {
+            ID: 98,
+            Name: "彩虹恢复包",
+            Des: "食用地图上的恢复包\n可获得永久属性"
+        },
+        {
+            ID: 99,
+            Name: "幽灵形态",
+            Des: "每次受到单次\n超过300点伤害时\n获得1秒消散效果"
+        },
+        {
+            ID: 100,
+            Name: "维生立场",
+            Des: "受到伤害时治疗自身\n治疗量为伤害的20%"
+        },
+        {
+            ID: 101,
+            Name: "充能屏障",
+            Des: "获得100%额外护盾\n护盾破碎时\n获得基于护盾量的能量\n（3%×护盾值）"
+        },
+        {
+            ID: 102,
+            Name: "涅槃",
+            Des: "使用终极技能时死亡\n将原地复活\n并返还终极技能充能"
+        },
+        {
+            ID: 103,
+            Name: "连锁闪电",
+            Des: "造成伤害会对\n距离目标最近的角色\n造成50%的伤害"
+        },
+        {
+            ID: 104,
+            Name: "肘击！",
+            Des: "近战造成的伤害翻倍"
+        },
+        {
+            ID: 105,
+            Name: "生命虹吸",
+            Des: "攻击根据治疗量\n获得生命值\n（4秒冷却）"
+        },
+        {
+            ID: 106,
+            Name: "意外之财++",
+            Des: "获得10000货币"
+        },
+        {
+            ID: 107,
+            Name: "热力熔渣",
+            Des: "购买护甲碎片\n返还100货币\n+100%额外护甲"
+        },
+        {
+            ID: 108,
+            Name: "帕拉蒂尼之牙",
+            Des: "近战攻击根据暴伤倍率\n造成暴击\n+100%暴伤倍率"
+        },
+        {
+            ID: 109,
+            Name: "粒子屏障",
+            Des: "获得100%额外护盾\n护盾破碎时造成\n30%护盾量的伤害"
+        },
+        {
+            ID: 110,
+            Name: "火箭飞弹",
+            Des: "任务：弹道速度达到300\n奖励：10米外造成伤害\n发射可追踪火箭弹"
+        },
+        {
+            ID: 111,
+            Name: "求打",
+            Des: "获得10层\n连败层数"
+        },
+        {
+            ID: 112,
+            Name: "原始暴怒",
+            Des: "使用终极技能后\n获得100%\n额外生命值"
+        },
+        {
+            ID: 113,
+            Name: "保底",
+            Des: "使用终极技能后\n获得1000货币"
+        }
+    ];
+}
+rule: '基础商店物品初始化'
+{
+    BaseItems = [
+        {
+            ID: 0,
+            Name: "攻击力碎片",
+            Des: "随机获得1-5点攻击力",
+            Price: 300,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 1,
+            Name: "技能伤害碎片",
+            Des: "随机获得1%-5%技能伤害",
+            Price: 300,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 2,
+            Name: "生命碎片",
+            Des: "随机获得10-100点生命值",
+            Price: 300,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 3,
+            Name: "护盾碎片",
+            Des: "随机获得20-80点护盾",
+            Price: 300,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 4,
+            Name: "护甲碎片",
+            Des: "随机获得20-60点护甲",
+            Price: 400,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 5,
+            Name: "技能极速碎片",
+            Des: "随机获得1-2点技能极速",
+            Price: 200,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 6,
+            Name: "治疗量碎片",
+            Des: "随机获得2-6治疗量",
+            Price: 200,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 7,
+            Name: "移速碎片",
+            Des: "随机获得1-5点移动速度",
+            Price: 500,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 8,
+            Name: "吸血碎片",
+            Des: "随机获得1%-3%吸血",
+            Price: 500,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 9,
+            Name: "击退碎片",
+            Des: "随机获得5-10点击退倍率",
+            Price: 250,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 10,
+            Name: "宝石兑换",
+            Des: "获得1宝石",
+            Price: 2000,
+            PriceType: PriceType.Gold
+        }
+    ];
+}
+playervar TF[] tfs = [];
+playervar TF[] tf_3random = [];
+playervar Item[] items = [];
+playervar Item[] items_6random = [];
+rule: '高级商店物品初始化'
+{
+    Items = [
+        {
+            ID: 0,
+            Name: "力量石榴",
+            Des: "获得5点百分比攻击力加成",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 1,
+            Name: "威能蓝莓",
+            Des: "获得10点技能额外伤害加成",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 2,
+            Name: "充电特饮",
+            Des: "获得20技能极速+20移动速度",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 3,
+            Name: "巨人威化",
+            Des: "根据体型和生命值提供攻击力（额外体型×最大生命值×0.005）",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 4,
+            Name: "猪猪币",
+            Des: "获得50%基础生命值",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 5,
+            Name: "猪猪骰子",
+            Des: "扔一个猪猪骰子，根据点数获得猪猪币",
+            Price: 3,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 6,
+            Name: "香蕉",
+            Des: "攻击力+10生命值",
+            Price: 100,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 7,
+            Name: "足力健",
+            Des: "获得50移动速度",
+            Price: 5,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 8,
+            Name: "盗版龙神之刃",
+            Des: "获得30点攻击力",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 9,
+            Name: "盗版防御矩阵",
+            Des: "获得15%免伤",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 10,
+            Name: "盗版屏障与巨甲",
+            Des: "获得200护盾+200护甲",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 11,
+            Name: "盗版地狱火",
+            Des: "获得20%吸血",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 12,
+            Name: "盗版能量标枪",
+            Des: "获得40%技能额外伤害",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 13,
+            Name: "盗版足力健",
+            Des: "获得20移动速度",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 14,
+            Name: "小袋骰子",
+            Des: "获得两个刷新骰子",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 15,
+            Name: "大袋骰子",
+            Des: "获得五个刷新骰子",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 16,
+            Name: "赏金猎人",
+            Des: "获得一层赏金猎人，参与击杀提供100额外货币",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 17,
+            Name: "强化改件",
+            Des: "根据职责获得对应属性（T减伤、C攻击力、N治疗量）",
+            Price: 1000,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 18,
+            Name: "天赋复制器",
+            Des: "下一个天赋将被复制",
+            Price: 5,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 19,
+            Name: "天赋点",
+            Des: "获得一个天赋点",
+            Price: 5,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 20,
+            Name: "极小化",
+            Des: "略微减小体型",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 21,
+            Name: "方糖苹果",
+            Des: "获得40%额外生命值",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 22,
+            Name: "酒酿葡萄",
+            Des: "获得吸血值10%的吸血值",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 23,
+            Name: "往复柠檬",
+            Des: "获得20%技能极速",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 24,
+            Name: "流星杨桃",
+            Des: "获得5点百分比移动速度",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 25,
+            Name: "水绿宝石",
+            Des: "下次天赋选择只会出现水绿色天赋",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 26,
+            Name: "传说金币",
+            Des: "下次天赋选择只会出现橙色天赋",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 27,
+            Name: "疗愈灵花",
+            Des: "获得5%百分比治疗量",
+            Price: 500,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 28,
+            Name: "实验护盾",
+            Des: "500点一次性生命值",
+            Price: 200,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 29,
+            Name: "护甲包",
+            Des: "100点护甲",
+            Price: 300,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 30,
+            Name: "绝招加速器",
+            Des: "获得30%终极技能能量",
+            Price: 500,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 31,
+            Name: "治疗新星",
+            Des: "根据本局治疗量获得各种属性值",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 32,
+            Name: "命运魔方",
+            Des: "获得一次特殊的刷新",
+            Price: 2,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 33,
+            Name: "小袋宝石",
+            Des: "随机获得0-2枚宝石",
+            Price: 500,
+            PriceType: PriceType.Gold
+        },
+        {
+            ID: 34,
+            Name: "小袋钱币",
+            Des: "随机获得0-500货币",
+            Price: 200,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 35,
+            Name: "随机天赋",
+            Des: "获得一个随机的天赋",
+            Price: 4,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 36,
+            Name: "英雄币",
+            Des: "获得一次重新选择英雄的机会",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 37,
+            Name: "速射弩箭",
+            Des: "获得100弹道速度",
+            Price: 1,
+            PriceType: PriceType.Gem
+        },
+        {
+            ID: 38,
+            Name: "光子护盾",
+            Des: "获得100%额外护盾",
+            Price: 2,
+            PriceType: PriceType.Gem
+        }
+    ];
+}
+void BaseItemButtonsInit(){
+    define start_x : -3;
+    define start_y : 2.2;
+    define x_gap : 2;
+    define y_gap : -0.7;
+
+    for(Number i = 0; i < BaseItems.Length; i++){
+        define row : (EvaluateOnce(i) / 3).Floor();
+        define col : EvaluateOnce(i) - row * 3;
+        define x : start_x + x_gap * col;
+        define y : start_y + y_gap * row;
+        new MenuButton(
+            header: <'[<0>-<1><2>]\n<3>',BaseItems[EvaluateOnce(i)].Name,BaseItems[EvaluateOnce(i)].Price,StringByPriceType(BaseItems[EvaluateOnce(i)].PriceType),BaseItems[EvaluateOnce(i)].Des>,
+            posX: x,
+            posY: y,
+            scale: ButtonScale.Small,
+            ShowColor: InteratableColor_Local(),
+            interactable: true,
+            ofmenuActives: [MenuActive.ShopMenu],
+            _p: EvaluateOnce(i)
+        ).SetOnClick(()=>BaseItemPurchase());
+    }
+}
+
+void ItemButtonsInit(){
+    define start_x : -2;
+    define start_y : -0.8;
+    define x_gap : 2;
+    define y_gap : -0.5;
+
+    for(Number i = 0; i < 6; i++){
+        define row : (EvaluateOnce(i) / 2).Floor();
+        define col : EvaluateOnce(i) - row * 2;
+        define x : start_x + x_gap * col;
+        define y : start_y + y_gap * row;
+        new MenuButton(
+            header: <'|<0>-<1><2>|',
+            LocalPlayer().items_6random[EvaluateOnce(i)].Name,
+            LocalPlayer().items_6random[EvaluateOnce(i)].Price,
+            StringByPriceType(LocalPlayer().items_6random[EvaluateOnce(i)].PriceType)>,
+            posX: x,
+            posY: y,
+            scale: ButtonScale.Medium,
+            ShowColor: InteratableColor_Local(),
+            interactable: true,
+            ofmenuActives: [MenuActive.ShopMenu],
+            _p: EvaluateOnce(i)
+        ).SetOnClick(ItemPurchase).SetOnHover(()=>{
+            Button_Pool[MenuLoop].HoverLabel = items_6random[GetParameter()].Des;
+        });
+    }
+}
+globalvar String RefreshDes = '消耗一枚刷新骰子\n若没有骰子则消耗一枚宝石';
+void ShopRefreshButton(){
+    new MenuButton(
+        header: "刷新",
+        posX: 3,
+        posY: -1.5,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.ShopMenu]
+    ).SetOnClick(ShopRefresh).SetOnHover(()=>{
+        Button_Pool[MenuLoop].HoverLabel = RefreshDes;
+    });
+}
+
+void TFRefreshButton(){
+    new MenuButton(
+        header: "刷新",
+        posX: 3,
+        posY: -1.5,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.ShopMenu]
+    ).SetOnClick(ShopRefresh).SetOnHover(()=>{
+        Button_Pool[MenuLoop].HoverLabel = RefreshDes;
+    });
+}
+
+void TFButtonInit(){
+    define start_x : -3;
+    define x_gap : 3;
+    define offset : -0.5;
+    for(define i = 0; i<3;i++){
+        new MenuButton(
+            header: <"|<0>|",LocalPlayer().tf_3random[EvaluateOnce(i)].Name>,
+            posX: start_x + x_gap * EvaluateOnce(i),
+            posY: 0.5,
+            scale: ButtonScale.Large,
+            ShowColor: InteratableColor_Local(),
+            interactable: true,
+            ofmenuActives: [MenuActive.TFMenu],
+            _p: EvaluateOnce(i)
+        ).SetOnClick(TFSelect).SetOnHover(()=>{
+            Button_Pool[MenuLoop].HoverLabel = tf_3random[GetParameter()].Des;
+        });
+    }
+    new MenuButton(
+        header: "升级了！选择你的下个天赋",
+        posX: 0,
+        posY: 2,
+        scale: ButtonScale.Large,
+        ShowColor: Color.White,
+        interactable: false,
+        ofmenuActives: [MenuActive.TFMenu]
+    );
+}
+
+rule: '商店界面初始化'
+{
+    BaseItemButtonsInit();
+    ItemButtonsInit();
+    ShopRefreshButton();
+}
+
+rule: '天赋界面初始化'
+{
+    TFButtonInit();
+}
+
+String StringByPriceType(in PriceType type){
+    return type == PriceType.Gold ? "货币" : "宝石";
+}
+
+void BaseItemPurchase(){
+    SmallMessage(Header: GetParameter());
+}
+
+
+void ItemPurchase(){
+    Item selected = items_6random[GetParameter()];
+    if(selected.PriceType == PriceType.Gold && Gold < selected.Price)return;
+    if(selected.PriceType == PriceType.Gem && Gem < selected.Price)return;
+    if(selected.PriceType == PriceType.Gold){
+        Gold -= selected.Price;
+    }else{
+        Gem -= selected.Price;
+    }
+    items.ModAppend(selected);
+    Random6Items();
+}
+
+void TFSelect(){
+    TF selected = tf_3random[GetParameter()];
+    tfs.ModAppend(selected);
+    SmallMessage(Header: '已获取'+selected.Name);
+    menuactive = MenuActive.ShopMenu;
+}
+
+Number GetParameter(){
+    return Button_Pool[MenuLoop].Data._P;
+}
+
+void Random6Items(){
+    items_6random = Items.Filter(t=>!items.Contains(t)).Randomize().Slice(0,6);
+}
+void Random3TFs(){
+    tf_3random = TFs.Filter(t=>!tfs.Contains(t)).Randomize().Slice(0,3);
+}
+
+void ShopRefresh(){
+    if (Dice>0){
+        Dice -= 1;
+        Random6Items();
+    }else if(Gem>0){
+        Gem -= 1;
+        Random6Items();
+    }
+}
+playervar Number Gold = 999;
+playervar Number Gem = 999;
+playervar Number Dice = 9;  
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    Random6Items();
+    Random3TFs();
+}
+
+void CloseMenu()'关闭菜单'{
+    isInMenu = false;
+    StopCamera();
+    SetAimSpeed(EventPlayer(),100);
+    SetPrimaryFireEnabled(EventPlayer(),true);
+    SetSecondaryFireEnabled(EventPlayer(),true);
+    EnableHeroHud(EventPlayer());
+    EnableGameModeHud(EventPlayer());
+    SetFacing(EventPlayer(),AnchorFacing);
+    MinWait();
+}

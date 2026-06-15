@@ -1,0 +1,38 @@
+rule: 'Trigger'
+Event.OnDamageDealt
+Team.Team2
+Player.All
+if(EventAbility()!=null)
+{
+    HostPlayer().ChainSeed += 1;
+    Victim().RelayCount = 5;
+    Victim().ChainMark = HostPlayer().ChainSeed;
+    LightingChain(Victim(), HostPlayer().ChainSeed);
+}
+
+playervar Number RelayCount;
+playervar Any ChainEffect;
+playervar Number ChainSeed;
+playervar Number ChainMark;
+recursive void LightingChain(Player p, Number chainId)''{
+    Damage(p,EventPlayer(),20);
+    PlayEffect(
+        Type: PlayEffect.ReinhardtFireStrikeTargetImpactEffect,
+        Position: p
+    );
+    define NextChain = AllLivingPlayers(TeamOf(p)).Filter(t=>IsInLineOfSight(t,p)&&t!=p&&t.ChainMark!=chainId&&DistanceBetween(p,t)<=8).Sort(m=>DistanceBetween(p,m)).First;
+    if(NextChain==null)return;
+    if(p.RelayCount<=1)return;
+    p.ChainEffect = CreateBeamEffect(
+        BeamType: BeamType.MercyBoostBeam,
+        StartPosition: p,
+        EndPosition: NextChain,
+    );
+    WaitAsync(0.4,()=>{
+        DestroyEffect(p.ChainEffect);
+    });
+    Wait(0.06);
+    NextChain.RelayCount = p.RelayCount-1;
+    NextChain.ChainMark = chainId;
+    LightingChain(NextChain, chainId);
+}

@@ -1,0 +1,740 @@
+
+import '地图文本菜单.del';
+import '渐变颜色.del';
+import '属性.del';
+globalvar Vector Hall;
+globalvar Area[] Areas;
+playervar Number PlayerAreaIndex;
+single struct Area{
+    public Vector Center;
+    public Number Radius;
+    public Vector SpawnPosition1;
+    public Vector SpawnPosition2;
+}
+rule: '初始化地图点位'
+{
+    //66号公路
+    if(CurrentMap()==Map.Route_66){
+        Areas = [
+            // A点区域（0号）
+            {
+                Center: Vector(-26.93, 8.67, -30.79),      // A点
+                Radius: 30,
+                SpawnPosition1: Vector (-37.89, 8.44, -17.60),  // A点1
+                SpawnPosition2: Vector(-15.06, 8.54, -42.63)
+            // A点2
+            },
+            // B点区域（1号）
+            {
+                Center: Vector(50.20, 0.23, 40.15),     // B点
+                Radius: 30,
+                SpawnPosition1: Vector(52.44, 6.52, 45.30), // B点1
+                SpawnPosition2: Vector(45.85, 3.93, 28.84)   // B点2
+            },
+            // C点区域（2号）
+            {
+                Center: Vector(-87.65, 6.50, -2.44),     // C点
+                Radius: 30,
+                SpawnPosition1: Vector(-108.87, 9.96, -7.81), // C点1
+                SpawnPosition2: Vector(-93.70, 8.50, 7.87)  // C点2
+            }
+        ];
+
+        // 独立静态点
+        Hall = Vector(37.56, 2.35, 81.31);
+    }
+    //艾兴瓦尔德
+    if(CurrentMap()==Map.Eichenwalde_Halloween){
+        Areas = [
+            // B点区域（0号）
+            {
+                Center: Vector(12.36, 6.00, -57.26),      // B点
+                Radius: 30,
+                SpawnPosition1: Vector(24.48, 11.00, -71.81),  // B点1
+                SpawnPosition2: Vector(7.32, 5.20, -53.01)     // B点2
+            },
+            // A点区域（1号）
+            {
+                Center: Vector(82.48, 12.68, -86.75),     // A点
+                Radius: 30,
+                SpawnPosition1: Vector(92.95, 12.72, -102.38), // A点1
+                SpawnPosition2: Vector(71.74, 12.66, -71.37)   // A点2
+            },
+            // C点区域（2号）
+            {
+                Center: Vector(133.02, 9.93, -46.37),     // C点
+                Radius: 30,
+                SpawnPosition1:  Vector(137.86, 12.01, -41.79), // C点1
+                SpawnPosition2: Vector(131.70, 11.72, -61.81)  // C点2
+            }
+        ];
+
+        // 独立静态点
+        Hall = Vector(-15.38, 1.00, 19.75);
+    }
+    //暴雪世界
+    if(CurrentMap()==Map.Blizzard_World){
+        Areas = [
+            //B点 0号
+            {
+                Center: Vector(-104.203, -0.317, 124.969),
+                Radius: 30,
+                SpawnPosition1: Vector(-130.646, 1.922, 137.958),
+                SpawnPosition2: Vector(-91.875, -0.225, 118.939)
+            },
+            //A点 1号
+            {
+                Center: Vector(-49.955, 7.064, 93.126),
+                Radius: 30,
+                SpawnPosition1: Vector(-69.605, 6.797, 73.839),
+                SpawnPosition2: Vector(-32.089, 6.988, 98.553)  
+            },
+            //-A点 2号
+            {
+                Center: Vector(2.451, 2.925, 61.935),
+                Radius: 30,
+                SpawnPosition1: Vector(-11.972, 7.244, 49.635),
+                SpawnPosition2: Vector(25.661, 7.181, 68.250)
+            }
+        ];
+        Hall = Vector(2.528, -3.775, -42.305);
+    }
+    //花村
+    if(CurrentMap()==Map.Hanamura){
+        Areas = [
+                //B点 0号
+                {
+                    Center: Vector(-6.296, 0.526, -80.110),
+                    Radius: 30,
+                    SpawnPosition1: Vector(-2.953, 5.499, -100.072),
+                    SpawnPosition2: Vector(-23.260, 2.400, -65.228)
+                },
+                //A点 1号
+                {
+                    Center: Vector(7.182, 1.445, 1.125),
+                    Radius: 30,
+                    SpawnPosition1: Vector(-1.678, 2.400, 3.865),
+                    SpawnPosition2: Vector(11.287, 5.400, 22.268)   
+                },
+                //-A点 2号
+                {
+                    Center: Vector(50.728, 0.450, -2.574),
+                    Radius: 30,
+                    SpawnPosition1: Vector(48.268, 7.400, -2.205),
+                    SpawnPosition2: Vector(53.657, 0.399, -4.751)
+                }
+            ];
+            Hall = Vector(-40.232, 1.759, -108.056);
+        }
+
+        if (CurrentMap() == Map.Kings_Row) {
+
+            Areas = [
+
+            // B点 0号
+
+            {
+
+            Center: Vector(-60.866, 1.087, -31.380),
+
+            Radius: 30,
+
+            SpawnPosition1: Vector(-69.183, 1.648, -43.762),
+
+            SpawnPosition2: Vector(-69.966, 1.253, -4.493)
+
+            },
+
+            // A点 1号
+
+            {
+
+            Center: Vector(-126.609, 0.152, 5.707),
+
+            Radius: 30,
+
+            SpawnPosition1: Vector(-111.633, 0.853, 21.083),
+
+            SpawnPosition2: Vector(-140.672, 0.526, 1.169)
+
+            },
+
+            // -A点 2号
+
+            {
+
+            Center: Vector(-2.092, 1.324, -16.922),
+
+            Radius: 40,
+
+            SpawnPosition1: Vector(12.556, 7.458, -3.532),
+
+            SpawnPosition2: Vector(17.637, 4.451, -29.350)
+
+            }
+
+        ];
+
+        Hall = Vector(-111.148, -2.951, -53.314);
+
+
+    }
+    //绿洲城中心
+    if (CurrentMap() == Map.Oasis_City_Center) {
+
+        Areas = [
+            //点位1 0号
+            {
+                Center: Vector(120.97, 1.00, 225.12),
+                Radius: 30,
+                SpawnPosition1: Vector(139.55, 2.88, 220.26),
+                SpawnPosition2: Vector(115.64, 3.51, 244.77)
+            },
+            //点位2 1号
+            {
+                Center: Vector(161.72, 11.53, 265.57),
+                Radius: 30,
+                SpawnPosition1: Vector(169.74, 4.00, 260.71),
+                SpawnPosition2: Vector(157.52, 4.00, 275.07)
+            },
+            //点位3 2号
+            {
+                Center: Vector(65.89, 30.50, 322.91),
+                Radius: 30,
+                SpawnPosition1: Vector(87.13, 30.50, 322.46),
+                SpawnPosition2: Vector(78.72, 30.50, 300.37)
+            }
+        ];
+
+        Hall = Vector(66.48, 1.00, 322.73);
+    }
+}
+
+playervar Number RevivePercent;
+playervar Boolean Revivable;
+
+rule: '重置重生进度条'
+Event.OnDeath
+Team.All
+Player.All
+{
+    RevivePercent = 0;
+}
+
+rule: '救人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDead(TeamMate)&&CurrentGamePhase==GamePhase.Combat&&DistanceBetween(EventPlayer(),TeamMate)<=5&&TeamMate.Revivable&&IsAlive())
+{
+    PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: TeamMate,Radius: 150);
+    while(DistanceBetween(EventPlayer(),TeamMate)<=5&&TeamMate.RevivePercent<100&&IsAlive()&&TeamMate.Revivable){
+        PlayEffect(VisibleTo: EventPlayer(),Position: PositionOf(TeamMate),Radius: 125,Type: PlayEffect.BrigitteWhipShotHealAreaSound);
+        TeamMate.RevivePercent += 3.5;
+        Wait(0.25);
+    }
+    if(TeamMate.RevivePercent >=100){
+        TeamMate.Revivable = false;
+        Resurrect(TeamMate);
+        SetStatus(TeamMate,null,Status.Invincible,1);
+    }
+    Wait(0.25);
+    LoopIfConditionIsTrue();
+}
+
+enum GamePhase {
+  Initializing,   // 初始化
+  Preparation,    // 准备
+  Combat,         // 战斗
+  RoundEnd,       // 回合结束
+  GameOver        // 游戏结束
+}
+
+// 全局状态跟踪
+globalvar GamePhase CurrentGamePhase;
+globalvar Number CurrentStage;
+playervar Boolean isKnockOut;
+rule: 'Start Game'
+if(IsGameInProgress()||IsButtonHeld(HostPlayer(),Button.Ability1))
+{
+    DivisionSetup();
+    CurrentGamePhase = GamePhase.Initializing;
+}
+
+globalvar Boolean UsePreferTeam = WorkshopSettingToggle(
+    Category: "个性化",
+    Name: "分队时，优先创建4队（适合8人）",
+    Default: true,
+);
+
+void DivisionSetup(){
+    if(UsePreferTeam){
+        // ======================
+        // 模式1：优先创建4队
+        // ======================
+
+        // 1. 先创建4个空队伍
+        for(Number i! = 0; i < Min(4, NumberOfPlayers()); i++){
+            new PlayTeam([], i); // 传入空数组表示初始无成员
+        }
+        // 2. 轮询分配玩家到各队伍
+        Number teamIndex! = 0;
+        foreach(Player p! in AllPlayers()){
+            Teams[teamIndex].AddMember(p);
+            // 移动到下一个队伍（循环）
+            teamIndex = (teamIndex + 1) % Teams.Length;
+        }
+    }
+    else{
+        // ======================
+        // 模式2：经典2人小队
+        // ======================
+
+        // 1. 创建完整的2人队伍
+        for(Number i! = 0;i < RoundToInteger(NumberOfPlayers(),Rounding.Down);i++){
+            Number startIdx! = i * 2;
+            new PlayTeam([AllPlayers()[startIdx],AllPlayers()[startIdx+1]],startIdx);
+        }
+
+        // 2. 处理剩余玩家（奇数情况）
+        if(NumberOfPlayers()%2==1){
+            Player lastPlayer = LastOf(AllPlayers());
+            // 创建独狼队伍
+                new PlayTeam([lastPlayer], Teams.Length);
+                
+        }
+    }
+
+    UpdateAllTeammates();
+}
+
+globalvar Color[] TeamColor_Pool = [Color.Aqua,Color.Green,Color.Purple,Color.Yellow];
+globalvar PlayTeam[] Teams = [];
+playervar Player TeamMate;
+playervar PlayTeam playteam;
+class PlayTeam{
+    public Number ID;
+    public Number Health;
+    public Player[] Members;
+    public PlayTeam Opponent;
+    public Number ByeCount;
+    public Color TeamColor;
+    public Number PreviousArea = -1;
+
+    public constructor(in Player[] members, in Number id){
+        Members = members;
+        ID = id;
+
+        Teams += this;
+
+        members.playteam = this;
+
+        ByeCount = 0;
+
+        this.TeamColor = TeamColor_Pool[0];
+        TeamColor_Pool.ModRemoveByIndex(0);
+    }
+
+    public void AddMember(in Player extraPlayer){
+        if(CountOf(this.Members)<2){
+            this.Members += extraPlayer;
+
+            extraPlayer.playteam = this;
+            UpdateTeammate(extraPlayer);
+
+            InitializeTeamEffects(extraPlayer);
+
+            //AloneOff(this.Members[0]);
+        }
+    }
+
+    public void InitializePlayer(){
+        if(CountOf(Members)>=1){
+            InitializeTeamEffects(Members[0]);
+            UpdateTeammate(Members[0]);
+            if(CountOf(Members)==2){
+            InitializeTeamEffects(Members[1]);
+            UpdateTeammate(Members[1]);
+            }
+        }
+    }
+}
+
+void UpdateTeammate(in Player p){
+    p.TeamMate = p.playteam.Members.Filter(t=>t!=p);
+}
+
+// 更新所有队伍的队友关系
+void UpdateAllTeammates(){
+    foreach(PlayTeam team in Teams){
+        foreach(Player p in team.Members){
+            p.TeamMate = team.Members.Filter(t => t != p).First; // 获取队友
+            //如果是独狼，给独狼特效
+            if(CountOf(team.Members)==1){
+                AloneSet(p);
+            }
+            // 初始化特效（如果玩家已生成）
+            InitializeTeamEffects(p);
+        }
+    }
+}
+
+void InitializeTeamEffects(Player p!)'sub 初始化队伍特效'{
+        //队伍名称
+        CreateInWorldText(
+            Header: <'队伍<0>',EvaluateOnce(p).playteam.ID>,
+            Position: EvaluateOnce(p),
+            Scale: 2,
+            Clipping: Clipping.ClipAgainstSurfaces,
+            TextColor: EvaluateOnce(p).playteam.TeamColor,
+            VisibleTo: EntityExists(EvaluateOnce(p))?AllPlayers():null
+        );
+        
+        //CreateEffect(Type: Effect.Ring,Color: TeamColor,Position: (EvaluateOnce(p)),Radius: 1,VisibleTo: !IsDead(EvaluateOnce(p))?[EvaluateOnce(p),EvaluateOnce(p).TeamMate]:null);
+
+        StartDamageModification(EvaluateOnce(p),EvaluateOnce(p).TeamMate,0,DamageModificationRev.ReceiversDamagersAndDamagePercent);
+        MinWait();
+        //笑脸队友特效
+        CreateIcon(VisibleTo: EntityExists(EvaluateOnce(p))?EvaluateOnce(p).TeamMate:null,EvaluateOnce(p),Icon.Happy,IconRev.VisibleToPositionAndColor,EvaluateOnce(p).playteam.TeamColor,true);
+        //复活圈特效
+        CreateEffect(
+            VisibleTo: IsDead(EvaluateOnce(p))&&EvaluateOnce(p).Revivable?AllPlayers():null,
+            Type: Effect.Ring,
+            Color: EvaluateOnce(p).playteam.TeamColor,
+            Position: PositionOf(EvaluateOnce(p)),
+            Radius: 5,
+            Reevaluation: EffectRev.VisibleToPositionAndRadius
+            );
+        //复活进度条
+        CreateProgressBarInWorldText(
+            VisibleTo: IsDead(EvaluateOnce(p))&&EvaluateOnce(p).Revivable?AllPlayers().Filter(t=>DistanceBetween(t,EvaluateOnce(p))<=5):null,
+            Value: EvaluateOnce(p).RevivePercent,
+            Text: <'<0>等待被他的队友救活...',HeroIconString(HeroOf(EvaluateOnce(p)))>,
+            Position: MenuButtonPosition_Local(0,-1.5),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            TextColor: Color.Orange,
+            ProgressBarColor: GradientColor([54,133,2],[255,79,35],EvaluateOnce(EvaluateOnce(p)).RevivePercent/100),
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor
+            );
+        //显示表面复活进度
+        CreateInWorldText(
+            VisibleTo: IsDead(EvaluateOnce(EvaluateOnce(p)))&&EvaluateOnce(EvaluateOnce(p)).Revivable&&!EvaluateOnce(EvaluateOnce(p)).isKnockOut?AllPlayers():null,
+            Header: 
+                <'<2>-<0>: <1>%',
+                    HeroIconString(HeroOf(EvaluateOnce(EvaluateOnce(p)))),
+                    EvaluateOnce(EvaluateOnce(p)).RevivePercent,
+                    AbilityIconString(Hero.Mercy,Button.Ability2)
+                    >,
+            Position: PositionOf(EvaluateOnce(EvaluateOnce(p)))+Vector(0,1,0),
+            Scale: 2,
+            Clipping: Clipping.ClipAgainstSurfaces,
+            Spectators: Spectators.VisibleAlways
+            );
+
+        //观战可见血条
+        CreateProgressBarInWorldText(
+            VisibleTo: !IsDead(EvaluateOnce(EvaluateOnce(p)))?AllPlayers().Filter(t=>IsDead(t)):null,
+            Value: 100*NormalizedHealth(EvaluateOnce(EvaluateOnce(p))),
+            Text: '',
+            Position: EvaluateOnce(EvaluateOnce(p)),
+            Scale: 0.7,
+            Clipping: Clipping.ClipAgainstSurfaces,
+            ProgressBarColor: GradientColor([255,0,0],[124,205,124],1-(NormalizedHealth(EvaluateOnce(EvaluateOnce(p))))),
+            NonteamSpectators: Spectators.VisibleAlways,
+        );
+        MinWait();
+}
+
+void AloneSet(Player p!)'sub 开始独狼'{
+    p.shuxing.Attack.Abs += 50;
+    p.shuxing.Drain.Abs += 20;
+    p.shuxing.Armor.Abs += 200;
+    RevShuxing(p);
+}
+void AloneOff(Player p!)'sub 关闭独狼'{
+    p.shuxing.Attack.Abs -= 50;
+    p.shuxing.Drain.Abs -= 20;
+    p.shuxing.Armor.Abs -= 200;
+    RevShuxing(p);
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: CountOf(Teams));
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    CreateInWorldText(Position: EventPlayer(),Header: playteam.ID);
+}
+
+rule: '玩家中途退出'
+Event.OnPlayerLeave
+Team.All
+Player.All
+{
+    PlayTeam LeftTeam = FirstOf(Teams.Filter(p=>p.Members.Contains(EventPlayer())));
+    LeftTeam.Members.ModRemoveByValue(EventPlayer());
+    switch(CountOf(LeftTeam.Members)){
+        case 1:
+        AloneSet(LeftTeam.Members[0]);
+        case 0:
+        Teams.ModRemoveByValue(LeftTeam);
+    }
+}
+
+globalvar Player[] WaitQueue = [];
+rule: '玩家中途加入'
+Event.OnPlayerJoin
+Team.All
+Player.All
+{
+    WaitQueue += EventPlayer();
+}
+
+void JoinDetect() {
+    // 更新等待队列，过滤掉已不存在的实体
+    WaitQueue = WaitQueue.Filter(t => EntityExists(t));
+    // 第一阶段：尝试将等待队列的玩家加入新队伍（最多4队）
+    Number maxTeamsToCreate = Min(WaitQueue.Length, 4 - Teams.Length);
+    for (Number i = 0; i < maxTeamsToCreate; i++) {
+        Teams += new PlayTeam([WaitQueue[0]], Teams.Length);
+        AloneSet(WaitQueue[0]);
+        RemoveFromArrayAtIndex(WaitQueue, 0);
+        MinWait();
+    }
+
+    // 第二阶段：尝试将剩余等待队列的玩家加入现有的单人队伍
+    Number maxPlayersToAssign = WaitQueue.Length;
+    for (Number i = 0; i < maxPlayersToAssign; i++) {
+        PlayTeam aloneTeam = FirstOf(Teams.Filter(t => t.Members.Length == 1));
+        if (aloneTeam == null) break; // 如果没有单人队伍，提前退出
+        aloneTeam.AddMember(WaitQueue[0]);
+        AloneOff(aloneTeam.Members[0]);
+        RemoveFromArrayAtIndex(WaitQueue, 0);
+        MinWait();
+    }
+}
+globalvar Number PrepareTime = WorkshopSettingInteger(Category: '基础参数','准备阶段时间',Default: 45,15,90,1);
+void StartPrepare(){
+    Resurrect(AllPlayers());
+    SetStatus(AllPlayers(),Assister: null,Status: Status.PhasedOut,Duration: 9999);
+
+    MatchOpponentForAll();
+    
+    SetMatchTime(PrepareTime);  
+}
+
+globalvar PlayTeam ByeTeam;
+globalvar PlayTeam[][] MatchUps;
+void MatchOpponentForAll(){
+    // 每回合重置轮空队伍
+    ByeTeam = null;
+    // 如果为奇数，则有一队轮空，选择 ByeCount 最低的
+    if(Teams.Length % 2 == 1){
+        ByeTeam = Teams.Sort(t=>t.ByeCount).First;
+        ByeTeam.ByeCount++;
+    }
+    // 过滤轮空队伍
+    define ActiveTeams = Teams.Filter(t=>t != ByeTeam);
+    
+    // 优化参数：最大尝试次数（有限循环，避免死循环）
+    Number maxAttempts = 10;  // 可调，越大越可能找到无重复，但计算开销稍高
+    Number bestScore = 999;   // 初始高分
+    Any[] bestActive = [];    // 最佳队伍排列
+    
+    // 多次尝试随机打乱，找到重复对手最少的配置
+    for(Number attempt = 0; attempt < maxAttempts; attempt++){
+        Any[] tempActive = <Any[]>RandomizedArray(ActiveTeams);
+        Number score = 0;  // 本次配置的重复分数
+        
+        // 计算分数：检查每个潜在配对是否重复上一轮对手
+        for(Number i = 0; i < CountOf(tempActive) / 2; i++){
+            PlayTeam teamA = tempActive[2 * i];
+            PlayTeam teamB = tempActive[2 * i + 1];
+            if(teamA.Opponent == teamB){  // Opponent 是上一轮的，用于检查重复
+                score++;
+            }
+        }
+        
+        // 更新最佳
+        if(score < bestScore){
+            bestScore = score;
+            bestActive = tempActive;
+            if(score == 0){  // 完美无重复，提前停止
+                break;
+            }
+        }
+    }
+    
+    // 使用最佳配置进行配对（顺序配对，无循环风险）
+    MatchUps = [];
+    for(Number i = 0; i < CountOf(bestActive) / 2; i++){
+        PlayTeam teamA = bestActive[2 * i];
+        PlayTeam teamB = bestActive[2 * i + 1];
+        
+        MatchUps[CountOf(MatchUps)] = [teamA, teamB];
+        
+        // 更新当前对手（Opponent 用于本轮，下轮检查重复）
+        teamA.Opponent = teamB;
+        teamB.Opponent = teamA;
+    }
+    
+    BigMessage(Header: '对手配备已完成！');
+}
+
+void ResetAllPlayersForCombat() {
+    foreach (Player p in AllPlayers()) {
+        // 重置状态
+        ClearStatus(p, Status.PhasedOut);
+        p.RevivePercent = 0;
+        p.Revivable = true;
+    }
+    
+    // 轮空队伍处理
+    Kill(ByeTeam.Members,null);
+    BigMessage(ByeTeam.Members,'你的队伍本回合轮空/n自动进入观战');
+}
+void StartAllMatchUps() {
+    // 随机打乱可用场地，确保公平
+    Any[] availableAreas = <Any[]>RandomizedArray(Areas);
+    
+    foreach (PlayTeam[] match in MatchUps) {
+        PlayTeam teamA = match[0];
+        PlayTeam teamB = match[1];
+        
+        // 优先：找双方都没用过的场地（PreviousArea）
+        Area selected = FirstOf(FilteredArray(availableAreas, IndexOfArrayValue(Areas, ArrayElement()) != teamA.PreviousArea && IndexOfArrayValue(Areas, ArrayElement()) != teamB.PreviousArea));
+        
+        // 如果没有，次优：至少一方没用过
+        if(selected == null){
+            selected = FirstOf(FilteredArray(availableAreas, IndexOfArrayValue(Areas, ArrayElement()) != teamA.PreviousArea || IndexOfArrayValue(Areas, ArrayElement()) != teamB.PreviousArea));
+        }
+        
+        // 如果还不行，随便选（Areas 少于对战数时可能）
+        if(selected == null){
+            selected = availableAreas[0];
+        }
+        
+        // 移除已选，避免其他对战重复
+        availableAreas = RemoveFromArray(availableAreas, selected);
+        
+        // 传送队伍到对应出生点
+        Teleport(teamA.Members, selected.SpawnPosition1);
+        Teleport(teamB.Members, selected.SpawnPosition2);
+        
+        // 设置区域关联，并更新 PreviousArea（用于下轮避免重复）
+        Number areaIndex = IndexOfArrayValue(Areas, selected);
+        foreach (Player p in Append(teamA.Members, teamB.Members)) {
+            p.PlayerAreaIndex = areaIndex;
+        }
+        teamA.PreviousArea = areaIndex;
+        teamB.PreviousArea = areaIndex;
+    }
+}
+
+void PreparePhaseFlow(){
+    CurrentGamePhase = GamePhase.Preparation;
+    StartPrepare();
+    MatchOpponentForAll(); 
+}
+void CombatPhaseFlow(){
+    ResetAllPlayersForCombat();
+    StartAllMatchUps();
+}
+
+
+rule: '处于对局中的玩家死亡触发本matchup的胜负检测'
+Event.OnDeath
+Team.All
+Player.All
+if(MatchUps.IsTrueForAny(t=>t.Contains(playteam)))
+{
+    PlayTeam[] currentMatch = FirstOf(MatchUps.Filter(m => m.Contains(playteam)));
+    if(currentMatch==null) return;
+
+    Boolean MyTeamDefeated = IsTeamDefeated(playteam);
+    Boolean OpponentTeamDefeated = IsTeamDefeated(playteam.Opponent);
+    
+    Number isDraw = -1;
+    if(MyTeamDefeated&&OpponentTeamDefeated){
+        isDraw = 1;
+    }
+    if(MyTeamDefeated||OpponentTeamDefeated){
+        isDraw = 0;
+    }
+
+    switch(isDraw){
+        case -1:
+        return;
+
+        case 1:
+            HandleDraw(playteam);
+        break;
+
+        case 0:
+            PlayTeam winner;
+            if(OpponentTeamDefeated){
+                winner = playteam;
+            }else{
+                winner = playteam.Opponent;
+            }
+            HandleVictory(winner);
+        break;
+    }
+
+    MatchUps.ModRemoveByValue(currentMatch);
+
+    if(MatchUps.Length == 0){
+        CurrentGamePhase = GamePhase.RoundEnd;
+    }
+}
+rule: '当全部matchup结束了触发回合end检测'
+if(CurrentGamePhase==GamePhase.RoundEnd)
+{
+    StartPrepare();
+}
+void HandleDraw(in PlayTeam team1){
+    BigMessage(team1.Members.Append(team1.Opponent.Members),'平局');
+}
+Number DeductHealth:
+    10;
+void HandleVictory(in PlayTeam winner){
+    PlayTeam loser = winner.Opponent;
+    BigMessage(winner.Members,'获胜');
+
+    BigMessage(loser.Members,'失败');
+    loser.Health -= DeductHealth;
+}
+Boolean IsTeamDefeated(PlayTeam team) {
+    return team.Members.IsTrueForAll(t=>IsDead(t)||!HasSpawned(t));
+}
+
+rule: '测试匹配对手'
+if(IsButtonHeld(HostPlayer(),Button.Crouch))
+{
+    MatchOpponentForAll();
+    
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: <'第一组对位情况 队伍<0>VS队伍<1>',MatchUps[0][0].ID,MatchUps[0][1].ID>
+    );
+    CreateHudText(
+        Header: <'第二组对位情况 队伍<0>VS队伍<1>',MatchUps[1][0].ID,MatchUps[1][1].ID>
+    );
+}
+
+globalvar Number CurrentRound = 0;
+
+rule: 'My Rule'
+if(CurrentGamePhase == GamePhase.Initializing)
+{
+    
+}

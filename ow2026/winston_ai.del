@@ -1,0 +1,92 @@
+import '解压形式寻路.del';
+
+// Winston pet spawn and combat AI
+playervar Boolean WinstonDebugHudCreated! = false;
+
+rule: "Spawn Winston Pet"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!IsDummyBot())
+if(HasSpawned())
+if(IsAlive())
+if(IsButtonHeld(EventPlayer(), Button.Ability2))
+{
+    define pet! = CreateDummyBot(Hero: Hero.Winston, Team: TeamOf(EventPlayer()), Slot: -1, Position: PositionOf(EventPlayer()));
+    MinWait();
+    if(pet != null)
+    {
+        pet.bot_isPet = true;
+        pet.bot_isWinstonAI = true;
+    }
+    Wait(9999, WaitBehavior.AbortWhenFalse);
+    MinWait();
+}
+
+rule: "Debug1 Winston HUD"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && HeroOf(EventPlayer()) == Hero.Winston)
+if(!WinstonDebugHudCreated)
+{
+    WinstonDebugHudCreated = true;
+    CreateHudText(
+        Header: <"Debug1 Winston <0>", EventPlayer()>,
+        Subheader: <"isAI:<0> isPet:<1> target:<2> vis:<3>", bot_isWinstonAI, bot_isPet, bot_target, CountOf(bot_targetArray)>,
+        Text: <"state:<0> team:<1> enemy:<2> enemyCount:<3>", bot_state, TeamOf(EventPlayer()), OppositeTeamOf(TeamOf(EventPlayer())), CountOf(AllPlayers(OppositeTeamOf(TeamOf(EventPlayer()))))>,
+        VisibleTo: HostPlayer(),
+        SortOrder: 0
+    );
+}
+
+rule: "Winston Combat AI"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(bot_isWinstonAI)
+if(is_fighting)
+{
+    if(bot_target == null && CountOf(bot_targetArray) > 0)
+    {
+        BotSetTarget(bot_targetArray.Sort(t => DistanceBetween(t, EventPlayer())).First);
+    }
+    if(bot_target == null)
+    {
+        StopHoldingButton(EventPlayer(), Button.PrimaryFire);
+        StopHoldingButton(EventPlayer(), Button.SecondaryFire);
+        Wait(0.250, WaitBehavior.IgnoreCondition);
+        LoopIfConditionIsTrue();
+    }
+    Wait(0.500, WaitBehavior.IgnoreCondition);
+    if(DistanceBetween(EyePosition(), EyePosition(bot_target)) < 9 || !IsFiringPrimary(EventPlayer())){
+            StartHoldingButton(EventPlayer(), Button.PrimaryFire);
+            StopHoldingButton(EventPlayer(),Button.SecondaryFire);
+        }
+    else{
+        StartHoldingButton(EventPlayer(), Button.SecondaryFire);
+        StopHoldingButton(EventPlayer(),Button.PrimaryFire);
+    }
+    if(DistanceBetween(EyePosition(EventPlayer()), EyePosition(bot_target)) < 3){
+            PressButton(EventPlayer(),Button.Melee);
+        }
+
+    if(DistanceBetween(EyePosition(EventPlayer()), EyePosition(bot_target)) < 40 && (DistanceBetween(
+        EyePosition(EventPlayer()), EyePosition(bot_target)) > 9 || AbsoluteValue(YOf(PositionOf(
+        EventPlayer())) - YOf(EyePosition(bot_target))) > 2) || IsUsingUltimate(EventPlayer())){
+            PressButton(EventPlayer(), Button.Ability1);
+        }
+    
+    if(UltimateChargePercent(EventPlayer()) == 100){
+            PressButton(EventPlayer(), Button.Ability1);
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+            PressButton(EventPlayer(), Button.Ultimate);
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+            PressButton(EventPlayer(), Button.Ability1);
+        }
+    LoopIfConditionIsTrue();
+    StopHoldingButton(EventPlayer(), Button.PrimaryFire);
+    StopHoldingButton(EventPlayer(), Button.SecondaryFire);
+    PressButton(EventPlayer(), Button.Reload);
+}

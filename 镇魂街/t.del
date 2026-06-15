@@ -1,0 +1,58 @@
+playervar Boolean isPet;
+playervar Player MyPetInstance;
+playervar Pet SelectPet;
+class Pet {
+    public PetData Data;
+    public Number Level;
+    public constructor(in PetEnum ID) {
+        Level = 1;
+        Data = PetData_Pool[ID];
+    }
+
+    void Summon(in Player p = EventPlayer()){
+        p.MyPetInstance = CreateDummyBot(
+            Hero: Data.PetHero,
+            Team: p.Team(),
+            Slot: -1,
+            Position: p
+        );
+        p.MyPetInstance.isPet = true;
+    }
+}
+enum PetEnum{
+    T = 0
+}
+single struct PetData {
+    public PetEnum ID;
+    public String Name;
+    public Hero PetHero;
+}
+globalvar PetData[] PetData_Pool;
+
+void InitPetDatas(){
+    PetData_Pool = [
+        {ID: PetEnum.T,Name:'蛮力猩猩',PetHero:Hero.Winston}
+    ];
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld())
+{
+    SelectPet.Summon();
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    SelectPet = new Pet(PetEnum.T);
+}
+
+rule: 'My Rule'
+{
+    InitPetDatas();
+}

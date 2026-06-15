@@ -1,0 +1,148 @@
+
+single struct Equip {
+    public String Name;
+    public String Desc;
+    public Number[] EquipShuxing;
+    public Number EquipLevel;
+    public QUALITY Quality;
+    public PART Part;
+}
+globalvar String[] Shuxing_Names = ["攻击", "生命", "速度", "治疗", "护甲", "护盾", "减伤"];
+globalvar Equip[] to_Compress_Data = [
+    {
+        Name: "小刀",
+        Desc: "一把新手武器",
+        EquipShuxing: [10, 0, 5, 0, 0, 0, 0],
+        EquipLevel: 1,
+        Quality: QUALITY.Average,
+        Part: PART.Hand
+    },
+    {
+        Name: "布帽",
+        Desc: "一顶简单的布帽，提供基础保护",
+        EquipShuxing: [0, 20, 0, 0, 5, 0, 0],
+        EquipLevel: 1,
+        Quality: QUALITY.Average,
+        Part: PART.Head
+    },
+    {
+        Name: "布甲",
+        Desc: "一件轻便的布制铠甲，适合新手",
+        EquipShuxing: [0, 30, 0, 0, 10, 0, 5],
+        EquipLevel: 1,
+        Quality: QUALITY.Average,
+        Part: PART.Body
+    },
+    {
+        Name: "布靴",
+        Desc: "一双轻便的布靴，提升移动舒适度",
+        EquipShuxing: [0, 10, 10, 0, 0, 0, 0],
+        EquipLevel: 1,
+        Quality: QUALITY.Average,
+        Part: PART.Foot
+    },
+    {
+        Name: "木质护符",
+        Desc: "一枚简单的木质护符，略微提升治疗效果",
+        EquipShuxing: [0, 0, 0, 10, 0, 5, 0],
+        EquipLevel: 1,
+        Quality: QUALITY.Average,
+        Part: PART.Neck
+    },
+    {
+        Name: "铁盔",
+        Desc: "一顶坚固的铁质头盔，提供可靠保护",
+        EquipShuxing: [0, 40, 0, 0, 15, 0, 5],
+        EquipLevel: 3,
+        Quality: QUALITY.Average,
+        Part: PART.Head
+    },
+    {
+        Name: "精金铠甲",
+        Desc: "一件精致的精金铠甲，兼具防御与威严",
+        EquipShuxing: [10, 80, 0, 0, 20, 10, 10],
+        EquipLevel: 5,
+        Quality: QUALITY.Rare,
+        Part: PART.Body
+    }
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum QUALITY {
+  Average,
+  Rare,
+  Epic,
+  Legendary,
+  Unique
+}
+enum PART{
+    Head,
+    Body,
+    Foot,
+    Hand,
+    Neck
+}
+playervar Shuxing shuxing;
+
+struct ShuxingBase {
+    public Number Abs = 100;
+    public Number Percent;
+    public static ShuxingBase New(in Number abs, in Number percent): {Abs: abs, Percent: percent };
+    public ref void ModAbs(in Number mod){
+        Abs += mod;
+    }
+    public ref void ModPercent(in Number mod){
+        Percent += mod;
+    }
+    public Number GetValue(){
+        return Abs * (1 + Percent / 100);
+    }
+}
+
+single struct Shuxing {
+    public ShuxingBase Attack;
+    public ShuxingBase Health;
+    public ShuxingBase Speed;
+    public ShuxingBase HealBoost;
+    public ShuxingBase ArmorHealth;
+    public ShuxingBase ShieldsHealth;
+    public ShuxingBase Reduction;
+}
+
+globalvar Shuxing shuxing_templet = {
+    Attack: ShuxingBase.New(100, 0),
+    Speed: ShuxingBase.New(100, 0),
+    HealBoost: ShuxingBase.New(100, 0),
+    ArmorHealth: ShuxingBase.New(0, 0),
+    Health: ShuxingBase.New(230, 0),
+    ShieldsHealth: ShuxingBase.New(100, 0),
+    Reduction: ShuxingBase.New(30, 0)
+};
+
+rule: '玩家初始化，获得属性'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+{
+    shuxing = shuxing_templet;
+}

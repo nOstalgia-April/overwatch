@@ -1,0 +1,139 @@
+import '换队.del';
+class Area {
+    public Vector Center;
+    public Number Radius;
+    public Vector SpawnPos1;
+    public Vector SpawnPos2;
+    public constructor(in Vector center, in Number radius, in Vector spawn1, in Vector spawn2){
+        Center = center;
+        Radius = radius;
+        SpawnPos1 = spawn1;
+        SpawnPos2 = spawn2;
+    }
+}
+
+globalvar Area[] Areas;
+globalvar Number[] FireRingsRadius;
+globalvar Boolean FireRingEnabled;
+globalvar Boolean FireRoutineRunning;
+globalvar Number FireCountdownRemaining;
+globalvar Boolean FireRingActive;
+
+void HanamuraInit(){
+    if(CurrentMap()!=Map.Hanamura)return;
+    Areas = [
+        new Area(Vector(-6.296, 0.526, -80.110),30,Vector(-2.953, 5.499, -100.072),Vector(-23.260, 2.400, -65.228)),
+        //A??1??
+        new Area(Vector(7.182, 1.445, 1.125),30,Vector(-1.678, 2.400, 3.865),Vector(11.287, 5.400, 22.268)),
+        //-A??2??
+        new Area(Vector(50.728, 0.450, -2.574),30,Vector(48.268, 7.400, -2.205),Vector(53.657, 0.399, -4.751))
+    ];
+}
+
+rule: '场地初始化'
+{
+    HanamuraInit();
+    CreateAreas();
+    FireRingsRadius = Areas.Map(t=>t.Radius);
+}
+globalvar Color[] Area_ColorPool = [Color.Blue,Color.Red,Color.Turquoise,Color.Black];
+//区域效果创建
+void CreateAreas(){
+    for(define i=0;i<Areas.Length;i++){
+        CreateEffect(
+            VisibleTo: true || (TournamentManager.CurPhase==GamePhase.Combat) && (LocalPlayer().agent.ofSquad.CurArea==EvaluateOnce(Areas[i])) || (IsDead(LocalPlayer()))?LocalPlayer():null,
+            Type: Effect.Sphere,
+            Color: Area_ColorPool[EvaluateOnce(i)],
+            Position: Areas[EvaluateOnce(i)].Center,
+            Radius: FireRingsRadius[EvaluateOnce(i)],
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        MinWait();
+    }
+}
+
+rule: '火圈伤害'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TournamentManager.CurPhase == GamePhase.Combat)
+if(FireRingActive)
+if(IsAlive())
+{
+    define curArea = agent.ofSquad.CurArea;
+    Number areaIdx = Areas.IndexOf(curArea);
+    if(areaIdx < 0 || areaIdx >= Areas.Length) areaIdx = 0;
+    curArea = Areas[areaIdx];
+    if(DistanceBetween(curArea.Center,EventPlayer())>FireRingsRadius[areaIdx]){
+        SetStatus(EventPlayer(),null,Status.Burning,1);
+        Damage(EventPlayer(),null,CurrentFireRingDamage());
+    }
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: FireRingsRadius[Areas.IndexOf(LocalPlayer().agent.ofSquad.CurArea)]
+    );
+    CreateHudText(
+        Header: '当前区域'+Areas.IndexOf(LocalPlayer().agent.ofSquad.CurArea)
+    );
+    CreateHudText(
+        Header: <"火圈倒计时 <0>s", Max(FireCountdownRemaining,0)>
+    );
+}
+
+Number CurrentFireRingDamage(){
+    return CurrentCombatConfig.BaseFireDamage + FireRingTickCount * CurrentCombatConfig.FireDamagePerTick;
+}
+
+single struct CombatPhaseConfig{
+    public Number PrepareDuration;
+    public Number FiringCountdown;
+    public Number ShrinkInterval;
+    public Number ShrinkAmount;
+    public Number BaseFireDamage;
+    public Number FireDamagePerTick;
+}
+
+globalvar CombatPhaseConfig CurrentCombatConfig;
+globalvar Number FireRingTickCount;
+
+CombatPhaseConfig ResolveCombatPhaseConfig(){
+    CombatPhaseConfig config;
+    config.PrepareDuration = TournamentManager > 0 ? 40 : 15;
+    config.FiringCountdown= (TournamentManager == 1 && Stage == 1) ? 20 : 40;
+    config.ShrinkInterval = 5;
+    config.ShrinkAmount = 3;
+    config.BaseFireDamage = 50;
+    config.FireDamagePerTick = 20;
+    FireRingTickCount = 0;
+    FireRingsRadius = Areas.Map(t=>t.Radius);
+    return config;
+}
+
+void ApplyFireRingShrink(){
+    FireRingTickCount++;
+    for(Number i! = 0; i < FireRingsRadius.Length; i++){
+        if(FireRingsRadius[i] > 0){
+            FireRingsRadius[i] = Max(0, FireRingsRadius[i] - CurrentCombatConfig.ShrinkAmount);
+        }
+    }
+}
+
+// 按 MatchTime 触发的缩圈循环，参考提供的示例
+rule: 'Fire Ring Shrink Loop'
+Event.OngoingGlobal
+if(TournamentManager.CurPhase == GamePhase.Combat)
+if(FireRingActive)
+{
+    Wait(CurrentCombatConfig.ShrinkInterval,WaitBehavior.AbortWhenFalse);
+    if(FireRingTickCount == 0){
+        BigMessage(Header: '火圈开始收缩..');
+    }
+
+    ApplyFireRingShrink();
+    LoopIfConditionIsTrue();
+}

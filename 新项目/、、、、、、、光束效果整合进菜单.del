@@ -1,0 +1,123 @@
+import '技能树.del';
+void InitBeamEffects(){
+    for(Number i = 0 ; i<SKILL_TREE_MAX_BEAMS;i++){
+        Number index: EvaluateOnce(i);
+        SkillBeam b : LocalPlayer().SkillBeam_Pool_Local[index];
+        CreateBeamEffect(
+            VisibleTo: true||LocalPlayer().isinSkillTreeMenu&&b.isUse?LocalPlayer():null,
+            BeamType: BeamType.GrappleBeam,
+            StartPosition: MenuButtonPosition_Local(GetBeamStartX(b),GetBeamStartY(b)),
+            EndPosition: MenuButtonPosition_Local(GetBeamEndX(b),GetBeamEndY(b))
+        );
+    }
+}
+playervar Boolean isinSkillTreeMenu = false;
+playervar SkillBeam[] SkillBeam_Pool_Local = [];
+globalvar SkillBeam[][] SkillBeam_Pool;//distributed by skillhero
+single struct SkillBeam {
+    public Number SlotID;
+    public Boolean isUse;
+    public Number ParentID;
+    public Number ChildID;
+}
+
+Number GetBeamStartX(in SkillBeam B){
+    MenuButton_Data ParentButton : ButtonData_Pool.Filter(t=>t.Kind==MenuButtonKind.CurrentSkillNode&&t.Params[0]==B.ParentID).First;
+    return ParentButton.PosX;
+}
+
+Number GetBeamStartY(in SkillBeam B){
+    MenuButton_Data ParentButton : ButtonData_Pool.Filter(t=>t.Kind==MenuButtonKind.CurrentSkillNode&&t.Params[0]==B.ParentID).First;
+    return ParentButton.PosY-ButtonHitBox[ParentButton.Scale-2][1]/2;
+}
+
+Number GetBeamEndX(in SkillBeam B){
+    MenuButton_Data ChildButton : ButtonData_Pool.Filter(t=>t.Kind==MenuButtonKind.CurrentSkillNode&&t.Params[0]==B.ChildID).First;
+    return ChildButton.PosX;
+}
+
+Number GetBeamEndY(in SkillBeam B){
+    MenuButton_Data ChildButton : ButtonData_Pool.Filter(t=>t.Kind==MenuButtonKind.CurrentSkillNode&&t.Params[0]==B.ChildID).First;
+    return ChildButton.PosY+ButtonHitBox[ChildButton.Scale-2][1]/2;
+}
+
+rule: 'My Rule'
+{
+    InitBeamEffects();
+}
+Number SKILL_TREE_MAX_BEAMS : 15;
+SkillBeam[] BuildBeamSlotsFromLayout(Number[][] layout)
+{
+    SkillBeam[] result = [];
+    Number slot = 0;
+
+    // 只处理有父节点的记录，parent 就是连线起点
+    for (define i = 0; i < layout.Length && slot < SKILL_TREE_MAX_BEAMS; i++) {
+        Number skillIndex  = layout[i][0];
+        Number parentIndex = layout[i][2];
+
+        if (parentIndex == -1) {
+            continue;
+        }
+
+        result += {
+            SlotID: slot,
+            isUse: true,
+            ParentID: parentIndex,
+            ChildID: skillIndex
+        };
+        slot++;
+    }
+
+    // 剩余槽位填充未使用项，方便后续直接遍历
+    while (slot < SKILL_TREE_MAX_BEAMS) {
+        result += [{
+            SlotID: slot,
+            isUse: false,
+            ParentID: -1,
+            ChildID: -1
+        }];
+        slot++;
+    }
+
+    return result;
+}
+
+globalvar SkillHero[] AllSkillHero = GetAllEnumValues();
+void DistributeAllSkillPool_bySkillHero_AndRenderBeams(){
+    
+    foreach(define h in AllSkillHero){
+        define HeroSkills = Skill_Pool.Filter(t=>t.Hero==h);
+        if(HeroSkills.Length>0){
+            define layout = BuildSkillTreeLayout(HeroSkills);
+            SkillBeam_Pool[<Number>h] = BuildBeamSlotsFromLayout(layout);
+        }
+    }
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    DistributeAllSkillPool_bySkillHero_AndRenderBeams();
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+{
+    SkillBeam_Pool_Local = SkillBeam_Pool[0];
+    define tttt = SkillBeam_Pool_Local[1];
+    LogToInspector(GetBeamStartX(tttt));
+    LogToInspector(GetBeamStartY(tttt));
+    LogToInspector(GetBeamEndX(tttt));
+    LogToInspector(GetBeamEndY(tttt));
+    CreateBeamEffect(
+            VisibleTo: AllPlayers(),
+            BeamType: BeamType.GrappleBeam,
+            StartPosition: MenuButtonPosition_Local(-3,2),
+            EndPosition: MenuButtonPosition_Local(-2,1)
+    );
+}

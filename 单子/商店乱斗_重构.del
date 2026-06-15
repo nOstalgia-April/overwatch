@@ -1,0 +1,710 @@
+﻿// 商店乱斗（轻量重构版）
+// 设计目标：
+// 1) 属性 / 物品 / 天赋 三套独立数据结构
+// 2) 界面只负责按钮配置与点击分发
+// 3) 保留关键旧变量名（Backpack_* / ShangPing / TianFu / YiXuanTianFu / LinShi）
+
+enum BackpackMode {
+    Closed = 0,
+    Shop = 1
+}
+
+enum ShopButtonKind {
+    None = 0,
+    BuyItem = 1,
+    Refresh = 3
+}
+
+enum ButtonScale {
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+
+enum AttrId {
+    Attack = 0,
+    SkillDamage = 1,
+    Health = 2,
+    Shield = 3,
+    Armor = 4,
+    Cooldown = 5,
+    Healing = 6,
+    Speed = 7,
+    LifeSteal = 8,
+    Knockback = 9
+}
+
+enum ItemRewardType {
+    AddAttr = 1,
+    AddGem = 2,
+    AddDice = 3,
+    AddTalentPoint = 4,
+    AddPercentAttr = 5,
+    AddFinalBlowMoney = 6,
+    AddDamageReduction = 7,
+    SetFlag = 8
+}
+
+enum TalentEffectType {
+    AddAttr = 1,
+    AddDice = 2,
+    AddTalentPoint = 3,
+    AddItemToPool = 4,
+    PassiveFlag = 5
+}
+
+single struct AttrDef {
+    public Number ID;
+    public String Name;
+    public Number BaseValue;
+}
+
+single struct ItemDef {
+    public Number ID;
+    public String Header;
+    public Number CostMoney;
+    public Number CostGem;
+    public Number RewardType;
+    public Number RewardAttrID;
+    public Number RewardMin;
+    public Number RewardMax;
+}
+
+single struct TalentDef {
+    public Number ID;
+    public String Header;
+    public Color Color;
+    public Number EffectType;
+    public Number EffectAttrID;
+    public Number EffectValue;
+    public Number MaxStack;
+}
+
+single struct ShopButtonDef {
+    public Number Kind;
+    public Number RefID;
+    public String Header;
+    public Color DefaultColor;
+    public Color HoverColor;
+    public Number PosX;
+    public Number PosY;
+    public Number Scale;
+}
+
+globalvar Boolean Backpack_GlobalInited = false;
+globalvar Vector Backpack_spot = Vector(0, 5, 0);
+globalvar AttrDef[] AttrDefs = [];
+globalvar ItemDef[] ItemDefs = [];
+globalvar TalentDef[] TalentDefs = [];
+
+playervar Number[] Backpack_open = [0, 0];
+playervar Number Backpack_sensitivity = 2;
+playervar Number[] Backpack_orientation = [0, 0];
+playervar ShopButtonDef[] Backpack_button = [];
+playervar ShopButtonDef[] Backpack_page = [];
+
+playervar Number Backpack_action_id = 0;
+playervar Number Backpack_action_param = 0;
+playervar Number Backpack_cursorX = 0;
+playervar Number Backpack_cursorY = 0;
+playervar Number Backpack_hitButton = -1;
+
+playervar Number[] Backpack_offerItemByButton = [];
+playervar Number[] Backpack_itemFlags = [];
+
+playervar Number[] AttrValue = [];
+playervar Number[] ShangPing = [];
+playervar Number[] TianFu = [];
+playervar Number[] YiXuanTianFu = [];
+
+playervar Number M = 1000;
+playervar Number BS = 1;
+playervar Number JND = 1;
+playervar Number TouZi = 1;
+playervar Number BountyMoney = 0;
+playervar Number DamageReductionPct = 0;
+
+playervar String LinShi = '';
+playervar Number LinShi2 = 0;
+playervar Number LinShi3 = 0;
+playervar Boolean Backpack_inited = false;
+
+ShopButtonDef MakeButton(
+    in Number kind,
+    in Number refID,
+    in String header,
+    in Number posX,
+    in Number posY,
+    in Number scale = <Number>ButtonScale.Medium,
+    in Color defaultColor = Color.White,
+    in Color hoverColor = Color.Yellow
+):
+    {
+        Kind: kind,
+        RefID: refID,
+        Header: header,
+        DefaultColor: defaultColor,
+        HoverColor: hoverColor,
+        PosX: posX,
+        PosY: posY,
+        Scale: scale
+    };
+
+Number[] GetButtonHitBox(in ShopButtonDef b):
+    b.Scale == <Number>ButtonScale.Small ? [0.32, 0.16] : (b.Scale == <Number>ButtonScale.Medium ? [0.38, 0.24] : [0.5, 0.3]);
+
+Number CursorX(in Player p):
+    ((HorizontalFacingAngleOf(p) - p.Backpack_orientation[0] + 540) % 360 - 180) / p.Backpack_sensitivity;
+
+Number CursorY(in Player p):
+    -(VerticalFacingAngleOf(p) - p.Backpack_orientation[1]) / p.Backpack_sensitivity;
+
+Boolean InRect(in Number x, in Number y, in ShopButtonDef b):
+    AbsoluteValue(x - b.PosX) < GetButtonHitBox(b)[0]
+    && AbsoluteValue(y - b.PosY) < GetButtonHitBox(b)[1];
+
+Number DistSq(in Number x, in Number y, in ShopButtonDef b):
+    (x - b.PosX) * (x - b.PosX)
+    + (y - b.PosY) * (y - b.PosY);
+
+Boolean IsHoveringLocal(in Number index):
+    LocalPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop
+    && LocalPlayer().Backpack_page.Length > index
+    && InRect(
+        ((HorizontalFacingAngleOf(LocalPlayer()) - LocalPlayer().Backpack_orientation[0] + 540) % 360 - 180) / LocalPlayer().Backpack_sensitivity,
+        -(VerticalFacingAngleOf(LocalPlayer()) - LocalPlayer().Backpack_orientation[1]) / LocalPlayer().Backpack_sensitivity,
+        LocalPlayer().Backpack_page[index]
+    );
+
+String ButtonHeaderLocal(in Number index):
+    LocalPlayer().Backpack_page.Length > index ? LocalPlayer().Backpack_page[index].Header : '';
+
+Vector ButtonPosLocal(in Number index):
+    LocalPlayer().Backpack_page.Length > index
+    ? Vector(0, 4 + LocalPlayer().Backpack_page[index].PosY, LocalPlayer().Backpack_page[index].PosX) + Backpack_spot
+    : Backpack_spot;
+
+Color ButtonColorLocal(in Number index):
+    LocalPlayer().Backpack_page.Length > index
+    ? (IsHoveringLocal(index) ? LocalPlayer().Backpack_page[index].HoverColor : LocalPlayer().Backpack_page[index].DefaultColor)
+    : Color.White;
+
+Boolean ButtonSlotVisibleLocal(in Number index):
+    LocalPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop
+    && LocalPlayer().Backpack_page.Length > index;
+
+Number ButtonScaleLocal(in Number index):
+    LocalPlayer().Backpack_page.Length > index ? LocalPlayer().Backpack_page[index].Scale : <Number>ButtonScale.Medium;
+
+Number ButtonTextScaleLocal(in Number index):
+    ButtonScaleLocal(index) == <Number>ButtonScale.Small ? 0.9 : (ButtonScaleLocal(index) == <Number>ButtonScale.Medium ? 1.0 : 1.1);
+
+Vector CursorPosLocal:
+    Vector(
+        0,
+        4 + (-(VerticalFacingAngleOf(LocalPlayer()) - LocalPlayer().Backpack_orientation[1]) / LocalPlayer().Backpack_sensitivity),
+        ((HorizontalFacingAngleOf(LocalPlayer()) - LocalPlayer().Backpack_orientation[0] + 540) % 360 - 180) / LocalPlayer().Backpack_sensitivity
+    ) + Backpack_spot;
+
+void InitDefs() 'sub 初始化定义数据' {
+    if (Backpack_GlobalInited) {
+        return;
+    }
+
+    AttrDefs = [
+        {ID: <Number>AttrId.Attack, Name: '攻击力', BaseValue: 100},
+        {ID: <Number>AttrId.SkillDamage, Name: '技能伤害', BaseValue: 100},
+        {ID: <Number>AttrId.Health, Name: '生命值', BaseValue: 250},
+        {ID: <Number>AttrId.Shield, Name: '护盾', BaseValue: 0},
+        {ID: <Number>AttrId.Armor, Name: '护甲', BaseValue: 0},
+        {ID: <Number>AttrId.Cooldown, Name: '冷却效率', BaseValue: 100},
+        {ID: <Number>AttrId.Healing, Name: '治疗量', BaseValue: 100},
+        {ID: <Number>AttrId.Speed, Name: '移速', BaseValue: 100},
+        {ID: <Number>AttrId.LifeSteal, Name: '吸血', BaseValue: 0},
+        {ID: <Number>AttrId.Knockback, Name: '击退倍率', BaseValue: 100}
+    ];
+
+    ItemDefs = [
+        {ID: 0, Header: '攻击力碎片-300货币\n随机获得1-5点攻击力', CostMoney: 300, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Attack, RewardMin: 1, RewardMax: 5},
+        {ID: 1, Header: '技能伤害碎片-300货币\n随机获得1%-5%技能伤害', CostMoney: 300, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.SkillDamage, RewardMin: 1, RewardMax: 5},
+        {ID: 2, Header: '生命碎片-300货币\n随机获得10-100点生命值', CostMoney: 300, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Health, RewardMin: 10, RewardMax: 100},
+        {ID: 3, Header: '护盾碎片-300货币\n随机获得20-80点护盾', CostMoney: 300, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Shield, RewardMin: 20, RewardMax: 80},
+        {ID: 4, Header: '护甲碎片-400货币\n随机获得20-60点护甲', CostMoney: 400, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Armor, RewardMin: 20, RewardMax: 60},
+        {ID: 5, Header: '技能极速碎片-200货币\n随机获得1-2点技能极速', CostMoney: 200, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Cooldown, RewardMin: 1, RewardMax: 2},
+        {ID: 6, Header: '治疗量碎片-200货币\n随机获得2-6治疗量', CostMoney: 200, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Healing, RewardMin: 2, RewardMax: 6},
+        {ID: 7, Header: '移速碎片-500货币\n随机获得1-5点移动速度', CostMoney: 500, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Speed, RewardMin: 1, RewardMax: 5},
+        {ID: 8, Header: '吸血碎片-500货币\n随机获得1%-3%吸血', CostMoney: 500, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.LifeSteal, RewardMin: 1, RewardMax: 3},
+        {ID: 9, Header: '击退碎片-250货币\n随机获得5-10点击退倍率', CostMoney: 250, CostGem: 0, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Knockback, RewardMin: 5, RewardMax: 10},
+        {ID: 10, Header: '宝石兑换-2000货币\n获得1宝石', CostMoney: 2000, CostGem: 0, RewardType: <Number>ItemRewardType.AddGem, RewardAttrID: 0, RewardMin: 1, RewardMax: 1},
+
+        {ID: 11, Header: '|足力健-5宝石|\n获得50移动速度', CostMoney: 0, CostGem: 5, RewardType: <Number>ItemRewardType.AddAttr, RewardAttrID: <Number>AttrId.Speed, RewardMin: 50, RewardMax: 50},
+        {ID: 12, Header: '|赏金猎人-1宝石|\n获得一层赏金猎人，参与击杀提供100点额外货币', CostMoney: 0, CostGem: 1, RewardType: <Number>ItemRewardType.AddFinalBlowMoney, RewardAttrID: 0, RewardMin: 100, RewardMax: 100},
+        {ID: 13, Header: '|水绿宝石-1宝石|\n下次天赋选择只会出现水绿色天赋', CostMoney: 0, CostGem: 1, RewardType: <Number>ItemRewardType.SetFlag, RewardAttrID: 0, RewardMin: 1, RewardMax: 1},
+        {ID: 14, Header: '|盗版防御矩阵-2宝石|\n获得15%免伤', CostMoney: 0, CostGem: 2, RewardType: <Number>ItemRewardType.AddDamageReduction, RewardAttrID: 0, RewardMin: 15, RewardMax: 15},
+        {ID: 15, Header: '|方糖苹果-1宝石|\n获得40%额外生命值', CostMoney: 0, CostGem: 1, RewardType: <Number>ItemRewardType.AddPercentAttr, RewardAttrID: <Number>AttrId.Health, RewardMin: 40, RewardMax: 40},
+        {ID: 16, Header: '|光子护盾-2宝石|\n获得100%额外护盾', CostMoney: 0, CostGem: 2, RewardType: <Number>ItemRewardType.AddPercentAttr, RewardAttrID: <Number>AttrId.Shield, RewardMin: 100, RewardMax: 100},
+        {ID: 17, Header: '|骰子袋-1宝石|\n获得2刷新骰子', CostMoney: 0, CostGem: 1, RewardType: <Number>ItemRewardType.AddDice, RewardAttrID: 0, RewardMin: 2, RewardMax: 2},
+        {ID: 18, Header: '|天赋点-3宝石|\n获得1天赋点', CostMoney: 0, CostGem: 3, RewardType: <Number>ItemRewardType.AddTalentPoint, RewardAttrID: 0, RewardMin: 1, RewardMax: 1},
+        {ID: 19, Header: '|命运魔方-2宝石|\n下次特殊刷新', CostMoney: 0, CostGem: 2, RewardType: <Number>ItemRewardType.AddDice, RewardAttrID: 0, RewardMin: 1, RewardMax: 1}
+    ];
+
+    TalentDefs = [
+        {ID: 0, Header: '高级会员\n购买物品返还500货币', Color: Color.Aqua, EffectType: <Number>TalentEffectType.PassiveFlag, EffectAttrID: 0, EffectValue: 1, MaxStack: 3},
+        {ID: 1, Header: '宝石批发\n立即获得1-8宝石', Color: Color.Aqua, EffectType: <Number>TalentEffectType.AddDice, EffectAttrID: -1, EffectValue: 0, MaxStack: 5},
+        {ID: 2, Header: '强攻\n+15攻击力', Color: Color.Orange, EffectType: <Number>TalentEffectType.AddAttr, EffectAttrID: <Number>AttrId.Attack, EffectValue: 15, MaxStack: 10},
+        {ID: 3, Header: '巨体\n+150生命值', Color: Color.White, EffectType: <Number>TalentEffectType.AddAttr, EffectAttrID: <Number>AttrId.Health, EffectValue: 150, MaxStack: 10},
+        {ID: 4, Header: '迅捷\n+10移速', Color: Color.Yellow, EffectType: <Number>TalentEffectType.AddAttr, EffectAttrID: <Number>AttrId.Speed, EffectValue: 10, MaxStack: 10},
+        {ID: 5, Header: '再训练\n+1天赋点', Color: Color.Green, EffectType: <Number>TalentEffectType.AddTalentPoint, EffectAttrID: -1, EffectValue: 1, MaxStack: 5},
+        {ID: 6, Header: '补给\n+2刷新骰子', Color: Color.Blue, EffectType: <Number>TalentEffectType.AddDice, EffectAttrID: -1, EffectValue: 2, MaxStack: 5},
+        {ID: 7, Header: '冰香蕉\n商店池追加特殊物品', Color: Color.White, EffectType: <Number>TalentEffectType.AddItemToPool, EffectAttrID: 4, EffectValue: 1, MaxStack: 1}
+    ];
+
+    Backpack_GlobalInited = true;
+}
+
+void EnsureTalentLen(in Player p, in Number id) {
+    while (p.YiXuanTianFu.Length <= id) {
+        p.YiXuanTianFu += [0];
+    }
+}
+
+void EnsureItemFlagLen(in Player p, in Number id) {
+    while (p.Backpack_itemFlags.Length <= id) {
+        p.Backpack_itemFlags += [0];
+    }
+}
+
+void SyncAttrToPlayer(Player p!) 'sub 属性同步到角色' {
+    if (p.AttrValue.Length < 10) {
+        return;
+    }
+
+    SetDamageDealt(p, p.AttrValue[<Number>AttrId.Attack]);
+    SetMaxHealth(p, p.AttrValue[<Number>AttrId.Health]);
+    SetMoveSpeed(p, p.AttrValue[<Number>AttrId.Speed]);
+    SetDamageReceived(p, Max(20, 100 - p.DamageReductionPct));
+}
+
+Boolean Spend(in Player p!, in Number costMoney = 0, in Number costGem = 0) {
+    if (p.M < costMoney || p.BS < costGem) {
+        return false;
+    }
+    p.M -= costMoney;
+    p.BS -= costGem;
+    return true;
+}
+
+Number RollAdvancedItemID(in Player p):
+    p.ShangPing.Length > 0 ? RandomValueInArray(p.ShangPing) : RandomInteger(11, 19);
+
+void BuildShopButtons(Player p!) 'sub 构建商店按钮' {
+    p.Backpack_button = [];
+    while (p.Backpack_offerItemByButton.Length < 17) {
+        p.Backpack_offerItemByButton += [0];
+    }
+
+    // 1) 属性碎片区：10属性 + 1宝石兑换（固定）
+    p.Backpack_offerItemByButton[0] = 0;
+    p.Backpack_offerItemByButton[1] = 1;
+    p.Backpack_offerItemByButton[2] = 2;
+    p.Backpack_offerItemByButton[3] = 3;
+    p.Backpack_offerItemByButton[4] = 4;
+    p.Backpack_offerItemByButton[5] = 5;
+    p.Backpack_offerItemByButton[6] = 6;
+    p.Backpack_offerItemByButton[7] = 7;
+    p.Backpack_offerItemByButton[8] = 8;
+    p.Backpack_offerItemByButton[9] = 9;
+    p.Backpack_offerItemByButton[10] = 10;
+
+    // 2) 高级商品区：6格（从玩家高级商品池中抽取）
+    Number adv0! = RollAdvancedItemID(p);
+    Number adv1! = RollAdvancedItemID(p);
+    while (adv1 == adv0) {
+        adv1 = RollAdvancedItemID(p);
+    }
+    Number adv2! = RollAdvancedItemID(p);
+    while (adv2 == adv0 || adv2 == adv1) {
+        adv2 = RollAdvancedItemID(p);
+    }
+    Number adv3! = RollAdvancedItemID(p);
+    while (adv3 == adv0 || adv3 == adv1 || adv3 == adv2) {
+        adv3 = RollAdvancedItemID(p);
+    }
+    Number adv4! = RollAdvancedItemID(p);
+    while (adv4 == adv0 || adv4 == adv1 || adv4 == adv2 || adv4 == adv3) {
+        adv4 = RollAdvancedItemID(p);
+    }
+    Number adv5! = RollAdvancedItemID(p);
+    while (adv5 == adv0 || adv5 == adv1 || adv5 == adv2 || adv5 == adv3 || adv5 == adv4) {
+        adv5 = RollAdvancedItemID(p);
+    }
+
+    p.Backpack_offerItemByButton[11] = adv0;
+    p.Backpack_offerItemByButton[12] = adv1;
+    p.Backpack_offerItemByButton[13] = adv2;
+    p.Backpack_offerItemByButton[14] = adv3;
+    p.Backpack_offerItemByButton[15] = adv4;
+    p.Backpack_offerItemByButton[16] = adv5;
+
+    // 属性碎片区（x±4 / y±2.5 标准）
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 0, ItemDefs[0].Header, -3.6, 2.1, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 1, ItemDefs[1].Header, -0.5, 2.1, <Number>ButtonScale.Large)];
+
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 2, ItemDefs[2].Header, -3.6, 1.35, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 3, ItemDefs[3].Header, -0.5, 1.35, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 4, ItemDefs[4].Header, 2.4, 1.35, <Number>ButtonScale.Large)];
+
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 5, ItemDefs[5].Header, -3.6, 0.6, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 6, ItemDefs[6].Header, -0.5, 0.6, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 7, ItemDefs[7].Header, 2.4, 0.6, <Number>ButtonScale.Large)];
+
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 8, ItemDefs[8].Header, -3.6, -0.15, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 9, ItemDefs[9].Header, -0.5, -0.15, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 10, ItemDefs[10].Header, 2.4, -0.15, <Number>ButtonScale.Large)];
+
+    // 高级商品区（6格）
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 11, ItemDefs[adv0].Header, -2.7, -1.0, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 12, ItemDefs[adv1].Header, 1.6, -1.0, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 13, ItemDefs[adv2].Header, -2.7, -1.75, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 14, ItemDefs[adv3].Header, 1.6, -1.75, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 15, ItemDefs[adv4].Header, -2.7, -2.45, <Number>ButtonScale.Large)];
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.BuyItem, 16, ItemDefs[adv5].Header, 1.6, -2.45, <Number>ButtonScale.Large)];
+
+    // 3) 刷新按钮
+    p.Backpack_button += [MakeButton(<Number>ShopButtonKind.Refresh, 0, '刷新-消耗一枚刷新骰子\n若没有骰子则消耗1宝石', 3.45, 2.2, <Number>ButtonScale.Medium)];
+
+    p.Backpack_page = p.Backpack_button;
+}
+
+void BuildCurrentPage(Player p!) 'sub 构建当前页面' {
+    if (p.Backpack_open[0] == <Number>BackpackMode.Shop) {
+        BuildShopButtons(p);
+    } else {
+        p.Backpack_page = [];
+    }
+}
+
+void ApplyItemReward(in Player p!, in ItemDef def!) {
+    Number v! = RandomInteger(def.RewardMin, def.RewardMax);
+
+    switch (def.RewardType) {
+        case <Number>ItemRewardType.AddAttr:
+            if (def.RewardAttrID >= 0 && def.RewardAttrID < p.AttrValue.Length) {
+                p.AttrValue[def.RewardAttrID] += v;
+                SyncAttrToPlayer(p);
+            }
+            break;
+        case <Number>ItemRewardType.AddPercentAttr:
+            if (def.RewardAttrID >= 0 && def.RewardAttrID < p.AttrValue.Length) {
+                Number gain! = Max(1, RoundToInteger(p.AttrValue[def.RewardAttrID] * v * 0.01));
+                p.AttrValue[def.RewardAttrID] += gain;
+                SyncAttrToPlayer(p);
+            }
+            break;
+        case <Number>ItemRewardType.AddGem:
+            p.BS += v;
+            break;
+        case <Number>ItemRewardType.AddDice:
+            p.TouZi += v;
+            break;
+        case <Number>ItemRewardType.AddTalentPoint:
+            p.JND += v;
+            break;
+        case <Number>ItemRewardType.AddFinalBlowMoney:
+            p.BountyMoney += v;
+            break;
+        case <Number>ItemRewardType.AddDamageReduction:
+            p.DamageReductionPct = Min(80, p.DamageReductionPct + v);
+            SyncAttrToPlayer(p);
+            break;
+        case <Number>ItemRewardType.SetFlag:
+            EnsureItemFlagLen(p, def.RewardAttrID);
+            p.Backpack_itemFlags[def.RewardAttrID] = 1;
+            break;
+    }
+}
+
+void TryBuyItemByButton(in Player p!, in Number refID) {
+    if (refID < 0 || refID >= p.Backpack_offerItemByButton.Length) {
+        return;
+    }
+
+    Number itemID! = p.Backpack_offerItemByButton[refID];
+    if (itemID < 0 || itemID >= ItemDefs.Length) {
+        return;
+    }
+
+    define def! = ItemDefs[itemID];
+    if (!Spend(p, def.CostMoney, def.CostGem)) {
+        return;
+    }
+
+    ApplyItemReward(p, def);
+
+    // 高级会员（YiXuanTianFu[0]）返还货币
+    EnsureTalentLen(p, 0);
+    if (p.YiXuanTianFu[0] > 0) {
+        p.M += p.YiXuanTianFu[0] * 500;
+    }
+
+    BuildShopButtons(p);
+}
+
+void DoRefresh(in Player p!) {
+    if (p.TouZi >= 1) {
+        p.TouZi -= 1;
+    } else if (p.BS >= 1) {
+        p.BS -= 1;
+    } else {
+        return;
+    }
+
+    BuildCurrentPage(p);
+}
+
+void DispatchBackpackAction(Player p!) 'sub 分发背包动作' {
+    if (p.Backpack_hitButton < 0 || p.Backpack_hitButton >= p.Backpack_page.Length) {
+        return;
+    }
+
+    define btn! = p.Backpack_page[p.Backpack_hitButton];
+    p.Backpack_action_id = btn.Kind;
+    p.Backpack_action_param = btn.RefID;
+
+    switch (btn.Kind) {
+        case <Number>ShopButtonKind.BuyItem:
+            TryBuyItemByButton(p, btn.RefID);
+            break;
+        case <Number>ShopButtonKind.Refresh:
+            DoRefresh(p);
+            break;
+    }
+}
+
+void FindBackpackActionByCursor(Player p!) 'sub 光标命中按钮' {
+    p.Backpack_hitButton = -1;
+    p.Backpack_action_id = 0;
+    p.Backpack_action_param = 0;
+
+    p.Backpack_cursorX = CursorX(p);
+    p.Backpack_cursorY = CursorY(p);
+
+    Number bestDist! = 999999;
+    for (Number i! = 0; i < p.Backpack_page.Length; i++) {
+        define btn! = p.Backpack_page[i];
+        if (InRect(p.Backpack_cursorX, p.Backpack_cursorY, btn)) {
+            Number d! = DistSq(p.Backpack_cursorX, p.Backpack_cursorY, btn);
+            if (d < bestDist) {
+                bestDist = d;
+                p.Backpack_hitButton = i;
+            }
+        }
+    }
+}
+
+void OpenBackpack(Player p! = EventPlayer()) 'sub 打开背包' {
+    if (p.Backpack_open[0] != <Number>BackpackMode.Closed) {
+        return;
+    }
+
+    p.Backpack_orientation[0] = HorizontalFacingAngleOf(p);
+    p.Backpack_orientation[1] = VerticalFacingAngleOf(p);
+
+    DisableHeroHud(p);
+    DisableGameModeHud(p);
+    DisableTextChat(p);
+    SetStatus(p, null, Status.Rooted, 9999);
+    SetPrimaryFireEnabled(p, false);
+    SetSecondaryFireEnabled(p, false);
+    SetMeleeEnabled(p, false);
+    DisableMovementCollisionWithPlayers(p);
+    StartCamera(p, Vector(6.750, 4, 0) + Backpack_spot, Vector(0, 4, 0) + Backpack_spot, 0);
+
+    p.Backpack_open[1] = 0;
+    p.Backpack_open[0] = <Number>BackpackMode.Shop;
+    BuildCurrentPage(p);
+}
+
+void CloseBackpack(Player p! = EventPlayer()) 'sub 关闭背包' {
+    if (p.Backpack_open[0] == <Number>BackpackMode.Closed) {
+        return;
+    }
+
+    p.Backpack_open = [0, 0];
+    p.Backpack_page = [];
+
+    StopCamera(p);
+    ClearStatus(p, Status.Rooted);
+    SetPrimaryFireEnabled(p, true);
+    SetSecondaryFireEnabled(p, true);
+    SetMeleeEnabled(p, true);
+    EnableMovementCollisionWithPlayers(p);
+    EnableHeroHud(p);
+    EnableGameModeHud(p);
+    EnableTextChat(p);
+}
+
+void InitPlayerData(Player p!) 'sub 玩家商店初始化' {
+    InitDefs();
+
+    p.AttrValue = [
+        AttrDefs[<Number>AttrId.Attack].BaseValue,
+        AttrDefs[<Number>AttrId.SkillDamage].BaseValue,
+        AttrDefs[<Number>AttrId.Health].BaseValue,
+        AttrDefs[<Number>AttrId.Shield].BaseValue,
+        AttrDefs[<Number>AttrId.Armor].BaseValue,
+        AttrDefs[<Number>AttrId.Cooldown].BaseValue,
+        AttrDefs[<Number>AttrId.Healing].BaseValue,
+        AttrDefs[<Number>AttrId.Speed].BaseValue,
+        AttrDefs[<Number>AttrId.LifeSteal].BaseValue,
+        AttrDefs[<Number>AttrId.Knockback].BaseValue
+    ];
+
+    p.ShangPing = [11, 12, 13, 14, 15, 16, 17, 18, 19];
+    p.TianFu = TalentDefs.Map(d => d.ID);
+    p.YiXuanTianFu = [];
+    p.Backpack_itemFlags = [];
+
+    p.M = 1000;
+    p.BS = 1;
+    p.JND = 1;
+    p.TouZi = 1;
+    p.BountyMoney = 0;
+    p.DamageReductionPct = 0;
+    p.Backpack_sensitivity = 2;
+
+    p.Backpack_open = [0, 0];
+    p.Backpack_page = [];
+    p.Backpack_button = [];
+    p.Backpack_offerItemByButton = [];
+
+    SyncAttrToPlayer(p);
+}
+
+rule: '轻量商店-全局初始化'
+{
+    InitDefs();
+}
+
+rule: '轻量商店-玩家初始化'
+Event.OnPlayerJoin
+Team.All
+Player.All
+{
+    InitPlayerData(EventPlayer());
+    EventPlayer().Backpack_inited = true;
+}
+
+rule: '轻量商店-兜底初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!Backpack_inited)
+{
+    InitPlayerData(EventPlayer());
+    Backpack_inited = true;
+}
+
+rule: '轻量商店-赏金猎人击杀奖励'
+Event.OnElimination
+Team.All
+Player.All
+if(BountyMoney > 0)
+{
+    M += BountyMoney;
+}
+
+rule: '轻量商店-喷漆开关界面'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsCommunicatingAnySpray(EventPlayer()))
+{
+    if(EventPlayer().Backpack_open[0] == <Number>BackpackMode.Closed){
+        OpenBackpack(EventPlayer());
+    }
+    else{
+        CloseBackpack(EventPlayer());
+    }
+    WaitUntil(!IsCommunicatingAnySpray(EventPlayer()), 9999);
+    MinWait();
+}
+
+rule: '轻量商店-交互点击'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(
+    EventPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop
+    && EventPlayer().Backpack_open[1] == 0
+    && IsButtonHeld(EventPlayer(), Button.Interact)
+)
+{
+    EventPlayer().Backpack_open[1] = 1;
+    FindBackpackActionByCursor(EventPlayer());
+    if(EventPlayer().Backpack_hitButton != -1){
+        DispatchBackpackAction(EventPlayer());
+    }
+    EventPlayer().Backpack_open[1] = 0;
+    WaitUntil(!IsButtonHeld(EventPlayer(), Button.Interact), 9999);
+    MinWait();
+}
+
+rule: '轻量商店-近战重置鼠标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(EventPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop && IsButtonHeld(EventPlayer(), Button.Melee))
+{
+    StartFacing(
+        EventPlayer(),
+        DirectionFromAngles(EventPlayer().Backpack_orientation[0], EventPlayer().Backpack_orientation[1]),
+        9999999,
+        Relative.ToWorld,
+        FacingRev.DirectionAndTurnRate
+    );
+    Wait(0.08);
+    StopFacing(EventPlayer());
+    WaitUntil(!IsButtonHeld(EventPlayer(), Button.Melee), 9999);
+    MinWait();
+}
+
+rule: '轻量商店-指针文本'
+{
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop ? LocalPlayer() : null,
+        Header: InputBindingString(Button.Interact),
+        Position: UpdateEveryFrame(CursorPosLocal),
+        Scale: 1.2,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+
+rule: '轻量商店-按钮文本'
+{
+    for (Number i! = 0; i < 18; i++) {
+        CreateInWorldText(
+            VisibleTo: ButtonSlotVisibleLocal(EvaluateOnce(i)) ? LocalPlayer() : null,
+            Header: ButtonHeaderLocal(EvaluateOnce(i)),
+            Position: ButtonPosLocal(EvaluateOnce(i)),
+            Scale: ButtonTextScaleLocal(EvaluateOnce(i)),
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ButtonColorLocal(EvaluateOnce(i))
+        );
+        Wait();
+    }
+}
+
+rule: '轻量商店-货币信息'
+{
+    CreateHudText(
+        VisibleTo: LocalPlayer().Backpack_open[0] >= <Number>BackpackMode.Shop ? LocalPlayer() : null,
+        Header: <'货币:<0>  宝石:<1>  天赋点:<2>  刷新骰子:<3>', LocalPlayer().M, LocalPlayer().BS, LocalPlayer().JND, LocalPlayer().TouZi>,
+        SortOrder: 0,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        HeaderColor: Color.White,
+    );
+}

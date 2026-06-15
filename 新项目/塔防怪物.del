@@ -1,0 +1,508 @@
+import '塔防寻路.del';
+import '塔防核心波数控制.del';
+import '渐变颜色.del';
+enum EnemyType{
+    Null,
+    Boomer,
+    Archer,
+    Winston,
+    Mom,
+    Shielder,
+    Shaman,
+    Pharah
+}
+enum ActionRole{
+    Null,
+    CoreAttacker,
+    Harass,
+    Elite,
+    Boss,
+    Walker
+}
+
+playervar EnemyType BotType;
+playervar Player BotCombatTarget;
+playervar Player[] BotTargetArray;
+playervar Number BotAggroRange = 12;
+playervar Number BotAttackRange = 5;
+playervar ActionRole BotRole;
+
+
+
+Boolean ReachedCore(){
+    return DistanceBetween(EventPlayer(),CorePos)<=Core.Box;
+}
+
+rule: '自爆怪初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Boomer)
+{
+    BotRole = ActionRole.CoreAttacker;
+    DefaultSpeedPct = 60;
+    CoreAttacker_Elite_DestroyAmount = 25;
+    SetMaxHealth(HealthPercent: 50);
+}
+rule: '自爆怪抵达核心爆炸'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(isAttackCore())
+if(ReachedCore())
+{
+    StartForcingPlayerPosition(EventPlayer(),PositionOf());
+    SetStatus(EventPlayer(),null,Status.Burning,3);
+    Wait(2);
+    while(IsAlive()){
+        Kill(EventPlayer(),null);
+        Core.HurtCore(CoreAttacker_Elite_DestroyAmount);
+        Wait(0.25);
+    }
+}
+rule: '人机死亡移除'
+Event.OnDeath
+Team.All
+Player.All
+if(IsDummyBot())
+{
+    Wait(1,WaitBehavior.AbortWhenFalse);
+    DestroyDummyBot(Team.Team1,SlotOf(EventPlayer()));
+}
+
+rule: '测试函数'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HostPlayer()==EventPlayer())
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+if(DirectorState.CurrentWaveIndex==-1)
+{
+    CreateDummyBot(
+        Hero: Hero.Winston,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: TowerPF_GetSpawnPos(0)
+    ).BotType = EnemyType.Winston;
+}
+
+rule: '弓箭手'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Archer)
+{
+    BotRole = ActionRole.Elite;
+    DefaultSpeedPct = 60;
+    CoreAttacker_Elite_DestroyAmount = 50;
+    SetMaxHealth(HealthPercent: 100);
+}
+
+rule: '萨满初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Shaman)
+{
+    BotRole = ActionRole.CoreAttacker;
+    DefaultSpeedPct = 60;
+    CoreAttacker_Elite_DestroyAmount = 30;
+    StartScalingPlayer(Scale: 1.2);
+}
+
+rule: '萨满抬血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Shaman)
+if(AbilityCooldown(Button: Button.Ability1)==0)
+if(PlayersWithinRadius(EventPlayer(),8,Team.Team1).Filter(t=>NormalizedHealth(t)<1).Length > 0)
+{
+    PressButton(Button: Button.Ability1);
+    SetAbilityCooldown(Button: Button.Ability1,Cooldown: 3);
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '母体初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Mom)
+{
+    BotRole = ActionRole.Walker;
+    SetMaxHealth(HealthPercent: 50);
+    StartHoldingButton(Button: Button.Ability1);
+    DefaultSpeedPct = 70;
+}
+
+rule: '母体生崽子'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Mom)
+if(IsAlive())
+{
+    Wait(RandomInteger(1,4));
+    Spawner_SpawnBoomer(PositionOf());
+    LoopIfConditionIsTrue();
+}
+
+rule: '盾兵初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Shielder)
+{
+    BotRole = ActionRole.CoreAttacker;
+    StartScalingBarriers(EventPlayer(),0.7);
+    StartHoldingButton(Button: Button.SecondaryFire);
+    CoreAttacker_Elite_DestroyAmount = 20;
+    DefaultSpeedPct = 75;
+    SetMaxHealth(HealthPercent: 40);
+}
+
+
+rule: '弓箭手入战攻击'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Archer)
+if(td_inCombat)
+{
+    PressButton(EventPlayer(),Button.SecondaryFire);
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '温斯顿初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(!IsGameInProgress())
+if(BotType == EnemyType.Winston)
+{
+    BotRole = ActionRole.Harass;
+    SetDamageDealt(DamageDealtPercent: 50);
+}
+rule: '温斯顿入战攻击'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Winston)
+if(td_inCombat)
+{
+    Wait(0.500, WaitBehavior.IgnoreCondition);
+    if(DistanceBetween(EyePosition(), EyePosition(EventPlayer().BotCombatTarget)) < 9 || !IsFiringPrimary(
+        EventPlayer())){
+            StartHoldingButton(EventPlayer(), Button.PrimaryFire);
+            StopHoldingButton(EventPlayer(),Button.SecondaryFire);
+            
+        }
+    else{
+        StartHoldingButton(EventPlayer(), Button.SecondaryFire);
+        StopHoldingButton(EventPlayer(),Button.PrimaryFire);
+    }
+    if(DistanceBetween(EyePosition(EventPlayer()), EyePosition(EventPlayer().BotCombatTarget)) < 3){
+            PressButton(EventPlayer(),Button.Melee);
+        }
+
+    if(DistanceBetween(EyePosition(EventPlayer()), EyePosition(EventPlayer().BotCombatTarget)) < 40 && (DistanceBetween(
+        EyePosition(EventPlayer()), EyePosition(EventPlayer().BotCombatTarget)) > 9 || AbsoluteValue(YOf(PositionOf(
+        EventPlayer())) - YOf(EyePosition(EventPlayer().BotCombatTarget))) > 2) || IsUsingUltimate(EventPlayer())){
+            PressButton(EventPlayer(), Button.Ability1);
+        }
+    
+    if(UltimateChargePercent(EventPlayer()) == 100){
+            PressButton(EventPlayer(), Button.Ability1);
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+            PressButton(EventPlayer(), Button.Ultimate);
+            Wait(0.500, WaitBehavior.IgnoreCondition);
+            PressButton(EventPlayer(), Button.Ability1);
+        }
+    LoopIfConditionIsTrue();
+    StopHoldingButton(EventPlayer(), Button.PrimaryFire);
+    StopHoldingButton(EventPlayer(), Button.SecondaryFire);
+    PressButton(EventPlayer(), Button.Reload);
+}
+rule: '法鸡初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Pharah)
+{
+    BotRole = ActionRole.Harass;
+    SetDamageDealt(DamageDealtPercent: 30);
+    BotAggroRange = 23;
+}
+rule: '法鸡入战攻击'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Pharah)
+if(td_inCombat)
+{
+    Wait(0.500, WaitBehavior.IgnoreCondition);
+    PressButton(EventPlayer(), Button.PrimaryFire);
+    
+    PressButton(EventPlayer(), Button.Ability2);
+    LoopIfConditionIsTrue();
+}
+
+rule: '法鸡入战跳跃'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotType == EnemyType.Pharah)
+if(td_inCombat)
+{
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+    if(IsOnGround()){
+        StopHoldingButton(Button: Button.Jump);
+        PressButton(EventPlayer(), Button.Ability1);
+        SetAbilityResource(Button: Button.Jump,ResourcePercent: 50);
+    }else{
+        StartHoldingButton(Button: Button.Jump);
+        Wait(RandomReal(0.2,0.5));
+        StopHoldingButton(Button: Button.Jump);
+        Wait(0.3);
+    }
+    LoopIfConditionIsTrue();
+}
+
+rule: '挂载图标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotRole==ActionRole.CoreAttacker||BotRole==ActionRole.Elite)
+{
+    CreateIcon(
+        VisibleTo: AllPlayers(),
+        Position: EventPlayer(),
+        Icon: Icon.Skull,
+        IconColor: CustomColor(255, 4, 4, Max(50,305-5*Max(10,DistanceBetween(EventPlayer(),CorePos)))),
+        Reevaluation: IconRev.VisibleToPositionAndColor
+    );
+}
+
+rule: 'walker挂载图标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+if(BotRole==ActionRole.Walker)
+{
+    CreateIcon(
+        VisibleTo: AllPlayers(),
+        Position: EventPlayer(),
+        Icon: Icon.ArrowDown,
+        IconColor: Color.Rose,
+        Reevaluation: IconRev.VisibleToPositionAndColor
+    );
+}
+
+
+
+rule: '获取目标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(BotAggroRange>0)
+{
+    BotTargetArray = AllPlayers(Team.Team2).Filter(t => IsInLineOfSight(t, EventPlayer()) && (DistanceBetween(t, EventPlayer()) <= BotAggroRange && AbsoluteValue(YOf(PositionOf(t))-YOf(PositionOf(EventPlayer())))<=3) && IsAlive(t) && HasSpawned(t)); // 筛选 12 米内可见敌人
+    if (CountOf(BotTargetArray) > 0) {
+        BotCombatTarget = BotTargetArray.Sort(t => DistanceBetween(t, EventPlayer()))
+        .First;
+    }
+    Wait(0.25);
+    LoopIfConditionIsTrue();
+}
+
+rule: '进入战斗后的移动控制'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(td_inCombat)
+if(BotCombatTarget != null && IsAlive(BotCombatTarget))
+{
+    define distance : DistanceBetween(EventPlayer(), BotCombatTarget);
+    StartThrottleInDirection(
+        Player: EventPlayer(),
+        Direction: Vector(
+            distance > BotAttackRange ? 0 : EvaluateOnce(RandomValueInArray([-1,0,1])),
+            0,
+            distance > BotAttackRange ? 1 : EvaluateOnce(RandomValueInArray([-1,0,1]))
+        ),
+        Magnitude: 1,
+        Relative: Relative.ToPlayer,
+        Behavior: ThrottleBehavior.ReplaceExistingThrottle,
+        Reevaluation: ThrottleRev.DirectionAndMagnitude
+    );
+    Wait(RandomReal(0.5,1), WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+// 规则：机器人进入战斗状态
+rule: "机器人进入战斗状态"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(CountOf(BotTargetArray) > 0)
+if(BotCombatTarget != null)
+{
+    if(BotRole==ActionRole.Harass){
+        td_context = BotCombatTarget;
+    }
+    TowerPF_EnterCombat();
+    Combat_UpdateFacing();
+}
+// 常量：机器人瞄准参数
+Number bot_ballistic_velocity: -0.003; // 子弹轨迹补偿
+Number bot_aming_accuracy: 0; // 瞄准精度（当前无随机偏移）
+void Combat_UpdateFacing(){
+    if(BotCombatTarget!=null){
+        StartFacing(EventPlayer(),
+            DirectionTowards(
+                EyePosition(),
+                EyePosition(BotCombatTarget) + Down() * DistanceBetween(EventPlayer(), BotCombatTarget) * 0.01 + VelocityOf(BotCombatTarget) * (DistanceBetween(EventPlayer(), BotCombatTarget) * bot_ballistic_velocity + 0.2)
+                +
+                DirectionFromAngles(
+                    HorizontalFacingAngleOf() + RandomReal(
+                        DistanceBetween(EventPlayer(), BotCombatTarget) * AbsoluteValue(bot_aming_accuracy) * -1,
+                        DistanceBetween(EventPlayer(), BotCombatTarget) * AbsoluteValue(bot_aming_accuracy)
+                    ),
+                    VerticalFacingAngleOf() + RandomReal(
+                        DistanceBetween(EventPlayer(), BotCombatTarget) * AbsoluteValue(bot_aming_accuracy) * 0.25 * -1,
+                        DistanceBetween(EventPlayer(), BotCombatTarget) * AbsoluteValue(bot_aming_accuracy) * 0.25
+                    )
+                ) * 1
+            ),
+            1000,
+            Relative.ToWorld,
+            FacingRev.DirectionAndTurnRate
+        ); // 调整机器人朝向，考虑目标速度和距离
+    }
+    
+}
+Number BotHateDuration : 10;
+// 规则：机器人结束战斗，进入追踪
+rule: "Harass机器人结束战斗，进入追踪"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(td_inCombat == true)
+if(CountOf(BotTargetArray) == 0)
+if(BotCombatTarget != null)
+if(BotRole == ActionRole.Harass)
+{
+    Wait(1,WaitBehavior.AbortWhenFalse);
+    td_inCombat = false;
+    td_mode = TowerPF_Mode.PlayerHunt;
+    td_context = BotCombatTarget;
+    TowerPF_Recalculate();
+    LoopIfConditionIsTrue();
+}
+
+rule: "AI_InitNavigation_ByRole"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(HasSpawned())
+{
+    switch(BotRole)
+    {
+        case ActionRole.CoreAttacker:
+            // 纯 coreThreat 怪（Boomer）
+            TowerPF_NavigateToCore();
+            DisableMovementCollisionWithPlayers(EventPlayer());
+            BotAggroRange = 0;
+            return;
+
+        case ActionRole.Elite:
+            // Elite：一开始也是往核心走（从当前出生点走最短路径）
+            TowerPF_NavigateToCore();
+            break;
+
+        case ActionRole.Harass:
+            TowerPF_NavigateToPlayer(AllLivingPlayers(Team.Team2).Random());
+            break;
+        // 第四种巡逻怪以后要做的话
+         case ActionRole.Walker:
+             TowerPF_StartRandomPatrol(); 
+             break;
+    }
+    StartForcingPlayerOutlines(
+        ViewedPlayers: EventPlayer(),
+        ViewingPlayers: AllPlayers(),
+        Visible: true,
+        Color: Color.Orange,
+        OutlineType: OutlineType.Default
+    );
+}
+
+rule: 'Elite脱战回核心'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(BotRole == ActionRole.Elite)
+if(IsAlive())
+if(td_inCombat)                          // 只在战斗态下检查
+if(BotTargetArray.Length == 0)          // 视野内没有可攻击目标
+{
+    Wait(0.5, WaitBehavior.AbortWhenFalse);
+    td_inCombat = false;                // 退出战斗
+    BotCombatTarget = null;
+    TowerPF_NavigateToCore();           // 直接回核心
+    LoopIfConditionIsTrue();            // 按需：保持监测
+}
+playervar Number DefaultSpeedPct = 100;
+playervar Number CoreAttacker_Elite_DestroyAmount;
+rule: '调整移速'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(DefaultSpeedPct!=100)
+if(HasSpawned())
+{
+    SetMoveSpeed(MoveSpeedPercent: DefaultSpeedPct);
+}
+
+Boolean isAttackCore(){
+    return BotRole == ActionRole.CoreAttacker || BotRole == ActionRole.Elite;
+}

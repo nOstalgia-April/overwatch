@@ -1,0 +1,3115 @@
+﻿import '双队伍斗魂菜单.del';
+// ---- 测试模式开关 ----
+Boolean TestMode: false;
+// 派生参数
+Number Flip_SlotPerTeam: TestMode ? 3 : 6;
+Number Flip_MembersPerSquad: TestMode ? 1 : 2;
+Agent GetAgent(in Player p){
+    return Agents.Filter(t=>GetIdentity(p)==t.Identity).First;
+}
+class Agent {
+    public Player Entity;
+    public Any Identity;
+    public Squad Squad;
+    public Agent Teammate;
+    public Hero Hero;
+    public HexId[] Hexes;
+    public ForgeRoll[] Forges;
+    public HexId[] HexRoundOffers;
+    public Number HexRoundOfferIndex;
+    public Shuxing Shuxing;  // 新增
+    public constructor(in Player p, in Any id) {
+        Entity = p;
+        Identity = GetIdentity(p);
+        Agents += this;
+        Hexes = [];
+        Forges = [];
+        HexRoundOffers = [];
+        HexRoundOfferIndex = 0;
+        Shuxing = new Shuxing();  // 新增
+
+        p.IAgent = this;
+    }
+
+    public static void SyncIAgent(in Player p = EventPlayer()){
+        p.IAgent = Agents.Filter(a=>a.Identity == GetIdentity(p)).First;
+    }
+
+    public void SyncTeammate(){
+        Teammate = Squad == null ? null : Squad.Members.Filter(a=>a != this).First;
+    }
+
+    public void UpdateEntity(){
+        Entity = AllPlayers().Filter(p=>GetIdentity(p) == Identity).First;
+    }
+
+    public static void InitEffects(in Agent a){
+        CreateHudText(
+            Header: <'<2>,Agent<0>,Squad<1>',Agents.IndexOf(a),a.Squad.ID,HeroIconString(a.Hero)>,
+            SortOrder: a.Squad.ID,
+            HeaderColor: a.Squad.Color,
+            VisibleTo: true?AllPlayers():null,
+            Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+        );
+    }
+}
+globalvar Agent[] Agents = [];
+globalvar Squad[] Squads = [];
+globalvar Agent[] LateJoinQueue! = [];
+playervar Agent IAgent = null;
+playervar Player Teammate = null;
+playervar Number RevivePercent! = 0;
+playervar Boolean Revivable! = false;
+playervar Boolean ReviveUIInited! = false;
+playervar Number[] HexCurrentCooldowns = [];
+playervar Boolean Hex_BoliDapaoApplied! = false;
+playervar Boolean Hex_CanbaoZhiliApplied! = false;
+playervar Boolean Hex_TanhuangTiaoApplied! = false;
+playervar Boolean Hex_TanhuangTiaoReduceOn! = false;
+playervar Boolean Hex_HujiaFashengqiApplied! = false;
+playervar Boolean Hex_JijiuYongjuApplied! = false;
+playervar Boolean Hex_JurenShashouApplied! = false;
+playervar Boolean Hex_KexueApplied! = false;
+playervar Boolean Hex_ShoucaiApplied! = false;
+playervar Boolean Hex_KongyuKexingActive! = false;
+playervar Boolean Hex_SuoxiaoShexianActive! = false;
+playervar Boolean Hex_YingjiXinpianActive! = false;
+playervar Boolean Hex_WangcheYiweiLock! = false;
+playervar Boolean Hex_ShibukedangLock! = false;
+playervar Any Hex_ShandianYizhiqiEffectId! = 0;
+playervar Any Hex_ShibukedangEffectId! = 0;
+playervar Number Hex_ZhuangtianHuixueTime! = 0;
+playervar Vector Hex_WangcheYiweiSelfPos! = Vector(0, 0, 0);
+playervar Number ForgeCursor_Average! = 0;
+playervar Number ForgeCursor_Rare! = 0;
+playervar Number ForgeCursor_Epic! = 0;
+playervar ForgeRoll[] ForgeOffers! = [];
+playervar Number ForgeOfferIndex! = 0;
+enum SelectHudMode{
+    none,
+    forge,
+    hex
+}
+playervar SelectHudMode CurrentSelectHudMode! = SelectHudMode.none;
+playervar Boolean[] FireRingToggles! = [];
+playervar Boolean ShuxingInitSynced! = false;
+Boolean Debug_InspectorLog!: true;
+
+void DebugLog(Any msg)'debuglog'{
+    if(Debug_InspectorLog){
+        EnableInspectorRecording();
+        LogToInspector(msg);
+        MinWait();
+        DisableInspectorRecording();
+    }
+}
+
+enum HexQuality {
+    average,
+    rare,
+    epic,
+    legend
+}
+
+enum HexId {
+    TiejiaPaiqikou,
+    Tieyan,
+    YidongHuixue,
+    ZhuangtianHuixue,
+    JingzhunDanmu,
+    FanhuiZhanchang,
+    BaolieSheji,
+    BoliDapao,
+    CanbaoZhili,
+    ChaoyuanJuli,
+    Dafamingjia,
+    TanhuangTiao,
+    Duanhunqu,
+    Equwei,
+    GangtieJuren,
+    HujiaFashengqi,
+    JijiuYongju,
+    JurenShashou,
+    Kexue,
+    KongyuKexing,
+    MianbaoNailao,
+    ShandianYizhiqi,
+    Shenshangxiansu,
+    ShijianLiefeng,
+    Shibukedang,
+    Shoucai,
+    SuoxiaoShexian,
+    WangcheYiwei,
+    YinliMaichong,
+    YingjiXinpian,
+    ZhizhuZhiyan,
+    ZhongjiChongnengqi
+}
+
+// 默认 parallel struct，便于后续按字段筛选与映射。
+struct HexDef {
+    public HexId Id;
+    public String Name;
+    public String Description;
+    public Hero[] AllowedHeroes;
+    public HexQuality Quality;
+    public Number Cooldown;
+}
+
+globalvar HexDef[] HexDefs = [];
+globalvar HexId[] HexPool_Ids = [];
+globalvar HexQuality[] HexPool_Qualities = [];
+globalvar Boolean HexDataInitialized = false;
+
+Number HexDefIndex(in HexId id):
+    HexDefs.Map(h => h.Id).IndexOf(id);
+
+Number AgentHexIndex(in Agent a, in HexId id):
+    a == null ? -1 : a.Hexes.IndexOf(id);
+
+Boolean AgentHasHex(in Agent a, in HexId id):
+    AgentHexIndex(a, id) != -1;
+
+Number HexBaseCooldown(in HexId id):
+    HexDefIndex(id) == -1 ? 0 : HexDefs[HexDefIndex(id)].Cooldown;
+
+Number PlayerHexCooldown(in Player p, in HexId id):
+    p == null || p.IAgent == null || AgentHexIndex(p.IAgent, id) == -1 ? 0 : p.HexCurrentCooldowns[AgentHexIndex(p.IAgent, id)];
+
+Boolean PlayerHexReady(in Player p, in HexId id):
+    p != null && p.IAgent != null && AgentHexIndex(p.IAgent, id) != -1 && PlayerHexCooldown(p, id) <= 0;
+
+void GrantHexToPlayer(in Player p, in HexId id){
+    p.IAgent.Hexes += id;
+    p.HexCurrentCooldowns += 0;
+}
+
+void StartHexCooldown(in Player p, in HexId id){
+    Number idx : AgentHexIndex(p.IAgent, id);
+    p.HexCurrentCooldowns[idx] = HexBaseCooldown(id);
+}
+
+void TickPlayerHexCooldowns(in Player p, in Number step = 0.25){
+    for(define i! = 0; i < p.HexCurrentCooldowns.Length; i++){
+        p.HexCurrentCooldowns[i] = Max(0, p.HexCurrentCooldowns[i] - step);
+    }
+}
+
+void RebuildHexPools(){
+    HexPool_Ids = HexDefs.Map(h => h.Id);
+    HexPool_Qualities = HexDefs.Map(h => h.Quality);
+}
+
+HexId[] HexPoolByQuality(in HexQuality quality):
+    HexPool_Ids.Filter(t => HexPool_Qualities[CurrentArrayIndex()] == quality);
+
+rule: 'Hex数据初始化'
+if(!HexDataInitialized)
+{
+    HexDefs = [
+        {
+            Id: HexId.TiejiaPaiqikou,
+            Name: '铁甲排气口',
+            Description: '每次使用位移技能后，获得短时减伤。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 2
+        },
+        {
+            Id: HexId.Tieyan,
+            Name: '铁眼',
+            Description: '命中时获得短时视野强化。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.YidongHuixue,
+            Name: '移动回血',
+            Description: '移动时按速度比例持续回血。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ZhuangtianHuixue,
+            Name: '装填回血',
+            Description: '完成装填后回复生命值。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.JingzhunDanmu,
+            Name: '精准弹幕',
+            Description: '对远距离敌人触发额外打击。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 4
+        },
+        {
+            Id: HexId.FanhuiZhanchang,
+            Name: '返回战场',
+            Description: '濒危时获得一次应急返场效果。',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.BaolieSheji,
+            Name: '爆裂射击',
+            Description: '开火时触发爆炸\n造成50点范围伤害',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 2
+        },
+        {
+            Id: HexId.BoliDapao,
+            Name: '玻璃大炮',
+            Description: '损失70%最大生命值\n获得50伤害提升\n以及15%总伤害加成',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.CanbaoZhili,
+            Name: '残暴之力',
+            Description: '获得25造成伤害\n10技能急速',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ChaoyuanJuli,
+            Name: '超远距离',
+            Description: '你的弹道速度为300%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Dafamingjia,
+            Name: '大发明家',
+            Description: '你的Shift技能获得100技能急速',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.TanhuangTiao,
+            Name: '弹簧跳',
+            Description: '你在跳跃时获得20%伤害减免\n获得跳跃高度100%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.epic,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Duanhunqu,
+            Name: '断魂曲',
+            Description: '造成暴击会短暂入侵目标',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Equwei,
+            Name: '恶趣味',
+            Description: '击退敌人时\n回复100生命值\nCD1秒',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 1
+        },
+        {
+            Id: HexId.GangtieJuren,
+            Name: '钢铁巨人',
+            Description: '设置你的受到击退为40%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.HujiaFashengqi,
+            Name: '护甲发生器',
+            Description: '将300生命值转化为护甲',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.JijiuYongju,
+            Name: '急救用具',
+            Description: '获得20%治疗强度',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.JurenShashou,
+            Name: '巨人杀手',
+            Description: '目标的生命值每高出你200点\n对其造成5%额外伤害\n最多35%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.epic,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Kexue,
+            Name: '渴血',
+            Description: '获得20%吸血',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.KongyuKexing,
+            Name: '空域克星',
+            Description: '对空中的敌人造成伤害\n会使其移速降低30\n持续2s',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.MianbaoNailao,
+            Name: '面包与奶酪',
+            Description: '你的E技能获得100技能急速',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ShandianYizhiqi,
+            Name: '闪电抑制器',
+            Description: '造成暴击会对目标施加30%治疗减免\n持续2秒',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Shenshangxiansu,
+            Name: '肾上腺素',
+            Description: '急救包会使移动速度加快25%\n持续5秒\n并获得200点过量生命值',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ShijianLiefeng,
+            Name: '时间裂隙',
+            Description: '使用终极技能后1s\n所有技能冷却清零\nCD: 15s',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 15
+        },
+        {
+            Id: HexId.Shibukedang,
+            Name: '势不可挡',
+            Description: '在使用你的终极技能后\n你会获得持续4s的无敌',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.Shoucai,
+            Name: '收菜',
+            Description: '你的锻造器属性提升60%（全局有效）',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.epic,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.SuoxiaoShexian,
+            Name: '缩小射线',
+            Description: '你的攻击会降低敌方15%造成伤害\n持续3秒',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.WangcheYiwei,
+            Name: '王车易位',
+            Description: '现在你释放终极技能时\n会使你与你的队友交换位置\n并同时获得1s无敌',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.YinliMaichong,
+            Name: '引力脉冲',
+            Description: '伤害会对敌人施加引力场\n3s内设置其引力为200%并减速20%\nCD: 8s',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 8
+        },
+        {
+            Id: HexId.YingjiXinpian,
+            Name: '应急芯片',
+            Description: '生命值低于30%时\n获得30吸血',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ZhizhuZhiyan,
+            Name: '蜘蛛之眼',
+            Description: '你对生命值低于50%的敌人\n造成的伤害提高15%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.average,
+            Cooldown: 0
+        },
+        {
+            Id: HexId.ZhongjiChongnengqi,
+            Name: '终极充能器',
+            Description: '每回合开始时，大招充能为100%',
+            AllowedHeroes: AllHeroes(),
+            Quality: HexQuality.rare,
+            Cooldown: 0
+        }
+    ];
+
+    RebuildHexPools();
+    HexDataInitialized = true;
+}
+
+rule: 'Hex玩家初始化'
+Event.OnPlayerJoin
+Team.All
+Player.All
+{
+    EventPlayer().ShuxingInitSynced = false;
+    EventPlayer().Teammate = null;
+    EventPlayer().ReviveUIInited = false;
+    EventPlayer().RevivePercent = 0;
+    EventPlayer().Revivable = false;
+    EventPlayer().HexCurrentCooldowns = [];
+    EventPlayer().Hex_BoliDapaoApplied = false;
+    EventPlayer().Hex_CanbaoZhiliApplied = false;
+    EventPlayer().Hex_TanhuangTiaoApplied = false;
+    EventPlayer().Hex_TanhuangTiaoReduceOn = false;
+    EventPlayer().Hex_HujiaFashengqiApplied = false;
+    EventPlayer().Hex_JijiuYongjuApplied = false;
+    EventPlayer().Hex_JurenShashouApplied = false;
+    EventPlayer().Hex_KexueApplied = false;
+    EventPlayer().Hex_ShoucaiApplied = false;
+    EventPlayer().Hex_KongyuKexingActive = false;
+    EventPlayer().Hex_SuoxiaoShexianActive = false;
+    EventPlayer().Hex_YingjiXinpianActive = false;
+    EventPlayer().Hex_WangcheYiweiLock = false;
+    EventPlayer().Hex_ShibukedangLock = false;
+    EventPlayer().Hex_ShandianYizhiqiEffectId = 0;
+    EventPlayer().Hex_ShibukedangEffectId = 0;
+    EventPlayer().Hex_ZhuangtianHuixueTime = 0;
+    EventPlayer().Hex_WangcheYiweiSelfPos = Vector(0, 0, 0);
+    EventPlayer().ForgeCursor_Average = 0;
+    EventPlayer().ForgeCursor_Rare = 0;
+    EventPlayer().ForgeCursor_Epic = 0;
+    EventPlayer().ForgeOffers = [];
+    EventPlayer().ForgeOfferIndex = 0;
+    EventPlayer().CurrentSelectHudMode = SelectHudMode.none;
+    if(EventPlayer().IAgent != null){
+        EventPlayer().IAgent.HexRoundOffers = [];
+        EventPlayer().IAgent.HexRoundOfferIndex = 0;
+    }
+}
+
+rule: 'Hex冷却自动更新'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+if(IAgent != null)
+if(IAgent.Hexes.Length > 0)
+{
+    TickPlayerHexCooldowns(EventPlayer(), 0.25);
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-玻璃大炮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.BoliDapao))
+if(!Hex_BoliDapaoApplied)
+{
+    IAgent.Shuxing.Health.Pct -= 70;
+    IAgent.Shuxing.Attack.Abs += 50;
+    IAgent.Shuxing.Attack.Pct += 15;
+    RevShuxing();
+    PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Red, EventPlayer(), 1);
+    Hex_BoliDapaoApplied = true;
+}
+
+rule: '海克斯-残暴之力'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.CanbaoZhili))
+if(!Hex_CanbaoZhiliApplied)
+{
+    IAgent.Shuxing.Attack.Abs += 25;
+    IAgent.Shuxing.CoolDown.Abs += 10;
+    RevShuxing();
+    Hex_CanbaoZhiliApplied = true;
+}
+
+rule: '海克斯-超远距离'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ChaoyuanJuli))
+{
+    SetProjectileSpeed(ProjectileSpeedPercent: 300);
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-大发明家'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Dafamingjia))
+if(!WrongButtons.Contains(Button.Ability1))
+{
+    SetAbilityCooldown(EventPlayer(), Button.Ability1, Max(AbilityCooldown(EventPlayer(), Button.Ability1) - 1, 0));
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-弹簧跳获得'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.TanhuangTiao))
+if(!Hex_TanhuangTiaoApplied)
+{
+    IAgent.Shuxing.JumpVerticalSpeed.Abs += 100;
+    RevShuxing();
+    SmallMessage(EventPlayer(), '弹簧跳已获得');
+    Hex_TanhuangTiaoApplied = true;
+}
+
+rule: '海克斯-弹簧跳减伤'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.TanhuangTiao))
+if(IsJumping())
+if(!Hex_TanhuangTiaoReduceOn)
+{
+    Hex_TanhuangTiaoReduceOn = true;
+    IAgent.Shuxing.Reduction.Abs += 20;
+    RevShuxing();
+    WaitUntil(!IsJumping(), 10);
+    IAgent.Shuxing.Reduction.Abs -= 20;
+    RevShuxing();
+    Hex_TanhuangTiaoReduceOn = false;
+}
+
+rule: '海克斯-爆裂射击'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.BaolieSheji))
+if([Button.PrimaryFire, Button.SecondaryFire].Contains(EventAbility()))
+if(PlayerHexReady(EventPlayer(), HexId.BaolieSheji))
+{
+    StartHexCooldown(EventPlayer(), HexId.BaolieSheji);
+    Damage(PlayersWithinRadius(Victim(), 3, Team.All, RadiusLOS.SurfacesAndAllBarriers), EventPlayer(), 50);
+    PlayEffect(AllPlayers(), PlayEffect.BadExplosion, Color.Red, Victim(), 3);
+    Wait(0.1);
+}
+
+rule: '海克斯-断魂曲'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Duanhunqu))
+if(EventWasCriticalHit())
+{
+    SetStatus(Victim(), EventPlayer(), Status.Hacked, 0.1);
+    Wait(0.1);
+}
+
+rule: '海克斯-恶趣味'
+Event.PlayerDealtKnockback
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Equwei))
+if(PlayerHexReady(EventPlayer(), HexId.Equwei))
+{
+    StartHexCooldown(EventPlayer(), HexId.Equwei);
+    Heal(EventPlayer(), EventPlayer(), 100);
+}
+
+rule: '海克斯-返回战场'
+Event.OnDeath
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.FanhuiZhanchang))
+{
+    Wait(0.1);
+    RevivePercent += 50;
+}
+
+rule: '海克斯-钢铁巨人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.GangtieJuren))
+{
+    SetKnockbackReceived(Player: EventPlayer(), 40);
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-护甲发生器'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.HujiaFashengqi))
+if(!Hex_HujiaFashengqiApplied)
+{
+    IAgent.Shuxing.Armor.Abs += 300;
+    IAgent.Shuxing.Health.Abs -= 300;
+    RevShuxing();
+    SmallMessage(EventPlayer(), '护甲发生器已启动');
+    Hex_HujiaFashengqiApplied = true;
+}
+
+rule: '海克斯-急救用具'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.JijiuYongju))
+if(!Hex_JijiuYongjuApplied)
+{
+    IAgent.Shuxing.HealBoost.Pct += 20;
+    RevShuxing();
+    Hex_JijiuYongjuApplied = true;
+}
+
+rule: '海克斯-巨人杀手'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.JurenShashou))
+if(!Hex_JurenShashouApplied)
+{
+    foreach(Player p! in AllPlayers().Filter(t => t != EventPlayer() && t != Teammate)){
+        StartDamageModification(
+            Receivers: EvaluateOnce(p),
+            Damagers: EventPlayer(),
+            DamagePercent: 100 + Max(75, 5 * Max((MaxHealth(EvaluateOnce(p)) - MaxHealth()) / 150, 0)),
+            Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent
+        );
+        MinWait();
+    }
+    Hex_JurenShashouApplied = true;
+}
+
+rule: '海克斯-渴血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Kexue))
+if(!Hex_KexueApplied)
+{
+    IAgent.Shuxing.Drain.Abs += 20;
+    RevShuxing();
+    Hex_KexueApplied = true;
+}
+
+rule: '海克斯-空域克星'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.KongyuKexing))
+if(IsInAir(Victim()))
+if(!Hex_KongyuKexingActive)
+{
+    Hex_KongyuKexingActive = true;
+    PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Gray, Victim());
+    Victim().IAgent.Shuxing.Speed.Abs -= 30;
+    RevShuxing(Victim());
+    Wait(3);
+    Victim().IAgent.Shuxing.Speed.Abs += 30;
+    RevShuxing(Victim());
+    Hex_KongyuKexingActive = false;
+    Wait(0.1);
+}
+
+rule: '海克斯-面包与奶酪'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.MianbaoNailao))
+if(!WrongButtons.Contains(Button.Ability2))
+{
+    SetAbilityCooldown(EventPlayer(), Button.Ability2, Max(AbilityCooldown(EventPlayer(), Button.Ability2) - 1, 0));
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-闪电抑制器'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ShandianYizhiqi))
+if(EventWasCriticalHit())
+{
+    if(Hex_ShandianYizhiqiEffectId == 0){
+        //CreateEffect(Type: Effect.AnaBioticGrenadeNoHealingEffect, VisibleTo: AllPlayers(), Color: Team.Team2, Position: Victim(), Radius: 1);
+        //Hex_ShandianYizhiqiEffectId = LastCreatedEntity();
+    }
+    //PlayEffect(Type: PlayEffect.SombraTranslocatingMaterialEffect, Position: Victim());
+    Wait(3, WaitBehavior.RestartWhenTrue);
+    //DestroyEffect(Hex_ShandianYizhiqiEffectId);
+    Hex_ShandianYizhiqiEffectId = 0;
+    Wait(0.1);
+}
+
+rule: '海克斯-肾上腺素'
+Event.OnHealingTaken
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Shenshangxiansu))
+if(EventWasHealthPack())
+{
+    AddHealthPoolToPlayer(HealthType: HealthType.Health, Player: EventPlayer(), MaxHealth: 200, Recoverable: false, Reevaluation: true);
+    Any tempPool! = LastCreatedHealthPool();
+    IAgent.Shuxing.Speed.Abs += 25;
+    RevShuxing();
+    //PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorEffect, Position: EventPlayer(), Radius: 1);
+    //PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorSound, Position: EventPlayer(), Radius: 150, VisibleTo: EventPlayer());
+    Wait(5);
+    RemoveHealthPoolFromPlayer(tempPool);
+    IAgent.Shuxing.Speed.Abs -= 25;
+    RevShuxing();
+    MinWait();
+}
+
+rule: '海克斯-时间裂隙'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ShijianLiefeng))
+if(IsUsingUltimate())
+if(PlayerHexReady(EventPlayer(), HexId.ShijianLiefeng))
+{
+    StartHexCooldown(EventPlayer(), HexId.ShijianLiefeng);
+    SetAbilityCooldown(EventPlayer(), Button.Ability1, 0);
+    SetAbilityCooldown(EventPlayer(), Button.Ability2, 0);
+    SetAbilityCooldown(EventPlayer(), Button.Jump, 0);
+    SetAbilityCooldown(EventPlayer(), Button.SecondaryFire, 0);
+    SetAbilityCooldown(EventPlayer(), Button.Crouch, 0);
+    //PlayEffect(AllPlayers(), PlayEffect.TracerRecallReappearEffect, Color.Blue, EventPlayer(), 2);
+}
+
+rule: '海克斯-势不可挡'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Shibukedang))
+if(IsUsingUltimate())
+if(!Hex_ShibukedangLock)
+{
+    Hex_ShibukedangLock = true;
+    SetStatus(EventPlayer(), EventPlayer(), Status.Invincible, 4);
+    //CreateEffect(Type: Effect.EchoCloningEffect, Position: EventPlayer());
+    Hex_ShibukedangEffectId = LastCreatedEntity();
+    Wait(4);
+    //DestroyEffect(Hex_ShibukedangEffectId);
+    Hex_ShibukedangEffectId = 0;
+    SmallMessage(EventPlayer(), '无敌果已结束！');
+    Hex_ShibukedangLock = false;
+}
+
+rule: '海克斯-收菜'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Shoucai))
+if(!Hex_ShoucaiApplied)
+{
+    Forge_Multiplier += 0.6;
+    Hex_ShoucaiApplied = true;
+}
+
+rule: '海克斯-缩小射线'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.SuoxiaoShexian))
+if(!Hex_SuoxiaoShexianActive)
+{
+    Hex_SuoxiaoShexianActive = true;
+    PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Gray, Victim());
+    Victim().IAgent.Shuxing.Attack.Abs -= 15;
+    RevShuxing(Victim());
+    Wait(3);
+    Victim().IAgent.Shuxing.Attack.Abs += 15;
+    RevShuxing(Victim());
+    Hex_SuoxiaoShexianActive = false;
+    Wait(0.1);
+}
+
+rule: '海克斯-铁眼'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.Tieyan))
+if(EventWasCriticalHit())
+{
+    StartHealOverTime(Player: EventPlayer(), Healer: EventPlayer(), Duration: 1, HealingPerSecond: 0.3 * EventDamage());
+    //PlayEffect(Type: PlayEffect.HealTargetActiveEffect, Position: EventPlayer(), Radius: 1);
+    //PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound, Position: EventPlayer(), Radius: 150, VisibleTo: EventPlayer());
+    MinWait();
+}
+
+rule: '海克斯-王车易位'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.WangcheYiwei))
+if(IsUsingUltimate())
+if(!Hex_WangcheYiweiLock)
+{
+    Hex_WangcheYiweiLock = true;
+    if(EntityExists(Teammate)){
+        Hex_WangcheYiweiSelfPos = PositionOf();
+        Teleport(EventPlayer(), Teammate);
+        Teleport(Teammate, Hex_WangcheYiweiSelfPos);
+        SetStatus(EventPlayer(), EventPlayer(), Status.Invincible, 1);
+        SetStatus(Teammate, EventPlayer(), Status.Invincible, 1);
+        BigMessage(Teammate, '你的队友发动了王车易位!!');
+    }
+    WaitUntil(!IsUsingUltimate(), 5);
+    Hex_WangcheYiweiLock = false;
+}
+
+rule: '海克斯-移动回血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.YidongHuixue))
+if(SpeedOf() > 0)
+{
+    Heal(EventPlayer(), EventPlayer(), 0.15 * SpeedOf());
+    //PlayEffect(Type: PlayEffect.HealTargetActiveEffect, Position: EventPlayer(), Radius: 1);
+    Wait(0.1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '海克斯-引力脉冲'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.YinliMaichong))
+if(PlayerHexReady(EventPlayer(), HexId.YinliMaichong))
+{
+    StartHexCooldown(EventPlayer(), HexId.YinliMaichong);
+    SetGravity(Victim(), 200);
+    Victim().IAgent.Shuxing.Speed.Abs -= 20;
+    RevShuxing(Victim());
+    //PlayEffect(AllPlayers(), PlayEffect.SigmaHypersphereImplosionEffect, Color.Purple, Victim(), 1);
+    Wait(3);
+    SetGravity(Victim(), 100);
+    Victim().IAgent.Shuxing.Speed.Abs += 20;
+    RevShuxing(Victim());
+    Wait(0.1);
+}
+
+rule: '海克斯-应急芯片'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.YingjiXinpian))
+if(NormalizedHealth() <= 0.3)
+if(!Hex_YingjiXinpianActive)
+{
+    Hex_YingjiXinpianActive = true;
+    IAgent.Shuxing.Drain.Abs += 30;
+    RevShuxing();
+    WaitUntil(NormalizedHealth() > 0.3, 240);
+    IAgent.Shuxing.Drain.Abs -= 30;
+    RevShuxing();
+    Hex_YingjiXinpianActive = false;
+}
+
+rule: '海克斯-蜘蛛之眼'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ZhizhuZhiyan))
+{
+    StartDamageModification(
+        Receivers: AllPlayers().Filter(t => NormalizedHealth(t) <= 0.3),
+        Damagers: EventPlayer(),
+        DamagePercent: 110,
+        Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent
+    );
+    MinWait();
+}
+
+rule: '海克斯-终极充能器'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ZhongjiChongnengqi))
+if(CurrentPhase == PhaseState.Combat)
+{
+    SetUltimateCharge(ChargePercent: 100);
+}
+
+rule: '海克斯-装填回血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(AgentHasHex(IAgent, HexId.ZhuangtianHuixue))
+if(IsReloading())
+{
+    Hex_ZhuangtianHuixueTime = 0;
+    while(IsReloading()){
+        Hex_ZhuangtianHuixueTime += 0.1;
+        Wait(0.1);
+    }
+    Heal(EventPlayer(), EventPlayer(), 75 * Hex_ZhuangtianHuixueTime);
+    //PlayEffect(Type: PlayEffect.HealTargetActiveEffect, Position: EventPlayer(), Radius: 1);
+    //PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound, Position: EventPlayer(), Radius: 150, VisibleTo: EventPlayer());
+    MinWait();
+}
+
+enum ForgeQuality{
+    average,
+    rare,
+    epic
+}
+
+single struct ForgeTemplate{
+    public ForgeQuality Quality;
+    public ShuxingType Type;
+    public Number[] AbsRange;
+}
+
+single struct ForgeRoll{
+    public ForgeQuality Quality;
+    public ShuxingType Type;
+    public Number AbsBonus;
+}
+
+globalvar ForgeTemplate[] ForgeTemplates! = [];
+globalvar Number[][] ForgeRanges_Average! = [
+    [12, 22],   // Attack
+    [10, 20],   // CoolDown
+    [6, 12],    // Speed
+    [10, 18],   // HealBoost
+    [100, 180], // Health
+    [10, 20],   // Reduction
+    [],         // Drain
+    [],         // Armor
+    []          // Shields
+];
+globalvar Number[][] ForgeRanges_Rare! = [
+    [], [], [], [], [], [], [], [], []
+];
+globalvar Number[][] ForgeRanges_Epic! = [
+    [40, 40],   // Attack
+    [35, 35],   // CoolDown
+    [35, 35],   // Speed
+    [40, 40],   // HealBoost
+    [],         // Health
+    [35, 35],   // Reduction
+    [20, 20],   // Drain
+    [250, 250], // Armor
+    [200, 200]  // Shields
+];
+globalvar ForgeRoll[][] ForgeSlots_Average! = [];
+globalvar ForgeRoll[][] ForgeSlots_Rare! = [];
+globalvar ForgeRoll[][] ForgeSlots_Epic! = [];
+Number ForgeSlotCount!: 60;
+globalvar Boolean ForgePoolsInitialized! = false;
+
+Number[][] ForgeRangesByQuality(in ForgeQuality quality):
+    quality == ForgeQuality.average ? ForgeRanges_Average : (quality == ForgeQuality.rare ? ForgeRanges_Rare : ForgeRanges_Epic);
+
+ForgeTemplate[] ForgeTemplatesByQuality(in ForgeQuality quality):
+    ForgeTemplates.Filter(t => t.Quality == quality);
+
+ForgeRoll RollForge(in ForgeTemplate tpl):
+    {Quality: tpl.Quality, Type: tpl.Type, AbsBonus: RandomInteger(tpl.AbsRange[0], tpl.AbsRange[1])};
+
+void AppendGeneratedForgeSlot(in ForgeQuality quality){
+    ForgeTemplate[] templates! = ForgeTemplatesByQuality(quality);
+    if(templates.Length < 3)return;
+    ForgeRoll[] slot! = [];
+    ShuxingType[] usedTypes! = [];
+    while(slot.Length < 3){
+        ForgeTemplate tpl! = RandomValueInArray(templates);
+        if(usedTypes.Contains(tpl.Type)){
+            MinWait();
+            continue;
+        }
+        usedTypes += tpl.Type;
+        slot += RollForge(tpl);
+        MinWait();
+    }
+    if(slot.Length != 3)return;
+    switch(quality){
+        case ForgeQuality.average:
+            ForgeSlots_Average += slot;
+            break;
+        case ForgeQuality.rare:
+            ForgeSlots_Rare += slot;
+            break;
+        case ForgeQuality.epic:
+            ForgeSlots_Epic += slot;
+            break;
+    }
+}
+
+rule: 'Forge池初始化'
+if(!ForgePoolsInitialized)
+{
+    ForgeTemplates = [];
+    ForgeQuality[] initQualities! = [ForgeQuality.average, ForgeQuality.rare, ForgeQuality.epic];
+    foreach(ForgeQuality quality! in initQualities){
+        Number[][] ranges! = ForgeRangesByQuality(quality);
+        for(define typeIndex! = 0; typeIndex < ranges.Length; typeIndex++){
+            if(ranges[typeIndex].Length < 2)continue;
+            ForgeTemplates += {
+                Quality: quality,
+                Type: <ShuxingType>typeIndex,
+                AbsRange: ranges[typeIndex]
+            };
+            MinWait();
+        }
+    }
+
+    ForgeSlots_Average = [];
+    ForgeSlots_Rare = [];
+    ForgeSlots_Epic = [];
+    for(define i! = 0; i < ForgeSlotCount; i++){
+        AppendGeneratedForgeSlot(ForgeQuality.average);
+        AppendGeneratedForgeSlot(ForgeQuality.rare);
+        AppendGeneratedForgeSlot(ForgeQuality.epic);
+        MinWait();
+    }
+    ForgePoolsInitialized = true;
+}
+
+void GenerateForgeOffersForPlayer(in Player p, in ForgeQuality quality){
+    ForgeRoll[][] pool!;
+    Number cursor!;
+    switch(quality){
+        case ForgeQuality.average:
+            pool = ForgeSlots_Average;
+            cursor = p.ForgeCursor_Average;
+            break;
+        case ForgeQuality.rare:
+            pool = ForgeSlots_Rare;
+            cursor = p.ForgeCursor_Rare;
+            break;
+        case ForgeQuality.epic:
+            pool = ForgeSlots_Epic;
+            cursor = p.ForgeCursor_Epic;
+            break;
+    }
+    if(pool.Length == 0){
+        p.ForgeOffers = [];
+        p.ForgeOfferIndex = 0;
+        return;
+    }
+    Number index! = cursor % pool.Length;
+    Number next! = (cursor + 1) % pool.Length;
+    switch(quality){
+        case ForgeQuality.average:
+            p.ForgeCursor_Average = next;
+            break;
+        case ForgeQuality.rare:
+            p.ForgeCursor_Rare = next;
+            break;
+        case ForgeQuality.epic:
+            p.ForgeCursor_Epic = next;
+            break;
+    }
+    p.ForgeOffers = pool[index];
+    p.ForgeOfferIndex = 0;
+}
+
+ForgeQuality CurrentRoundForgeQuality():
+    ForgeQuality.average;
+
+SelectHudMode CurrentRoundSelectMode():
+    MainTurnManager.Turn <= 1 ? SelectHudMode.none : (MainTurnManager.Turn % 2 == 0 ? SelectHudMode.forge : SelectHudMode.hex);
+
+void GenerateHexOffersForPlayer(in Player p){
+    if(p == null || p.IAgent == null)return;
+    HexId[] pool! = HexDefs.Map(h=>h.Id);
+    if(pool.Length == 0){
+        p.IAgent.HexRoundOffers = [];
+        p.IAgent.HexRoundOfferIndex = 0;
+        return;
+    }
+    HexId[] shuffled! = pool.Randomize();
+    Number take! = Min(3, shuffled.Length);
+    p.IAgent.HexRoundOffers = shuffled.Slice(0, take);
+    p.IAgent.HexRoundOfferIndex = 0;
+}
+
+void RoundReward() 'RoundReward'{
+    SelectHudMode mode! = CurrentRoundSelectMode();
+    foreach(Player p! in AllPlayers()){
+        if(p == null || p.IAgent == null)continue;
+        if(mode == SelectHudMode.forge){
+            GenerateForgeOffersForPlayer(p, CurrentRoundForgeQuality());
+            p.IAgent.HexRoundOffers = [];
+            p.IAgent.HexRoundOfferIndex = 0;
+            p.CurrentSelectHudMode = p.ForgeOffers.Length > 0 ? SelectHudMode.forge : SelectHudMode.none;
+        }else if(mode == SelectHudMode.hex){
+            GenerateHexOffersForPlayer(p);
+            p.ForgeOffers = [];
+            p.ForgeOfferIndex = 0;
+            p.CurrentSelectHudMode = p.IAgent.HexRoundOffers.Length > 0 ? SelectHudMode.hex : SelectHudMode.none;
+        }else{
+            p.ForgeOffers = [];
+            p.ForgeOfferIndex = 0;
+            p.IAgent.HexRoundOffers = [];
+            p.IAgent.HexRoundOfferIndex = 0;
+            p.CurrentSelectHudMode = SelectHudMode.none;
+        }
+        MinWait();
+    }
+}
+
+rule: '准备回合交互打开锻体菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentPhase == PhaseState.Preparation)
+if(CurrentSelectHudMode != SelectHudMode.none)
+if(IsButtonHeld(Button: Button.PrimaryFire))
+{
+    if(CurrentSelectHudMode == SelectHudMode.forge){
+        if(ForgeOfferIndex >= ForgeOffers.Length) ForgeOfferIndex = 0;
+        if(ForgeOffers.Length > 0){
+            ForgeOfferIndex = (ForgeOfferIndex + 1) % ForgeOffers.Length;
+        }
+    }else if(CurrentSelectHudMode == SelectHudMode.hex){
+        if(IAgent == null){
+            CurrentSelectHudMode = SelectHudMode.none;
+        }else{
+            if(IAgent.HexRoundOfferIndex >= IAgent.HexRoundOffers.Length) IAgent.HexRoundOfferIndex = 0;
+            if(IAgent.HexRoundOffers.Length > 0){
+                IAgent.HexRoundOfferIndex = (IAgent.HexRoundOfferIndex + 1) % IAgent.HexRoundOffers.Length;
+            }
+        }
+    }
+    MinWait();
+}
+
+// HUD布局约定：选项行两侧留白一致；多行文本各行按统一缩进；描述区顶格。
+rule: '选择HUD容器'
+Event.OngoingGlobal
+{
+    CreateHudText(
+        VisibleTo: SelectHudVisibleLocal() ? LocalPlayer() : null,
+        Header: <
+'　　　　　　　　　　　　　
+　　<0>　　<1>　　<2>　　
+'
+        ,
+        LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferTitleLocal(0) : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferTitleLocal(0) : ''),
+        LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferTitleLocal(1) : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferTitleLocal(1) : ''),
+        LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferTitleLocal(2) : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferTitleLocal(2) : '')>,
+        Location: Location.Top,
+        SortOrder: 200,
+        HeaderColor: SelectHudColorLocal(),
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+    );
+    CreateHudText(
+        VisibleTo: SelectHudVisibleLocal() ? LocalPlayer() : null,
+        Header: <'　　　　　　　　　　　　　
+　　　　<0>
+　　　　<1>
+　　　　<2>
+',
+        SelectHudDescLine1Local(),
+        SelectHudDescLine2Local(),
+        SelectHudDescLine3Local()>,
+        Location: Location.Top,
+        SortOrder: 201,
+        HeaderColor: SelectHudColorLocal(),
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        Text: SelectHudHintLineLocal(),
+        TextColor: SelectHudColorLocal()
+    );
+}
+
+rule: '锻体HUD-互动确认'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentPhase == PhaseState.Preparation)
+if(CurrentSelectHudMode != SelectHudMode.none)
+if(IsButtonHeld(Button: Button.Interact))
+{
+    if(CurrentSelectHudMode == SelectHudMode.forge){
+        if(ForgeOfferIndex >= ForgeOffers.Length) ForgeOfferIndex = 0;
+        if(ForgeOffers.Length > 0){
+            GrantSelectedForgeToPlayer(EventPlayer());
+            ForgeOffers = [];
+            ForgeOfferIndex = 0;
+            CurrentSelectHudMode = SelectHudMode.none;
+        }
+    }else if(CurrentSelectHudMode == SelectHudMode.hex){
+        if(IAgent == null){
+            CurrentSelectHudMode = SelectHudMode.none;
+        }else{
+            if(IAgent.HexRoundOfferIndex >= IAgent.HexRoundOffers.Length) IAgent.HexRoundOfferIndex = 0;
+            if(IAgent.HexRoundOffers.Length > 0){
+                HexId picked! = IAgent.HexRoundOffers[IAgent.HexRoundOfferIndex];
+                if(!AgentHasHex(IAgent, picked)){
+                    GrantHexToPlayer(EventPlayer(), picked);
+                }
+                IAgent.HexRoundOffers = [];
+                IAgent.HexRoundOfferIndex = 0;
+                CurrentSelectHudMode = SelectHudMode.none;
+            }
+        }
+    }
+    CurrentSelectHudMode = SelectHudMode.none;
+    MinWait();
+}
+
+void ApplyForgeRollToPlayer(in Player p, in ForgeRoll roll){
+    switch(roll.Type){
+        case ShuxingType.Attack:
+            p.IAgent.Shuxing.Attack.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.CoolDown:
+            p.IAgent.Shuxing.CoolDown.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Speed:
+            p.IAgent.Shuxing.Speed.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.HealBoost:
+            p.IAgent.Shuxing.HealBoost.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Drain:
+            p.IAgent.Shuxing.Drain.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Reduction:
+            p.IAgent.Shuxing.Reduction.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Armor:
+            p.IAgent.Shuxing.Armor.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Health:
+            p.IAgent.Shuxing.Health.Forge += roll.AbsBonus;
+            break;
+        case ShuxingType.Shields:
+            p.IAgent.Shuxing.Shields.Forge += roll.AbsBonus;
+            break;
+    }
+    RevShuxing(p);
+}
+
+void GrantSelectedForgeToPlayer(in Player p){
+    ForgeRoll selected! = p.ForgeOffers[p.ForgeOfferIndex];
+    p.IAgent.Forges += selected;
+    ApplyForgeRollToPlayer(p, selected);
+}
+
+globalvar String[] ForgeTypeNames! = [
+    '造成伤害',
+    '技能急速',
+    '移动速度',
+    '造成治疗',
+    '生命值',
+    '伤害抵抗',
+    '吸血',
+    '护甲',
+    '护盾'
+];
+globalvar Color[][] ForgeQualityColors! = [
+    [CustomColor(255, 255, 181, 255), CustomColor(255, 255, 181, 100)],
+    [CustomColor(66, 176, 255, 255), CustomColor(66, 176, 255, 100)],
+    [CustomColor(210, 126, 247, 255), CustomColor(210, 126, 247, 100)]
+];
+
+String ForgeTypeName(in ShuxingType type):
+    ForgeTypeNames[<Number>type];
+
+String ForgeOfferTitleLocal(in Number idx):
+    LocalPlayer().ForgeOffers.Length <= idx ? '-' : <'<1><0>', ForgeTypeName(LocalPlayer().ForgeOffers[idx].Type), LocalPlayer().ForgeOfferIndex == idx ? IconString(Icon.ArrowRight) : ''>;
+
+Color ForgeOfferColorLocal(in Number idx):
+    LocalPlayer().ForgeOffers.Length <= idx ? Color.White : InteratableColor_Local(
+        Default: ForgeQualityColors[<Number>LocalPlayer().ForgeOffers[idx].Quality][1],
+        Hover: ForgeQualityColors[<Number>LocalPlayer().ForgeOffers[idx].Quality][0],
+        Visible: LocalPlayer().ForgeOfferIndex == idx
+    );
+
+String ForgeOfferDesLocal():
+    LocalPlayer().ForgeOffers.Length == 0 ? '暂无锻体选项' : <'<0>\n++<1>\n(<2>~<3>)', ForgeTypeName(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type), LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].AbsBonus, ForgeRangesByQuality(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Quality)[<Number>LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type][0], ForgeRangesByQuality(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Quality)[<Number>LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type][1]>;
+
+String ForgeOfferDescLine1Local():
+    LocalPlayer().ForgeOffers.Length == 0 || LocalPlayer().ForgeOfferIndex >= LocalPlayer().ForgeOffers.Length ? '暂无锻体选项' : ForgeTypeName(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type);
+
+String ForgeOfferDescLine2Local():
+    LocalPlayer().ForgeOffers.Length == 0 || LocalPlayer().ForgeOfferIndex >= LocalPlayer().ForgeOffers.Length ? '' : <'++<0>', LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].AbsBonus>;
+
+String ForgeOfferDescLine3Local():
+    LocalPlayer().ForgeOffers.Length == 0 || LocalPlayer().ForgeOfferIndex >= LocalPlayer().ForgeOffers.Length ? '' : <'(<0>~<1>)', ForgeRangesByQuality(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Quality)[<Number>LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type][0], ForgeRangesByQuality(LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Quality)[<Number>LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Type][1]>;
+
+Color ForgeCurrentMenuColorLocal():
+    LocalPlayer().ForgeOffers.Length == 0 || LocalPlayer().ForgeOfferIndex >= LocalPlayer().ForgeOffers.Length ? Color.White : ForgeQualityColors[<Number>LocalPlayer().ForgeOffers[LocalPlayer().ForgeOfferIndex].Quality][0];
+
+String HexNameById(in HexId id):
+    HexDefIndex(id) == -1 ? '未知海克斯' : HexDefs[HexDefIndex(id)].Name;
+
+String HexDescById(in HexId id):
+    HexDefIndex(id) == -1 ? '暂无描述' : HexDefs[HexDefIndex(id)].Description;
+
+HexQuality HexQualityById(in HexId id):
+    HexDefIndex(id) == -1 ? HexQuality.average : HexDefs[HexDefIndex(id)].Quality;
+
+String HexQualityTag(in HexQuality q):
+    q == HexQuality.average ? '普通' : (q == HexQuality.rare ? '稀有' : (q == HexQuality.epic ? '史诗' : '传说'));
+
+Color HexQualityColor(in HexQuality q):
+    q == HexQuality.average ? CustomColor(255, 255, 181, 255) : (q == HexQuality.rare ? CustomColor(66, 176, 255, 255) : (q == HexQuality.epic ? CustomColor(210, 126, 247, 255) : CustomColor(255, 180, 80, 255)));
+
+String HexOfferTitleLocal(in Number idx):
+    LocalPlayer().IAgent == null || LocalPlayer().IAgent.HexRoundOffers.Length <= idx ? '-' : <'<2>[<0>]<1>', HexQualityTag(HexQualityById(LocalPlayer().IAgent.HexRoundOffers[idx])), HexNameById(LocalPlayer().IAgent.HexRoundOffers[idx]), LocalPlayer().IAgent.HexRoundOfferIndex == idx ? IconString(Icon.ArrowRight) : ''>;
+
+String HexOfferDescLine1Local():
+    LocalPlayer().IAgent == null || LocalPlayer().IAgent.HexRoundOffers.Length == 0 || LocalPlayer().IAgent.HexRoundOfferIndex >= LocalPlayer().IAgent.HexRoundOffers.Length ? '暂无海克斯选项' : HexNameById(LocalPlayer().IAgent.HexRoundOffers[LocalPlayer().IAgent.HexRoundOfferIndex]);
+
+String HexOfferDescLine2Local():
+    LocalPlayer().IAgent == null || LocalPlayer().IAgent.HexRoundOffers.Length == 0 || LocalPlayer().IAgent.HexRoundOfferIndex >= LocalPlayer().IAgent.HexRoundOffers.Length ? '' : HexDescById(LocalPlayer().IAgent.HexRoundOffers[LocalPlayer().IAgent.HexRoundOfferIndex]);
+
+String HexOfferDescLine3Local():
+    LocalPlayer().IAgent == null || LocalPlayer().IAgent.HexRoundOffers.Length == 0 || LocalPlayer().IAgent.HexRoundOfferIndex >= LocalPlayer().IAgent.HexRoundOffers.Length ? '' : <'冷却：<0>s', HexBaseCooldown(LocalPlayer().IAgent.HexRoundOffers[LocalPlayer().IAgent.HexRoundOfferIndex])>;
+
+Color HexCurrentMenuColorLocal():
+    LocalPlayer().IAgent == null || LocalPlayer().IAgent.HexRoundOffers.Length == 0 || LocalPlayer().IAgent.HexRoundOfferIndex >= LocalPlayer().IAgent.HexRoundOffers.Length ? Color.White : HexQualityColor(HexQualityById(LocalPlayer().IAgent.HexRoundOffers[LocalPlayer().IAgent.HexRoundOfferIndex]));
+
+Boolean SelectHudVisibleLocal():
+    CurrentPhase == PhaseState.Preparation && LocalPlayer().CurrentSelectHudMode != SelectHudMode.none;
+
+Color SelectHudColorLocal():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeCurrentMenuColorLocal() : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexCurrentMenuColorLocal() : Color.White);
+
+String SelectHudOptionsLineLocal():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? <'　　<0>　　<1>　　<2>　　', ForgeOfferTitleLocal(0), ForgeOfferTitleLocal(1), ForgeOfferTitleLocal(2)> : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? <'　　<0>　　<1>　　<2>　　', HexOfferTitleLocal(0), HexOfferTitleLocal(1), HexOfferTitleLocal(2)> : '');
+
+String SelectHudDescLine1Local():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferDescLine1Local() : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferDescLine1Local() : '');
+
+String SelectHudDescLine2Local():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferDescLine2Local() : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferDescLine2Local() : '');
+
+String SelectHudDescLine3Local():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.forge ? ForgeOfferDescLine3Local() : (LocalPlayer().CurrentSelectHudMode == SelectHudMode.hex ? HexOfferDescLine3Local() : '');
+
+String SelectHudHintLineLocal():
+    LocalPlayer().CurrentSelectHudMode == SelectHudMode.none ? '' : '左键切换\n互动确认';
+
+Boolean ViewingHasHexSlotLocal(in Number idx):
+    LocalPlayer().ViewingPlayer != null && LocalPlayer().ViewingPlayer.IAgent != null && LocalPlayer().ViewingPlayer.IAgent.Hexes.Length > idx;
+
+HexId ViewingHexAtLocal(in Number idx):
+    !ViewingHasHexSlotLocal(idx) ? HexId.TiejiaPaiqikou : LocalPlayer().ViewingPlayer.IAgent.Hexes[idx];
+
+Number ViewingHexBaseCooldownLocal(in Number idx):
+    !ViewingHasHexSlotLocal(idx) ? 0 : HexBaseCooldown(ViewingHexAtLocal(idx));
+
+Number ViewingHexCurrentCooldownLocal(in Number idx):
+    !ViewingHasHexSlotLocal(idx) || LocalPlayer().ViewingPlayer.HexCurrentCooldowns.Length <= idx ? 0 : LocalPlayer().ViewingPlayer.HexCurrentCooldowns[idx];
+
+String ViewingHexStatusHeaderLocal(in Number idx):
+    !ViewingHasHexSlotLocal(idx) ? '' : <'<0><1>', HexNameById(ViewingHexAtLocal(idx)), ViewingHexBaseCooldownLocal(idx) == 0 ? '' : (ViewingHexCurrentCooldownLocal(idx) > 0 ? <'(CD:<0>)', ViewingHexCurrentCooldownLocal(idx)> : <'(已<0>)', IconString(Icon.Checkmark)>)>;
+
+Color ViewingHexStatusColorLocal(in Number idx):
+    !ViewingHasHexSlotLocal(idx) ? Color.White : (ViewingHexBaseCooldownLocal(idx) > 0 && ViewingHexCurrentCooldownLocal(idx) > 0 ? GradientColor([255, 79, 35], [255, 205, 80], ViewingHexCurrentCooldownLocal(idx) / ViewingHexBaseCooldownLocal(idx)) : HexQualityColor(HexQualityById(ViewingHexAtLocal(idx))));
+
+rule: '创建海克斯状态'
+if(false)
+{
+    for(define i! = 0; i < 6; i++){
+        CreateInWorldText(
+            VisibleTo: ViewingHasHexSlotLocal(EvaluateOnce(i)) ? AllPlayers().Filter(t => t == LocalPlayer() && IsAlive(t)) : null,
+            Header: ViewingHexStatusHeaderLocal(EvaluateOnce(i)),
+            Position: MenuButtonPosition_Local(((EvaluateOnce(i) < 3) * 1.2 - 0.6), (-0.3 + 0.2 * (EvaluateOnce(i) % 3)) - 1.6),
+            Scale: 2,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ViewingHexStatusColorLocal(EvaluateOnce(i)),
+            Spectators: Spectators.VisibleAlways
+        );
+    }
+}
+
+single struct Area{
+    public Vector Center;
+    public Number Radius;
+    public Vector SpawnPosition1;
+    public Vector SpawnPosition2;
+}
+
+globalvar Area[] Areas_static;
+globalvar Vector Hall;
+
+rule: 'Area数据库初始化'
+{
+    if(CurrentMap()==Map.Hanamura){
+        Areas_static = [
+            //B区 0号
+            {
+                Center: Vector(-6.296, 0.526, -80.110),
+                Radius: 30,
+                SpawnPosition1: Vector(-2.953, 5.499, -100.072),
+                SpawnPosition2: Vector(-23.260, 2.400, -65.228)
+            },
+            //A区 1号
+            {
+                Center: Vector(7.182, 1.445, 1.125),
+                Radius: 30,
+                SpawnPosition1: Vector(-1.678, 2.400, 3.865),
+                SpawnPosition2: Vector(11.287, 5.400, 22.268)
+            },
+            //-A区 2号
+            {
+                Center: Vector(50.728, 0.450, -2.574),
+                Radius: 30,
+                SpawnPosition1: Vector(48.268, 7.400, -2.205),
+                SpawnPosition2: Vector(53.657, 0.399, -4.751)
+            }
+        ];
+        Hall = Vector(-40.232, 1.759, -108.056);
+    }
+}
+
+public String GetIdentity(in Player p = EventPlayer()){
+    return <'<0>',p>;
+}
+
+Boolean AgentRegistered(in Player p = EventPlayer()){
+    return Agents.Map(a=>a.Identity).Contains(GetIdentity(p));
+}
+
+Boolean AllAgentsGood(){
+    return IsTrueForAll(Agents.Map(a=>AllPlayers().Contains(a.Entity)));
+}
+
+globalvar Color[] SquadColors! = [Color.Red, Color.Blue, Color.Yellow, Color.Green, Color.Purple, Color.Orange, Color.Rose, Color.Black];
+class Squad{
+    public Number ID;
+    public Agent[] Members;
+    public Team Side;
+    public Number Health;
+    public Number ByeCount;
+    public Team PendingSide;    // 新增
+    public Number FlipCount;    // 新增
+    public Number[] AreaHistory;
+    public Number CurAreaIndex;
+    public Color Color;
+    public Squad OppSquad;
+    public Squad[] OppHistory;
+
+    public constructor(in Agent[] members = [], in Team side, in Number health = 100){
+        Members = members;
+        Health = health;
+        ByeCount = 0;
+        Side = side;
+        AreaHistory = [];
+        CurAreaIndex = -1;
+        OppHistory = [];
+
+        ID = Squads.Length+1;
+        Color = SquadColors[ID-1];
+        HUDcreater();
+
+        Squads += this;
+
+        SyncSquad();
+    }
+
+    public void SyncSquad(){
+        foreach(Agent a! in Members){
+            a.Squad = this;
+            a.UpdateEntity();
+            Agent mate! = Members.Filter(t=>t != a).First;
+            a.Teammate = mate;
+            a.Entity.Teammate = mate == null ? null : mate.Entity;
+        }
+    }
+
+    public static void Match(in Squad a, in Squad b){
+        a.OppSquad = b;
+        b.OppSquad = a;
+
+        a.OppHistory += b;
+        b.OppHistory += a;
+    }
+
+    public void HUDcreater(){
+        //<序号> 《生命值》：
+    //人员1英雄头像+人员1
+    //人员2英雄头像+人员2
+    //——————————
+    Squad that! : EvaluateOnce(this);
+    CreateHudText(
+        Text: 
+        <'————\n队伍<0> 生命<1>:\n\n<2>\n<3>\n',
+        that.ID,
+        that.Health,
+        that.Members.Length > 0 && that.Members[0] != null && EntityExists(that.Members[0].Entity)?<'<0><1>',HeroIconString(HeroOf(that.Members[0].Entity)),that.Members[0].Entity>:'',
+        that.Members.Length > 1 && that.Members[1] != null && EntityExists(that.Members[1].Entity)?<'<0><1>',HeroIconString(HeroOf(that.Members[1].Entity)),that.Members[1].Entity>:''
+        >,
+        Location: Location.Right,
+        TextColor: that.Color,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        SortOrder: that.Health*-1
+    );
+    }
+}
+
+Number Team1Cap: 6;
+Number Team2Cap: 6;
+Number TotalAgents: Team1Cap + Team2Cap;
+Number RoundStartFlipSettleDelay!: 1;
+
+void SyncAgentShuxingOnInit(in Player p){
+    RevShuxing(p);
+    AddHealthPoolToPlayer(HealthType: HealthType.Armor, Player: p, MaxHealth: p.IAgent.Shuxing.Armor.VirtualShuxing(p), Recoverable: true, Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Shields, Player: p, MaxHealth: p.IAgent.Shuxing.Shields.VirtualShuxing(p), Recoverable: true, Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Health, Player: p, MaxHealth: p.IAgent.Shuxing.Health.VirtualShuxing(p), Recoverable: true, Reevaluation: true);
+}
+
+rule: 'Agent初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    if(!AgentRegistered()){
+        new Agent(EventPlayer(), GetIdentity());
+    }else{
+        Agent.SyncIAgent();
+        while(IAgent.Hero != HeroOf() || AllowedHeroes().Length > 1){
+            ForcePlayerHero(
+                Player: EventPlayer(),
+                Hero: IAgent.Hero
+            );
+            SetAllowedHeroes(
+                Player: EventPlayer(),
+                Hero: [IAgent.Hero]
+            );
+            Wait(0.1);
+        }
+        IAgent.UpdateEntity();
+    }
+    if(IAgent == null || IAgent.Squad == null){
+        Teammate = null;
+    }
+    SyncAgentShuxingOnInit(EventPlayer());
+}
+
+rule: 'Agent英雄初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IAgent!=null)
+if(HasSpawned())
+if(IAgent.Hero==null)
+{
+    IAgent.Hero = HeroOf(EventPlayer());
+}
+
+rule: '中途加入检测'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsGameInProgress())
+if(MainTurnManager.Turn > 0)
+if(IAgent != null)
+if(IAgent.Squad == null)
+if(!LateJoinQueue.Contains(IAgent))
+{
+    LateJoinQueue += IAgent;
+    Kill(EventPlayer());
+    Teleport(EventPlayer(), Hall);
+    SetStatus(EventPlayer(), null, Status.PhasedOut, 9999);
+    while(IAgent.Squad == null) Wait(0.5);
+    ClearStatus(EventPlayer(), Status.PhasedOut);
+}
+
+globalvar Team[] Teams! = [Team.Team1,Team.Team2];
+globalvar Boolean SquadInit! = false;
+globalvar Boolean StartTurnTriggered! = false;
+void InitSquads(){
+    Squads = [];
+    foreach(Team t! in Teams){
+        Agent[] agents! = GetAgentsByTeam(t);
+        for(define i! = 0; i < agents.Length; i += Flip_MembersPerSquad){
+            Agent[] chunk! = agents.Slice(i, Flip_MembersPerSquad).Filter(a=>a != null);
+            if(chunk.Length == 0) continue;
+            new Squad(chunk, t);
+        }
+    }
+}
+
+Agent[] GetAgentsByTeam(in Team t){
+    Agent[] result! = [];
+    foreach(Agent a! in Agents){
+        if(a == null)continue;
+        a.UpdateEntity();
+        if(a.Entity == null)continue;
+        if(!AllPlayers().Contains(a.Entity))continue;
+        if(a.Entity.Team() != t)continue;
+        if(result.Contains(a))continue;
+        result += a;
+    }
+    return result;
+}
+
+void CleanupSquadMembers(in Squad s){
+    if(s == null)return;
+    Agent[] kept! = [];
+    for(define i! = 0; i < s.Members.Length; i++){
+        Agent a! = s.Members[i];
+        if(a == null)continue;
+        a.UpdateEntity();
+        if(a.Entity == null)continue;
+        if(!AllPlayers().Contains(a.Entity))continue;
+        if(kept.Contains(a))continue;
+        kept += a;
+    }
+    if(kept.Length != s.Members.Length){
+        Number oldLen! = s.Members.Length;
+        s.Members = kept;
+        if(s.Members.Length > 0){
+            s.SyncSquad();
+        }
+        DebugLog(<'[Squad] Cleanup S<0> Members <1> -> <2>', s.ID, oldLen, s.Members.Length>);
+    }
+}
+
+void CleanupDeadSquads()''{
+    Number before! = Squads.Length;
+    Squad[] kept! = [];
+    foreach(Squad s! in Squads){
+        if(s == null)continue;
+        CleanupSquadMembers(s);
+        if(s.Members == null || s.Members.Length == 0){
+            DebugLog(<'[Squad] RemoveEmpty S<0>', s.ID>);
+            continue;
+        }
+        kept += s;
+    }
+    Squads = kept;
+    if(before != Squads.Length){
+        DebugLog(<'[Squad] CleanupDeadSquads <0> -> <1>', before, Squads.Length>);
+    }
+}
+
+void ProcessLateJoinQueue()''{
+    DebugLog(<'[LateJoin] Begin Queue=<0> Squads=<1>', LateJoinQueue.Length, Squads.Length>);
+    SetSlowMotion(10);
+    LateJoinQueue = LateJoinQueue.Filter(a => AllPlayers().Contains(a.Entity) && a.Squad == null);
+    DebugLog(<'[LateJoin] AfterFilter Queue=<0>', LateJoinQueue.Length>);
+    foreach(Squad s! in Squads){
+        CleanupSquadMembers(s);
+    }
+    if(LateJoinQueue.Length > 0){
+        foreach(Agent a! in LateJoinQueue){
+            DebugLog(<'[LateJoin] Candidate Identity=<0> Entity=<1>', a.Identity, a.Entity>);
+            Squad target! = Squads.Filter(s => s != null && s.Members.Length < Flip_MembersPerSquad).First;
+            if(target != null){
+                Number beforeLen! = target.Members.Length;
+                target.Members += a;
+                a.Squad = target;
+                target.SyncSquad();
+                DebugLog(<'[LateJoin] Fill Squad<0> Members <1> -> <2>', target.ID, beforeLen, target.Members.Length>);
+            }else{
+                new Squad([a], Team.Team1);
+                DebugLog(<'[LateJoin] CreateNew Squad for Identity=<0> Side=1 Members=1', a.Identity>);
+            }
+        }
+    }
+
+    
+    LateJoinQueue = [];
+    foreach(Squad s! in Squads){
+        DebugLog(<'[LateJoin] Squad<0> Side=<1> Health=<2> Members=<3> Bye=<4>', s.ID, s.Side == Team.Team1 ? 1 : 2, s.Health, s.Members.Length, s.ByeCount>);
+    }
+    DebugLog(<'[LateJoin] End Queue=<0> Squads=<1>', LateJoinQueue.Length, Squads.Length>);
+    SetSlowMotion(100);
+}
+
+rule: 'Squads初始化'
+if(IsGameInProgress())
+if(IsButtonHeld(HostPlayer(),Button.Interact))
+{
+    if(!SquadInit){
+        InitSquads();
+        SquadInit = true;
+    }
+    if(!StartTurnTriggered){
+        StartTurnTriggered = true;
+        async! GameFlow();
+    }
+}
+
+rule: 'Debug HUDs'
+{
+    CreateHudText(
+        Header: <'AgentsAllGood <0>',AllAgentsGood()>,
+        Location: Location.Right
+    );
+}
+
+enum PhaseState{
+    Idle,
+    Preparation,
+    Combat
+}
+
+globalvar PhaseState CurrentPhase = PhaseState.Idle;
+globalvar Number PrepareDuration = 30;
+globalvar Number CombatDuration = 40;
+globalvar Number PhaseDeadline = 0;
+globalvar Squad[][] CurrentRoundPairings = [];
+globalvar Boolean DetectEnd_Running = false;
+globalvar Boolean CombatOvertimeAnnounced = false;
+globalvar Squad[] RoundEndedWinners = [];
+globalvar Squad[] RoundEndedLosers = [];
+globalvar Squad[][] RoundEndedDrawPairs = [];
+Number RoundLoseHealthDeduct:
+    15;
+
+void EnterPreparationPhase(in Squad[][] pairings){
+    RoundEndedWinners = [];
+    RoundEndedLosers = [];
+    RoundEndedDrawPairs = [];
+    DetectEnd_Running = false;
+    CombatOvertimeAnnounced = false;
+
+    CurrentRoundPairings = pairings;
+    CurrentPhase = PhaseState.Preparation;
+    Resurrect(AllPlayers());
+    FireRing_EndRound();
+    Teleport(AllPlayers(), Hall);
+    SetMatchTime(PrepareDuration);
+    Wait(5);
+    RoundReward();
+}
+
+void EnterCombatPhase(){
+    CurrentPhase = PhaseState.Combat;
+    CombatOvertimeAnnounced = false;
+    AllPlayers().CurrentSelectHudMode = SelectHudMode.none;
+    foreach(Player p! in AllPlayers()){
+        if(p.isInMenu){
+            CloseMenu(p);
+        }
+    }
+
+    if(CurrentRoundPairings.Length == 0){
+        CurrentPhase = PhaseState.Idle;
+        SetMatchTime(0);
+        return;
+    }
+
+    Resurrect(AllPlayers());
+    AllPlayers().Revivable = true;
+    AllPlayers().RevivePercent = 0;
+    if(MainTurnManager.ByeSquad != null){
+        BigMessage(VisibleTo: MainTurnManager.ByeSquad.Members.Map(t=>t.Entity), Header: 'Lucky 你这回合轮空');
+        Kill(MainTurnManager.ByeSquad.Members.Map(t=>t.Entity));
+    }
+    MainTurnManager.AssignAreasAndTeleport(CurrentRoundPairings);
+    FireRing_BeginRound();
+    SetMatchTime(CombatDuration);
+}
+
+class TurnManager {
+    public Number Turn;
+    public Squad ByeSquad;
+    public constructor() {
+        Turn = 0;
+        ByeSquad = null;
+    }
+
+    public void Advance()'Advance'{
+        DebugLog(<'[Turn] AdvanceStart Turn(before)=<0> Queue=<1> Squads=<2>', Turn, LateJoinQueue.Length, Squads.Length>);
+        Turn++;
+        ProcessLateJoinQueue();
+        CleanupDeadSquads();
+        Squad[][] pairings! = PairSquads();
+        DebugLog(<'[Turn] PairDone Turn=<0> Pairings=<1> ByeSquad=<2>', Turn, pairings.Length, ByeSquad == null ? -1 : ByeSquad.ID>);
+        foreach(Squad[] pair! in pairings){
+            if(pair == null || pair.Length < 2)continue;
+            DebugLog(<'[Turn] Pair S<0> vs S<1> Side<2>-<3> HistOpp=<4>', pair[0].ID, pair[1].ID, pair[0].Side == Team.Team1 ? 1 : 2, pair[1].Side == Team.Team1 ? 1 : 2, CountOppMatches(pair[0], pair[1])>);
+        }
+        Flip_RequestAndExecute(pairings);
+        if(RoundStartFlipSettleDelay > 0){
+            Wait(RoundStartFlipSettleDelay);
+        }
+        EnterPreparationPhase(pairings);
+    }
+
+    public Number CountAreaVisits(in Squad s, in Number areaIndex){
+        return s.AreaHistory.Filter(i=>i == areaIndex).Length;
+    }
+
+    public Number GetPairAreaPrimary(in Squad[] pair, in Number areaIndex){
+        return Min(CountAreaVisits(pair[0], areaIndex), CountAreaVisits(pair[1], areaIndex));
+    }
+
+    public Number GetPairAreaSecondary(in Squad[] pair, in Number areaIndex){
+        return CountAreaVisits(pair[0], areaIndex) + CountAreaVisits(pair[1], areaIndex);
+    }
+
+    public Number[] GetPairAreaScore(in Squad[] pair, in Number areaIndex){
+        return [GetPairAreaPrimary(pair, areaIndex), GetPairAreaSecondary(pair, areaIndex)];
+    }
+
+    public Number PickAreaForPair(in Squad a, in Squad b){
+        Number bestIndex! = 0;
+        Number bestPrimary! = 99999;
+        Number bestSecondary! = 99999;
+        Squad[] pair! = [a, b];
+
+        for(define i! = 0; i < Areas_static.Length; i++){
+            Number primary! = GetPairAreaPrimary(pair, i);
+            Number secondary! = GetPairAreaSecondary(pair, i);
+
+            if(primary < bestPrimary){
+                bestPrimary = primary;
+                bestSecondary = secondary;
+                bestIndex = i;
+                continue;
+            }
+            if(primary == bestPrimary){
+                if(secondary < bestSecondary){
+                    bestSecondary = secondary;
+                    bestIndex = i;
+                    continue;
+                }
+                if(secondary == bestSecondary && i < bestIndex){
+                    bestIndex = i;
+                }
+            }
+        }
+        return bestIndex;
+    }
+
+    public Number[] PickUniqueAreasForRound(in Squad[][] pairings){
+        Number pairCount! = pairings.Length;
+        Number areaCount! = Areas_static.Length;
+        Number[] bestAssign! = [];
+        Number bestPrimary! = 99999;
+        Number bestSecondary! = 99999;
+
+        if(pairCount == 0)return [];
+        if(pairCount > areaCount){
+            return [];
+        }
+
+        if(pairCount == 1){
+            for(define i! = 0; i < areaCount; i++){
+                Number primary! = GetPairAreaPrimary(pairings[0], i);
+                Number secondary! = GetPairAreaSecondary(pairings[0], i);
+
+                if(
+                    bestAssign.Length == 0
+                    || primary < bestPrimary
+                    || (primary == bestPrimary && (secondary < bestSecondary || (secondary == bestSecondary && i < bestAssign[0])))
+                ){
+                    bestPrimary = primary;
+                    bestSecondary = secondary;
+                    bestAssign = [i];
+                }
+            }
+            return bestAssign;
+        }
+
+        if(pairCount == 2){
+            for(define i! = 0; i < areaCount; i++){
+                for(define j! = 0; j < areaCount; j++){
+                    if(j == i)continue;
+                    Number primary! = GetPairAreaPrimary(pairings[0], i) + GetPairAreaPrimary(pairings[1], j);
+                    Number secondary! = GetPairAreaSecondary(pairings[0], i) + GetPairAreaSecondary(pairings[1], j);
+
+                    if(
+                        bestAssign.Length == 0
+                        || primary < bestPrimary
+                        || (
+                            primary == bestPrimary
+                            && (
+                                secondary < bestSecondary
+                                || (
+                                    secondary == bestSecondary
+                                    && (
+                                        i < bestAssign[0]
+                                        || (i == bestAssign[0] && j < bestAssign[1])
+                                    )
+                                )
+                            )
+                        )
+                    ){
+                        bestPrimary = primary;
+                        bestSecondary = secondary;
+                        bestAssign = [i, j];
+                    }
+                }
+            }
+            return bestAssign;
+        }
+
+        if(pairCount == 3){
+            for(define i! = 0; i < areaCount; i++){
+                for(define j! = 0; j < areaCount; j++){
+                    if(j == i)continue;
+                    for(define k! = 0; k < areaCount; k++){
+                        if(k == i || k == j)continue;
+
+                        Number primary! = GetPairAreaPrimary(pairings[0], i) + GetPairAreaPrimary(pairings[1], j) + GetPairAreaPrimary(pairings[2], k);
+                        Number secondary! = GetPairAreaSecondary(pairings[0], i) + GetPairAreaSecondary(pairings[1], j) + GetPairAreaSecondary(pairings[2], k);
+
+                        if(
+                            bestAssign.Length == 0
+                            || primary < bestPrimary
+                            || (
+                                primary == bestPrimary
+                                && (
+                                    secondary < bestSecondary
+                                    || (
+                                        secondary == bestSecondary
+                                        && (
+                                            i < bestAssign[0]
+                                            || (
+                                                i == bestAssign[0]
+                                                && (
+                                                    j < bestAssign[1]
+                                                    || (j == bestAssign[1] && k < bestAssign[2])
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ){
+                            bestPrimary = primary;
+                            bestSecondary = secondary;
+                            bestAssign = [i, j, k];
+                        }
+                    }
+                }
+            }
+            return bestAssign;
+        }
+
+        return bestAssign;
+    }
+
+    public void TeleportPairToArea(in Squad[] pair, in Number areaIndex){
+        Area area! = Areas_static[areaIndex];
+        foreach(Player p! in pair[0].Members.Map(a=>a.Entity)){
+            Teleport(p, area.SpawnPosition1);
+            MinWait();
+        }
+        foreach(Player p! in pair[1].Members.Map(a=>a.Entity)){
+            Teleport(p, area.SpawnPosition2);
+            MinWait();
+        }
+    }
+
+    public void AssignAreasAndTeleport(in Squad[][] pairings){
+        Number[] areaAssignments! = PickUniqueAreasForRound(pairings);
+        for(define pairIdx! = 0; pairIdx < pairings.Length; pairIdx++){
+            Squad[] pair! = pairings[pairIdx];
+            if(pair == null || pair.Length < 2)continue;
+            if(areaAssignments.Length <= pairIdx){
+                continue;
+            }
+            Number areaIndex! = areaAssignments[pairIdx];
+
+            pair[0].CurAreaIndex = areaIndex;
+            pair[1].CurAreaIndex = areaIndex;
+            pair[0].AreaHistory += areaIndex;
+            pair[1].AreaHistory += areaIndex;
+
+            TeleportPairToArea(pair, areaIndex);
+        }
+    }
+
+    public Squad[] GetActiveSquads(){
+        Squad[] active! = [];
+        DebugLog(<'[Pair] GetActiveSquads Start Total=<0>', Squads.Length>);
+        foreach(Squad s! in Squads){
+            if(s == null){
+                DebugLog('[Pair] Skip null squad');
+                continue;
+            }
+            CleanupSquadMembers(s);
+            if(s.Members == null || s.Members.Length == 0){
+                DebugLog(<'[Pair] Skip Squad<0> empty members', s.ID>);
+                continue;
+            }
+            if(s.Health <= 0){
+                DebugLog(<'[Pair] Skip Squad<0> dead health=<1>', s.ID, s.Health>);
+                continue;
+            }
+            active += s;
+            DebugLog(<'[Pair] Active Squad<0> Side=<1> Health=<2> Members=<3> Bye=<4> OppHist=<5>', s.ID, s.Side == Team.Team1 ? 1 : 2, s.Health, s.Members.Length, s.ByeCount, s.OppHistory.Length>);
+        }
+        DebugLog(<'[Pair] GetActiveSquads End Active=<0>', active.Length>);
+        return active;
+    }
+
+    public Number CountOppMatches(in Squad a, in Squad b){
+        return a.OppHistory.Filter(t=>t == b).Length;
+    }
+
+    public Squad SelectByeSquad(in Squad[] candidates){
+        if(candidates == null || candidates.Length == 0)return null;
+        Squad best! = candidates[0];
+        DebugLog(<'[Pair] SelectBye Start Candidates=<0> First=S<1>', candidates.Length, best.ID>);
+        foreach(Squad s! in candidates){
+            DebugLog(<'[Pair] ByeCandidate S<0> Bye=<1> Health=<2> Side=<3>', s.ID, s.ByeCount, s.Health, s.Side == Team.Team1 ? 1 : 2>);
+            if(s.ByeCount < best.ByeCount){
+                best = s;
+                DebugLog(<'[Pair] ByeBestUpdate S<0> reason=lowerBye', best.ID>);
+                continue;
+            }
+            if(s.ByeCount == best.ByeCount && s.ID < best.ID){
+                best = s;
+                DebugLog(<'[Pair] ByeBestUpdate S<0> reason=lowerID', best.ID>);
+            }
+        }
+        DebugLog(<'[Pair] SelectBye End Best=S<0> Bye=<1>', best.ID, best.ByeCount>);
+        return best;
+    }
+
+    public Number ScorePairing(in Squad a, in Squad b){
+        Number opp! = CountOppMatches(a, b);
+        Number sameSidePenalty! = a.Side == b.Side ? 100 : 0;
+        Number idPart! = a.ID + b.ID;
+        Number score! = opp * 1000 + sameSidePenalty + idPart;
+        DebugLog(<'[Pair][Score] S<0>-S<1> opp=<2> samePenalty=<3> idPart=<4> raw=<5>', a.ID, b.ID, opp, sameSidePenalty, idPart, score>);
+        return score;
+    }
+
+    public Squad[][] EnumerateBestMatchings(in Squad[] squads){
+        Number n! = squads.Length;
+        DebugLog(<'[Pair] Enumerate Start N=<0>', n>);
+
+        if(n == 0){
+            DebugLog('[Pair] Enumerate N=0 return []');
+            return [];
+        }
+
+        if(n == 2){
+            DebugLog(<'[Pair] Enumerate N=2 => S<0> vs S<1>', squads[0].ID, squads[1].ID>);
+            return [[squads[0], squads[1]]];
+        }
+
+        if(n == 4){
+            Squad[][] candidates! = [
+                [squads[0], squads[1]],
+                [squads[0], squads[2]],
+                [squads[0], squads[3]]
+            ];
+            Squad[][] partners! = [
+                [squads[2], squads[3]],
+                [squads[1], squads[3]],
+                [squads[1], squads[2]]
+            ];
+
+            Number bestIdx! = 0;
+            Number bestS! = 99999999;
+
+            for(define i! = 0; i < 3; i++){
+                Number scoreA! = ScorePairing(candidates[i][0], candidates[i][1]);
+                Number scoreB! = ScorePairing(partners[i][0], partners[i][1]);
+                Number s! = scoreA + scoreB;
+                DebugLog(<'[Pair] Enumerate4 idx=<0> pairA=S<1>-S<2> scoreA=<3> pairB=S<4>-S<5> scoreB=<6> total=<7>', i, candidates[i][0].ID, candidates[i][1].ID, scoreA, partners[i][0].ID, partners[i][1].ID, scoreB, s>);
+                if(s < bestS){
+                    bestS = s;
+                    bestIdx = i;
+                    DebugLog(<'[Pair] Enumerate4 newBest idx=<0> score=<1>', bestIdx, bestS>);
+                }
+            }
+
+            DebugLog(<'[Pair] Enumerate4 result idx=<0> S<1>-S<2> | S<3>-S<4>', bestIdx, candidates[bestIdx][0].ID, candidates[bestIdx][1].ID, partners[bestIdx][0].ID, partners[bestIdx][1].ID>);
+            return [candidates[bestIdx], partners[bestIdx]];
+        }
+
+        if(n == 6){
+            Number bestS! = 99999999;
+            Squad[][] bestResult! = [];
+
+            for(define i! = 1; i < 6; i++){
+                Squad[] rem! = squads.Slice(1, squads.Length - 1).Filter(s=>s != squads[i]);
+                Squad[][] subCands! = [
+                    [rem[0], rem[1]],
+                    [rem[0], rem[2]],
+                    [rem[0], rem[3]]
+                ];
+                Squad[][] subParts! = [
+                    [rem[2], rem[3]],
+                    [rem[1], rem[3]],
+                    [rem[1], rem[2]]
+                ];
+
+                for(define j! = 0; j < 3; j++){
+                    Number scoreMain! = ScorePairing(squads[0], squads[i]);
+                    Number scoreSub1! = ScorePairing(subCands[j][0], subCands[j][1]);
+                    Number scoreSub2! = ScorePairing(subParts[j][0], subParts[j][1]);
+                    Number s! = scoreMain + scoreSub1 + scoreSub2;
+                    DebugLog(<'[Pair] Enumerate6 i=<0> j=<1> main=S<2>-S<3>(<4>) sub1=S<5>-S<6>(<7>) sub2=S<8>-S<9>(<10>) total=<11>', i, j, squads[0].ID, squads[i].ID, scoreMain, subCands[j][0].ID, subCands[j][1].ID, scoreSub1, subParts[j][0].ID, subParts[j][1].ID, scoreSub2, s>);
+                    if(s < bestS){
+                        bestS = s;
+                        bestResult = [
+                            [squads[0], squads[i]],
+                            subCands[j],
+                            subParts[j]
+                        ];
+                        DebugLog(<'[Pair] Enumerate6 newBest total=<0> main=S<1>-S<2>', bestS, squads[0].ID, squads[i].ID>);
+                    }
+                }
+            }
+
+            DebugLog(<'[Pair] Enumerate6 result best=<0> pairCount=<1>', bestS, bestResult.Length>);
+            return bestResult;
+        }
+
+        DebugLog(<'[Pair] Enumerate unsupported N=<0> return []', n>);
+        return [];
+    }
+
+    public Squad[][] PairSquads(){
+        Squad[] activeSquads! = GetActiveSquads().Sort(s=>s.ID);
+        ByeSquad = null;
+        DebugLog(<'[Pair] PairSquads Start Active=<0>', activeSquads.Length>);
+        foreach(Squad s! in activeSquads){
+            DebugLog(<'[Pair] ActiveSorted S<0> Side=<1> Bye=<2> Health=<3> OppHist=<4>', s.ID, s.Side == Team.Team1 ? 1 : 2, s.ByeCount, s.Health, s.OppHistory.Length>);
+        }
+
+        if(activeSquads.Length < 2){
+            DebugLog('[Pair] PairSquads active<2 return []');
+            return [];
+        }
+
+        if(activeSquads.Length % 2 == 1){
+            ByeSquad = SelectByeSquad(activeSquads);
+            if(ByeSquad != null){
+                ByeSquad.ByeCount++;
+                activeSquads = activeSquads.Filter(s=>s != ByeSquad);
+                DebugLog(<'[Pair] Bye selected S<0> ByeCountNow=<1> Remaining=<2>', ByeSquad.ID, ByeSquad.ByeCount, activeSquads.Length>);
+            }
+        }
+
+        Squad[][] pairings! = EnumerateBestMatchings(activeSquads);
+        DebugLog(<'[Pair] Pairings generated=<0>', pairings.Length>);
+
+        Number idx! = 0;
+        foreach(Squad[] pair! in pairings){
+            if(pair == null || pair.Length < 2)continue;
+            //Squad.Match(pair[0], pair[1]);
+
+            Team sideA! = pair[0].Side;
+            Team sideB! = pair[1].Side;
+            if(sideA == sideB){
+                Squad mover! = pair[0].ID <= pair[1].ID ? pair[0] : pair[1];
+                if(mover == pair[0]){
+                    sideA = OppositeTeamOf(sideA);
+                }else{
+                    sideB = OppositeTeamOf(sideB);
+                }
+            }
+
+            DebugLog(<'[Pair] Final#<0> S<1>(Side<2>) vs S<3>(Side<4>) OppMatchCount=<5>', idx + 1, pair[0].ID, pair[0].Side == Team.Team1 ? 1 : 2, pair[1].ID, pair[1].Side == Team.Team1 ? 1 : 2, CountOppMatches(pair[0], pair[1])>);
+            idx++;
+        }
+
+        DebugLog('[Pair] PairSquads End');
+        return pairings;
+    }
+}
+
+globalvar TurnManager MainTurnManager = new TurnManager();
+
+rule: '回合目标描述'
+Event.OngoingGlobal
+{
+    SetObjectiveDescription(
+        Header: <'Turn <0> | Time --', MainTurnManager.Turn>
+    );
+}
+
+Boolean SquadDefeated(Squad s)'SquadDefeated'{
+    if(s == null)return true;
+    if(s.Members == null || s.Members.Length == 0)return true;
+
+    foreach(Agent a! in s.Members){
+        if(a == null)continue;
+        Player member! = AllPlayers().Filter(p=>GetIdentity(p) == a.Identity).First;
+        if(member == null)continue;
+        if(IsAlive(member)||!HasSpawned(member))return false;
+    }
+
+    return true;
+}
+
+Boolean PairEnded(in Squad[] pair){
+    if(pair == null || pair.Length < 2)return false;
+    return SquadDefeated(pair[0]) || SquadDefeated(pair[1]);
+}
+
+Boolean PairDoubleDefeated(in Squad[] pair){
+    if(pair == null || pair.Length < 2)return false;
+    return SquadDefeated(pair[0]) && SquadDefeated(pair[1]);
+}
+
+Squad PairWinner(in Squad[] pair){
+    if(pair == null || pair.Length < 2)return null;
+
+    Boolean leftDefeated! = SquadDefeated(pair[0]);
+    Boolean rightDefeated! = SquadDefeated(pair[1]);
+
+    if(leftDefeated && rightDefeated)return null;
+    if(leftDefeated)return pair[1];
+    if(rightDefeated)return pair[0];
+    return null;
+}
+
+Boolean InSameActivePair(in Player a, in Player b){
+    if(a == null || b == null)return false;
+    if(a.IAgent == null || b.IAgent == null)return false;
+    if(a.IAgent.Squad == null || b.IAgent.Squad == null)return false;
+    for(define i! = 0; i < CurrentRoundPairings.Length; i++){
+        Squad[] pair! = CurrentRoundPairings[i];
+        if(pair == null || pair.Length < 2)continue;
+        if((pair[0] == a.IAgent.Squad && pair[1] == b.IAgent.Squad) || (pair[1] == a.IAgent.Squad && pair[0] == b.IAgent.Squad)){
+            return true;
+        }
+    }
+    return false;
+}
+
+void HandleRoundEnd(in Squad winner, in Squad loser){
+    if(winner == null || loser == null)return;
+
+    RoundEndedWinners += winner;
+    RoundEndedLosers += loser;
+    loser.Health = Max(0, loser.Health - RoundLoseHealthDeduct);
+
+    BigMessage(winner.Members.Map(t=>t.Entity).Append(loser.Members.Map(t=>t.Entity)), <'队伍 <0> 击败 队伍 <1>', winner.ID, loser.ID>);
+    //BigMessage(AllPlayers(), <'队伍 <0> 本回合 -<1> 生命，剩余生命 <2>', loser.ID, RoundLoseHealthDeduct, loser.Health>);
+}
+
+void HandleRoundDraw(in Squad[] pair){
+    if(pair == null || pair.Length < 2)return;
+    if(pair[0] == null || pair[1] == null)return;
+
+    RoundEndedDrawPairs += pair;
+    BigMessage(AllPlayers(), <'队伍 <0> 与 队伍 <1> 同灭，记平局', pair[0].ID, pair[1].ID>);
+}
+
+void FinalizeRoundIfNoPairsLeft(){
+    if(CurrentRoundPairings.Length > 0)return;
+    
+    FireRing_EndRound();
+    CurrentPhase = PhaseState.Idle;
+}
+
+void DetectEnd()'DetectEnd'{
+    if(DetectEnd_Running)return;
+    if(CurrentPhase != PhaseState.Combat)return;
+
+    DetectEnd_Running = true;
+
+    for(define i! = 0; i < CurrentRoundPairings.Length; i++){
+        Squad[] pair! = CurrentRoundPairings[i];
+        if(pair == null || pair.Length < 2)continue;
+        Boolean leftDefeated! = SquadDefeated(pair[0]);
+        Boolean rightDefeated! = SquadDefeated(pair[1]);
+        if(!leftDefeated && !rightDefeated)continue;
+
+        if(leftDefeated && rightDefeated){
+            HandleRoundDraw(pair);
+            CurrentRoundPairings.ModRemoveByIndex(i);
+            i--;
+            continue;
+        }
+
+        Squad winner! = leftDefeated ? pair[1] : pair[0];
+        Squad loser! = leftDefeated ? pair[0] : pair[1];
+        HandleRoundEnd(winner, loser);
+        CurrentRoundPairings.ModRemoveByIndex(i);
+        if(CurrentRoundPairings.Length > 0){
+            Kill(winner.Members.Map(t=>t.Entity));
+            BigMessage(VisibleTo: winner.Members.Map(t=>t.Entity),'由于还有其他队伍在战斗\n进入观战');
+        }
+        i--;
+    }
+
+    FinalizeRoundIfNoPairsLeft();
+    TryResolveGameOver();
+    DetectEnd_Running = false;
+}
+void TryResolveGameOver(){
+    if(Squads.Filter(t=>t.Health > 0).Length > 1) return;
+
+    Squad winner! = Squads.Filter(t=>t.Health > 0).First;
+    DeclareTeamVictory(winner.Members[0].Entity.Team()); 
+    BigMessage(
+        Header: <'恭喜 队伍<0> 获胜',winner.ID>
+    );
+}
+
+rule: '救人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentPhase == PhaseState.Combat)
+if(IsAlive())
+if(Teammate != null)
+if(IsDead(Teammate))
+if(Teammate.Revivable)
+if(DistanceBetween(EventPlayer(), Teammate) <= 5)
+if(InSameActivePair(EventPlayer(), Teammate))
+{
+        Teammate.RevivePercent += 3.5;
+        Wait(0.25);
+        LoopIfConditionIsTrue();
+    if(Teammate.RevivePercent >= 100 && Teammate.Revivable){
+        Teammate.Revivable = false;
+        Resurrect(Teammate);
+        SetStatus(Teammate, null, Status.Invincible, 1);
+    }
+}
+
+rule: 'DetectEnd - 玩家死亡'
+Event.OnDeath
+Team.All
+Player.All
+if(!IsAlive())
+{
+    RevivePercent = 0;
+    Wait(3,WaitBehavior.AbortWhenFalse);
+    DetectEnd();
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    SetAllowedHeroes(Hero: [HeroOf()]);
+}
+
+rule: 'DetectEnd - 玩家离开'
+Event.OnPlayerLeave
+Team.All
+Player.All
+{
+    DetectEnd();
+}
+
+// -------------------------------------------------------
+// FireRing
+// -------------------------------------------------------
+Number FireRingTickInterval: 1;
+Number FireRingShrinkInterval: 5;
+Number FireRingShrinkAmount: 3;
+Number FireRingBaseDamage: 50;
+Number FireRingDamagePerTick: 20;
+Color FireRingVisualColor: Color.Blue;
+
+globalvar Boolean FireRingActive! = false;
+globalvar Boolean FireRingShrinkLoopRunning! = false;
+globalvar Boolean FireRingVisualInited! = false;
+globalvar Number FireRingTickCount! = 0;
+globalvar Number[] FireRingsRadius! = [];
+
+void FireRing_InitPlayerToggles(in Player p){
+    p.FireRingToggles = [];
+    for(define i! = 0; i < Areas_static.Length; i++){
+        p.FireRingToggles[p.FireRingToggles.Length] = false;
+    }
+}
+
+void FireRing_ResetPlayerToggles(Player p){
+    if(p.FireRingToggles.Length != Areas_static.Length){
+        FireRing_InitPlayerToggles(p);
+        return;
+    }
+    for(define i! = 0; i < p.FireRingToggles.Length; i++){
+        p.FireRingToggles[i] = false;
+    }
+}
+
+Boolean FireRing_LocalVisible(in Number areaIndex){
+    return LocalPlayer().FireRingToggles[areaIndex];
+}
+
+void FireRing_CreateVisuals(){
+    if(FireRingsRadius.Length != Areas_static.Length){
+        FireRingsRadius = Areas_static.Map(a=>a.Radius);
+    }
+
+    for(define i! = 0; i < Areas_static.Length; i++){
+        CreateEffect(
+            VisibleTo: FireRingActive && FireRing_LocalVisible(EvaluateOnce(i)) ? LocalPlayer() : null,
+            Type: Effect.Sphere,
+            Color: FireRingVisualColor,
+            Position: Areas_static[EvaluateOnce(i)].Center,
+            Radius: FireRingsRadius[EvaluateOnce(i)],
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        MinWait();
+    }
+}
+
+void FireRing_SyncPlayerToggles(Player p)''{
+    FireRing_ResetPlayerToggles(p);
+    Number areaIndex! = FireRing_GetAreaIndex(p);
+    if(areaIndex != -1){
+        p.FireRingToggles[areaIndex] = true;
+    }
+}
+
+void FireRing_SyncAllPlayersToggles(){
+    foreach(Player p! in AllPlayers()){
+        FireRing_SyncPlayerToggles(p);
+    }
+}
+
+void FireRing_EndRound(){
+    FireRingActive = false;
+    foreach(Squad s! in Squads){
+        if(s == null)continue;
+        s.CurAreaIndex = -1;
+    }
+    FireRing_SyncAllPlayersToggles();
+}
+
+void FireRing_BeginRound(){
+    FireRingTickCount = 0;
+    FireRingsRadius = Areas_static.Map(a=>a.Radius);
+
+    Boolean hasAssignedArea! = false;
+    foreach(Squad s! in Squads){
+        if(s == null)continue;
+        if(s.CurAreaIndex >= 0){
+            hasAssignedArea = true;
+            break;
+        }
+    }
+    if(!hasAssignedArea)return;
+
+    FireRingActive = true;
+    FireRing_SyncAllPlayersToggles();
+    async! FireRing_StartShrinkLoop();
+}
+
+void FireRing_StartShrinkLoop()"FireRing_ShrinkLoop"{
+    if(FireRingShrinkLoopRunning)return;
+    FireRingShrinkLoopRunning = true;
+
+    while(FireRingActive){
+        Wait(FireRingShrinkInterval);
+        if(!FireRingActive)break;
+        FireRing_ApplyShrink();
+    }
+
+    FireRingShrinkLoopRunning = false;
+}
+
+void FireRing_ApplyShrink(){
+    FireRingTickCount++;
+    if(FireRingShrinkAmount <= 0)return;
+    for(define i! = 0; i < FireRingsRadius.Length; i++){
+        if(FireRingsRadius[i] > 0){
+            FireRingsRadius[i] = Max(0, FireRingsRadius[i] - FireRingShrinkAmount);
+        }
+    }
+}
+
+Number FireRing_CurrentDamage():
+    FireRingBaseDamage + FireRingTickCount * FireRingDamagePerTick;
+
+Number FireRing_GetAreaIndex(in Player p){
+    Squad squad! = p.IAgent == null ? null : p.IAgent.Squad;
+    if(squad == null)return -1;
+
+    Number idx! = squad.CurAreaIndex;
+    if(idx < 0)return -1;
+    if(idx >= Areas_static.Length)return -1;
+    if(idx >= FireRingsRadius.Length)return -1;
+    return idx;
+}
+
+Boolean FireRing_PlayerOutside(in Player p, in Number areaIndex):
+    DistanceBetween(p, Areas_static[areaIndex].Center) > FireRingsRadius[areaIndex];
+
+Number FireRing_AssignedSquadCount():
+    Squads.Filter(s=>s != null && s.CurAreaIndex >= 0).Length;
+
+rule: 'FireRing 视觉初始化'
+{
+    if(FireRingVisualInited)return;
+    if(Areas_static.Length == 0)return;
+    FireRingVisualInited = true;
+    FireRing_CreateVisuals();
+}
+
+rule: 'FireRing Toggle初始化'
+Event.OnPlayerJoin
+Team.All
+Player.All
+{
+    FireRing_ResetPlayerToggles(EventPlayer());
+    FireRing_SyncPlayerToggles(EventPlayer());
+}
+
+rule: 'FireRing Toggle同步'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(FireRingActive)
+{
+    FireRing_SyncPlayerToggles(EventPlayer());
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '燃烧墙'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(FireRingActive)
+if(IsAlive())
+{
+    Number areaIndex! = FireRing_GetAreaIndex(EventPlayer());
+    if(areaIndex != -1)
+    if(FireRing_PlayerOutside(EventPlayer(), areaIndex)){
+        SetStatus(EventPlayer(), null, Status.Burning, 1);
+        Damage(EventPlayer(), null, FireRing_CurrentDamage());
+    }
+    Wait(FireRingTickInterval);
+    LoopIfConditionIsTrue();
+}
+
+// -------------------------------------------------------
+// Flip v3 - Step(player, targetSide)
+// -------------------------------------------------------
+Number Flip_StepWait: 1;
+struct FlipRosterEntry {
+    public Any Identity;
+    public Team TargetTeam;
+}
+globalvar FlipRosterEntry[] Flip_Roster! = [];
+globalvar Squad[] Flip_PendingSquads! = [];
+globalvar Boolean Flip_Executing! = false;
+
+Boolean Flip_InScope(in Player p){
+    return Flip_Roster.Map(entry => entry.Identity).Contains(GetIdentity(p));
+}
+
+Team Flip_DesiredTeam(in Player p){
+    if(p == null || p.IAgent == null)return null;
+    Number idx! = Flip_Roster.Map(entry => entry.Identity).IndexOf(p.IAgent.Identity);
+    if(idx == -1)return null;
+    return Flip_Roster[idx].TargetTeam;
+}
+
+Boolean Flip_RosterSatisfied(){
+    for(define i! = 0; i < Flip_Roster.Length; i++){
+        FlipRosterEntry entry! = Flip_Roster[i];
+        Player p! = Flip_FindPlayerByIdentity(entry.Identity);
+        if(p == null)return false;
+        if(TeamOf(p) != entry.TargetTeam)return false;
+    }
+    return true;
+}
+
+Player Flip_FindPlayerByIdentity(in Any id){
+    foreach(Player p! in AllPlayers()){
+        if(p == null || p.IAgent == null)continue;
+        if(p.IAgent.Identity == id)return p;
+    }
+    return null;
+}
+
+void Flip_BuildPendingFromPairings(in Squad[][] pairings){
+    Flip_PendingSquads = [];
+    foreach(Squad s! in Squads){
+        if(s == null)continue;
+        s.PendingSide = null;
+    }
+
+    foreach(Squad[] pairing! in pairings){
+        if(pairing == null || pairing.Length < 2)continue;
+        Squad home! = pairing[0];
+        Squad away! = pairing[1];
+        if(home == null || away == null)continue;
+        if(home.Side != away.Side)continue;
+
+        Squad mover!;
+        if(home.FlipCount < away.FlipCount){
+            mover = home;
+        }else if(away.FlipCount < home.FlipCount){
+            mover = away;
+        }else{
+            mover = home.ID <= away.ID ? home : away;
+        }
+
+        Team target! = OppositeTeamOf(mover.Side);
+        if(target == null)continue;
+        mover.PendingSide = target;
+
+        if(!Flip_PendingSquads.Contains(mover)){
+            Flip_PendingSquads += mover;
+        }
+
+    }
+}
+
+void Flip_BuildRosterFromPairings(in Squad[][] pairings){
+    Flip_Roster = [];
+
+    foreach(Squad[] pairing! in pairings){
+        if(pairing == null || pairing.Length < 2)continue;
+        Squad home! = pairing[0];
+        Squad away! = pairing[1];
+        if(home == null || away == null)continue;
+
+        Team homeTarget! = (home.PendingSide != null && home.PendingSide != home.Side)
+            ? home.PendingSide : home.Side;
+        foreach(Agent a! in home.Members){
+            if(a == null)continue;
+            Flip_Roster += {
+                Identity: a.Identity,
+                TargetTeam: homeTarget
+            };
+        }
+
+        Team awayTarget! = (away.PendingSide != null && away.PendingSide != away.Side)
+            ? away.PendingSide : away.Side;
+        foreach(Agent a! in away.Members){
+            if(a == null)continue;
+            Flip_Roster += {
+                Identity: a.Identity,
+                TargetTeam: awayTarget
+            };
+        }
+    }
+
+}
+
+void Flip_OpenWindow(){
+    Flip_Executing = true;
+}
+
+void Flip_CloseWindow(){
+    Flip_Executing = false;
+    Flip_Roster = [];
+    Flip_PendingSquads = [];
+}
+
+void Flip_Step(in Player mover, in Team targetSide){
+    if(mover == null || targetSide == null)return;
+
+    while(TeamOf(mover) != targetSide){
+        Team sourceSide! = TeamOf(mover);
+        if(Flip_RosterSatisfied())break;
+
+        foreach(Player other! in AllPlayers()){
+            if(other == null || other == mover)continue;
+            //if(!Flip_InScope(other))continue;     
+
+            Team otherTarget! = Flip_DesiredTeam(other);
+            //if(otherTarget == null)continue;
+            if(otherTarget == targetSide)continue;
+            if(TeamOf(other) != targetSide)continue;
+
+            MovePlayerToTeam(other, sourceSide, -1);
+            Wait(Flip_StepWait/2);
+        }
+        MovePlayerToTeam(mover, targetSide, -1);
+        Wait(Flip_StepWait);
+    }
+}
+
+void Flip_ExecuteRosterSteps(){
+    for(define i! = 0; i < Flip_Roster.Length; i++){
+        FlipRosterEntry entry! = Flip_Roster[i];
+        Any id! = entry.Identity;
+        Team target! = entry.TargetTeam;
+
+        while(true){
+            Player mover! = Flip_FindPlayerByIdentity(id);
+            if(mover != null){
+                Flip_Step(mover, target);
+                break;
+            }
+            Wait(Flip_StepWait);
+        }
+    }
+}
+
+void Flip_CommitPendingSides(){
+    foreach(Squad s! in Flip_PendingSquads){
+        if(s == null)continue;
+        if(s.PendingSide != null && s.PendingSide != s.Side){
+            s.Side = s.PendingSide;
+            s.FlipCount++;
+        }
+        s.PendingSide = null;
+    }
+
+    // 新增
+    foreach(Squad[] pair! in Flip_CurrentPairings){
+        if(pair == null || pair.Length < 2) continue;
+        Squad.Match(pair[0], pair[1]);
+    }
+}
+
+Number Flip_ScopeNeedForTeam(in Team t){
+    Number need! = 0;
+    foreach(Player p! in AllPlayers()){
+        if(!Flip_InScope(p))continue;
+        Team desired! = Flip_DesiredTeam(p);
+        if(desired == null)continue;
+        if(desired == t && TeamOf(p) != t){
+            need++;
+        }
+    }
+    return need;
+}
+globalvar Squad[][] Flip_CurrentPairings! = [];
+void Flip_RequestAndExecute(Squad[][] pairings)''{
+    Flip_CurrentPairings = pairings;
+    Flip_BuildPendingFromPairings(pairings);
+
+    if(Flip_PendingSquads.Length == 0){
+        foreach(Squad[] pair! in pairings){
+            if(pair == null || pair.Length < 2) continue;
+            Squad.Match(pair[0], pair[1]);
+        }
+        return;
+    }
+
+    Flip_BuildRosterFromPairings(pairings);
+
+    Flip_OpenWindow();
+    Flip_ExecuteRosterSteps();
+    Flip_CommitPendingSides();
+    Flip_CloseWindow();
+}
+
+rule: 'Flip Gate - Ongoing'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Flip_Executing)
+if(!Flip_InScope(EventPlayer()))
+{
+    MovePlayerToTeam(EventPlayer(), OppositeTeamOf(TeamOf()), -1);
+    CreateHudText(
+        Header: 'Sweep',
+        Location: Location.Top
+    );
+    Wait(0.1);
+    LoopIfConditionIsTrue();
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    CreateInWorldText(
+        Header: EventPlayer(),
+        Position: EventPlayer(),
+        Scale: 2,
+        Clipping: Clipping.DoNotClip,
+        TextColor: Color.Red,
+    );
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: <'负载：<0> <1> peak<2>',ServerLoad(),ServerLoadAverage(),ServerLoadPeak()>
+    );
+}
+rule: '关闭各'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsGameInProgress())
+{
+    DisableAnnouncer();
+    DisableCompletion();
+
+    DisableGameModeInworldUI();
+
+    DisableMusic();
+    DisableScoring();
+    DisableRespawning();
+    EnableSpectate();
+
+}
+
+rule: '忿游戏'
+if(IsAssemblingHeroes())
+{
+    SetMatchTime(10);
+}
+
+enum ShuxingType {
+    Attack,
+    CoolDown,
+    Speed,
+    HealBoost,
+    Health,
+    Reduction,
+    Drain,
+    Armor,
+    Shields
+}
+
+class Shuxing{
+    public ShuxingBase Attack;
+    public ShuxingBase CoolDown;
+    public ShuxingBase Speed;
+    public ShuxingBase HealBoost;
+    public ShuxingBase Drain;
+    public ShuxingBase Armor;
+    public ShuxingBase Health;
+    public ShuxingBase Shields;
+    public ShuxingBase Reduction;
+    public ShuxingBase Scale;
+    public ShuxingBase JumpVerticalSpeed;
+
+    public constructor(){
+        Attack = new ShuxingBase();
+        CoolDown = new ShuxingBase(abs: 0);
+        Speed = new ShuxingBase();
+        HealBoost = new ShuxingBase();
+        Drain = new ShuxingBase(abs: 0);
+        Armor = new ShuxingBase(abs: 0);
+        Health = new ShuxingBase(abs: 0);
+        Shields = new ShuxingBase(abs: 0);
+        Reduction = new ShuxingBase(abs: 0);
+        Scale = new ShuxingBase();
+        JumpVerticalSpeed = new ShuxingBase();
+    }
+}
+class ShuxingBase{
+    public Number Abs;
+    public Number Pct;
+    public Number Forge;
+
+    Number RealShuxing(in Player p! = EventPlayer()):
+        Abs+Forge*p.Forge_Multiplier;
+
+    Number RealShuxing_Local():
+        Abs+Forge*LocalPlayer().Forge_Multiplier;
+
+    Number VirtualShuxing(in Player p! = EventPlayer()):
+        RealShuxing(p)*(1+Pct/100);
+
+    Number VirtualShuxing_Local():
+        RealShuxing_Local()*(1+Pct/100);
+    
+    public constructor(in Number abs=100){
+        Abs = abs;
+    }
+}
+void RevShuxing(Player p! = EventPlayer())'sub刷新属性'{
+    SetMoveSpeed(p,p.IAgent.Shuxing.Speed.VirtualShuxing(p)); 
+    SetDamageDealt(p,p.IAgent.Shuxing.Attack.VirtualShuxing(p));
+    SetDamageReceived(p,Max(20,100*100/(100+1.5 *p.IAgent.Shuxing.Reduction.VirtualShuxing(p))));
+    SetHealingDealt(p,p.IAgent.Shuxing.HealBoost.VirtualShuxing(p));
+
+    SetJumpVerticalSpeed(p,p.IAgent.Shuxing.JumpVerticalSpeed.VirtualShuxing(p));
+}
+Number CooldownReductionPerTick : 0.5 * (IAgent.Shuxing.CoolDown / (100 + IAgent.Shuxing.CoolDown));
+playervar Number last_halfsec_Damaged!;
+playervar Number last_halfsec_Healed!;
+globalvar Button[] Buttons = [Button.Ability1,Button.Ability2,Button.Jump,Button.SecondaryFire,Button.Crouch];
+rule: '全能效果实现吸血效果'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+{
+    Heal(EventPlayer(),EventPlayer(),(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt)-last_halfsec_Damaged)*IAgent.Shuxing.Drain.VirtualShuxing()/100);
+
+    last_halfsec_Damaged = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt);
+
+    last_halfsec_Healed = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.HealingDealt);
+
+    if(IAgent.Shuxing.CoolDown.VirtualShuxing()>0){
+        foreach(Button b! in Buttons){
+            if(!WrongButtons.Contains(b)){
+                if(AbilityCooldown(EventPlayer(),b)>0){
+                    SetAbilityCooldown(EventPlayer(),b,Max((AbilityCooldown(EventPlayer(),b)-CooldownReductionPerTick),0));
+                }
+            }
+        }
+    }
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+playervar Button[] WrongButtons = [];
+playervar Number Forge_Multiplier! = 1;
+
+void GameFlow()'GameFlow'{
+    while(true){
+        BigMessage(AllPlayers(), <'第 <0> 回合', MainTurnManager.Turn>);
+
+        // Advance
+        MainTurnManager.Advance(); // 内部做 Pair + Flip + EnterPrep
+
+        // 等待 Preparation 结束
+        Wait(PrepareDuration);
+
+        // 进入 Combat
+        EnterCombatPhase();
+
+        // 等待所有 pair 结束（DetectEnd 会清空 CurrentRoundPairings）
+        while(CurrentRoundPairings.Length > 0) Wait(0.5);
+
+        // 回合结算完毕，循环
+        FireRing_EndRound();
+    }
+}
+playervar Player ViewingPlayer = EventPlayer();
+rule: '显示属性'
+{
+    CreateHudText(
+        Text: <'
+            <0>属性概览\n
+            造成伤害: <1> (<2> +<3>%)\n
+            技能急速: <4> (<5> +<6>%)\n
+            移动速度: <7> (<8> +<9>%)',
+            HeroIconString(HeroOf(LocalPlayer().ViewingPlayer)),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Attack.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Attack.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Attack.Pct,
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.CoolDown.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.CoolDown.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.CoolDown.Pct,
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Speed.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Speed.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Speed.Pct
+        >,
+        Location: Location.Left,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        SortOrder: 50,
+        VisibleTo: !LocalPlayer().isInMenu?LocalPlayer():null,
+        TextColor: CustomColor(255, 239, 132, 255)
+    );
+
+        // 笺部分：治疗生命害
+    CreateHudText(
+        Text: <'
+            造成治疗: <0> (<1> +<2>%)\n
+            吸血: <3> (<4> +<5>%)\n
+            伤害抵抗: <6> (<7> +<8>%)',
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.HealBoost.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.HealBoost.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.HealBoost.Pct,
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Drain.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Drain.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Drain.Pct,
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Reduction.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Reduction.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.IAgent.Shuxing.Reduction.Pct
+        >,
+        Location: Location.Left,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        SortOrder: 51,
+        VisibleTo: !LocalPlayer().isInMenu?LocalPlayer():null,
+                TextColor: CustomColor(255, 239, 132, 255)
+    );
+}
+Color GradientColor(Number[] Start_RGB,Number[] End_RGB,Number Loader):
+    CustomColor(
+        End_RGB[0] - Loader*(End_RGB[0]-Start_RGB[0]),
+        End_RGB[1] - Loader*(End_RGB[1]-Start_RGB[1]),
+        End_RGB[2] - Loader*(End_RGB[2]-Start_RGB[2]),
+
+        200 - Loader*(200-75)
+);
+rule: '队伍面板'
+{
+    DisableInspectorRecording();
+}
+
+void InitReviveUIForPlayer(in Player p){
+    CreateEffect(
+        VisibleTo: EntityExists(EvaluateOnce(p).Teammate) && IsDead(EvaluateOnce(p)) && EvaluateOnce(p).Revivable ? EvaluateOnce(p).Teammate : null,
+        Type: Effect.Ring,
+        Color: Color.Orange,
+        Position: PositionOf(EvaluateOnce(p)),
+        Radius: 5,
+        Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+    );
+    CreateProgressBarInWorldText(
+        VisibleTo: EntityExists(EvaluateOnce(p).Teammate) && IsDead(EvaluateOnce(p)) && EvaluateOnce(p).Revivable && IsAlive(EvaluateOnce(p).Teammate) && DistanceBetween(EvaluateOnce(p), EvaluateOnce(p).Teammate) <= 5 ? EvaluateOnce(p).Teammate : null,
+        Value: EvaluateOnce(p).RevivePercent,
+        Text: <'<0>复活进', HeroIconString(HeroOf(EvaluateOnce(p)))>,
+        Position: PositionOf(EvaluateOnce(p)) + Vector(0, 1, 0),
+        Scale: 1,
+        Clipping: Clipping.DoNotClip,
+        TextColor: Color.Orange,
+        ProgressBarColor: GradientColor([54,133,2], [255,79,35], EvaluateOnce(p).RevivePercent / 100),
+        Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor
+    );
+    CreateInWorldText(
+        VisibleTo: EntityExists(EvaluateOnce(p).Teammate) && IsDead(EvaluateOnce(p)) && EvaluateOnce(p).Revivable ? EvaluateOnce(p).Teammate : null,
+        Header: <'<2>-<0>: <1>%', HeroIconString(HeroOf(EvaluateOnce(p))), EvaluateOnce(p).RevivePercent, AbilityIconString(Hero.Mercy, Button.Ability2)>,
+        Position: PositionOf(EvaluateOnce(p)) + Vector(0, 2, 0),
+        Scale: 1.5,
+        Clipping: Clipping.ClipAgainstSurfaces,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Yellow
+    );
+}
+
+rule: '复活UI自初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    InitReviveUIForPlayer(EventPlayer());
+}
+
+rule: '队友图标'
+{
+    CreateIcon(
+        VisibleTo: LocalPlayer().Teammate != null ? LocalPlayer() : null,
+        Icon: Icon.Happy,
+        Position: LocalPlayer().Teammate.Position(),
+    );
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentPhase == PhaseState.Combat)
+{
+    Revivable = true;
+}

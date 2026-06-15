@@ -1,0 +1,29 @@
+// 首先定义所有颜色变量
+globalvar Color WarmWhite_Light : CustomColor(255, 255, 181, 255);
+globalvar Color WarmWhite_Shade : CustomColor(255, 255, 181, 100);
+
+globalvar Color ColdWhite_Light : CustomColor(255, 250, 250, 255);
+globalvar Color ColdWhite_Shade : CustomColor(255, 250, 250, 100);
+
+globalvar Color RareColor_Light : CustomColor(66, 176, 255, 255);
+globalvar Color RareColor_Shade : CustomColor(66, 176, 255, 100);
+
+globalvar Color EpicColor_Light : CustomColor(210, 126, 247, 255);
+globalvar Color EpicColor_Shade : CustomColor(210, 126, 247, 100);
+
+globalvar Color EXP_Color_Light : CustomColor(174, 255, 43, 255);
+
+// 然后创建存储这些变量的数组
+globalvar Color[] Color_Pool = [
+    Color.White,            // [0]
+    Color.Red,              // [1]
+    WarmWhite_Shade,        // [2]
+    WarmWhite_Light,        // [3]
+    ColdWhite_Shade,        // [4]
+    ColdWhite_Light,        // [5]
+    RareColor_Shade,        // [6]
+    RareColor_Light,        // [7]
+    EpicColor_Shade,        // [8]
+    EpicColor_Light,        // [9]
+    EXP_Color_Light         // [10]
+];

@@ -1,0 +1,368 @@
+globalvar String Smallmsg_Text!;
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    DisableRespawning();
+    DisableCompletion();
+    DisableMessages();
+    DisableKillFeed();
+    DisableGameModeHud();
+    DisableGameModeInworldUI();
+}
+
+globalvar String[] AllPos_to_Decompress! = ["v∑​​Ω2wĒ∫∑%T∫∑2$0∞v∑​​Ω29J∫∑​​ΩČ∫∑19$∞v∑​​Ω27l∫∑​​Ω1@∫∑​​Ω1yt∞v∑​​Ω6{B∫∑7?∫∑​​ΩDn∞v∑​​Ω2.j∫∑​​Ωz∫∑19N"];
+globalvar Vector[] AllPos!;
+
+Vector Area_Home : AllPos[0];
+Vector Area_A : AllPos[1];
+Vector Area_B : AllPos[2];
+Vector Area_C : AllPos[3];
+Vector Zombie_Spawn_Point : RandomValueInArray(nodes_location.Filter(t=>!IsInLineOfSight(t,Area_A)));
+Vector Portal_Pos: AllPos[4];
+rule: '初始化创建区域传送门'
+{
+    CreateEffect(AllPlayers().Filter(t=>t.area == Area.Home),Effect.Ring,Color.Orange,Portal_Pos,4);
+    CreateInWorldText(Header: <"<0> 区域传送门 <0>",IconString(Icon.Spiral)>, Position: Portal_Pos+Vector(0,2,0),VisibleTo: AllPlayers().Filter(t=>t.area == Area.Home),Scale: 2,TextColor: Color.Red);
+}
+rule: '在传送门内按蹲触发菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!isInMenu)
+if(IsButtonHeld(EventPlayer(), Button.Crouch))
+if(DistanceBetween(EventPlayer(),Portal_Pos)<=4)
+{
+    OpenMenu(name: MenuActive.AreaMenu);
+}
+/**
+ * 打开角色菜单
+ */
+void OpenAreaMenu() {
+    //update Text
+    if(false){
+        if(level<10){
+        Button_LocalPool[GetButtonID('区域二按钮')].Interactable=false;
+        Button_LocalPool[GetButtonID('区域二按钮')].DefaultColor=Color.Gray;
+        }else{
+            Button_LocalPool[GetButtonID('区域二按钮')].Interactable=true;
+            Button_LocalPool[GetButtonID('区域二按钮')].DefaultColor=Color.White;
+        }
+        if(level<20){
+            Button_LocalPool[GetButtonID('区域三按钮')].Interactable=false;
+            Button_LocalPool[GetButtonID('区域三按钮')].DefaultColor=Color.Gray;
+        }else{
+            Button_LocalPool[GetButtonID('区域三按钮')].Interactable=true;
+            Button_LocalPool[GetButtonID('区域三按钮')].DefaultColor=Color.White;
+        }
+    }
+    
+}
+
+
+import '菜单.del';
+import '解压缩.del';
+import '解压形式寻路.del';
+import '装备.del';
+import '品质.del';
+import '颜色池.del';
+import '经验值系统.del';
+import '掉落物系统.del';
+void AllPos_Initialize(){
+    AllPos = Decompress(AllPos_to_Decompress);
+}
+globalvar Boolean isInitialized = false;
+rule: '处理解压'
+if(TotalTimeElapsed()>5)
+if(!isInitialized)
+{
+    AllPos_Initialize();
+    Initialize_pf();
+    InitializeMenu();
+    EquipData_Initialize();
+    isInitialized = true;
+}
+rule: '菜单按钮函数注册'
+{
+    RegisterAllButtonClick();
+}
+/**
+ * 注册所有按钮的点击事件
+ */
+void RegisterAllButtonClick() {
+    registerButtonClick(0, () => {
+        CloseMenu();
+    });
+    registerButtonGroupClick([1,2,3],()=>{
+        Teleport(EventPlayer(), [Area_A,Area_B,Area_C][MenuLoop-1]);
+        area = MenuLoop;
+        CloseMenu();
+        Update_Area_A_Bots();
+    });
+}
+// 规则：玩家按重载键传送
+rule: "玩家按重载键传送"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(), Button.Reload))
+{
+    Teleport(EventPlayer(), EyePosition() + 10 * FacingDirectionOf()); // 向前传送 10 米
+}
+
+// 规则：团队 2 玩家对 25 米外敌人免伤
+rule: "团队 2 玩家对 30 米外敌人免伤"
+Event.OngoingPlayer
+Team.Team2
+Player.All
+{
+    StartDamageModification(
+        Receivers: AllPlayers(Team.Team1).Filter(t => DistanceBetween(t, EventPlayer()) > 30),
+        Damagers: EventPlayer(),
+        DamagePercent: 0,
+        Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent
+    ); // 25 米外敌人对团队 2 无伤害
+}
+
+
+enum Area{
+    Home,
+    A,
+    B,
+    C
+}
+playervar Area area! = Area.Home;
+globalvar Player[][] Areas_bots = [];
+void Update_Area_A_Bots()
+{
+    BigMessage(Header: "区域1有人，生成怪物");
+    Areas_bots[Area.A] = Areas_bots[Area.A].Filter(t=>EntityExists(t));
+    Number Area_A_Player_Count! = AllPlayers(Team.Team2).Filter(t => t.area == Area.A).Length;
+    Number Area_A_Bot_Count! : Areas_bots[Area.A].Length;
+    if(Area_A_Bot_Count > Area_A_Player_Count*2){
+        Player[] Bots_to_Destroy = Areas_bots[Area.A];
+        if(Area_A_Player_Count>0){
+            Bots_to_Destroy = Bots_to_Destroy.Filter(t=>t.IsDead()&&t.bot_type==BotType.Zombie);
+        }
+        foreach(Player bot! in Bots_to_Destroy){
+            DestroyDummyBot(Team.Team1,SlotOf(bot));
+            Areas_bots[Area.A] -= bot;
+        }
+    }
+    while(Area_A_Bot_Count < Area_A_Player_Count*2+10)
+    {
+        CreateDummyBot(Hero.Reinhardt,Team.Team1,-1,Zombie_Spawn_Point);
+        LastCreatedEntity().bot_type = BotType.Zombie;
+        LastCreatedEntity().level = 3;
+        Areas_bots[Area.A] += LastCreatedEntity();
+    }
+    define DeadBots = Areas_bots[Area.A].Filter(t=>t.IsDead());
+    Respawn(DeadBots);
+    Teleport(DeadBots, Zombie_Spawn_Point);
+    async! Area_A_Elite_Bot();
+}
+void Area_A_Elite_Bot()''{
+    while(Areas_bots[Area.A].IsTrueForAny(t=>!t.isElite)){
+        Wait(RandomInteger(5,30));
+        if(PlayersInArea(Area.A).Length>0 && Areas_bots[Area.A].IsTrueForAny(t=>!t.isElite)){
+            CreateDummyBot(Hero.Zarya,Team.Team1,-1,Zombie_Spawn_Point);
+            Areas_bots[Area.A] += LastCreatedEntity();
+            LastCreatedEntity().level = 6;
+            LastCreatedEntity().bot_type = BotType.CannonWalker;
+            LastCreatedEntity().isElite = true;
+            BigMessage(PlayersInArea(Area.A),'精英怪已生成');
+            break;
+        }
+    }
+    
+}
+void Update_Areas_Bots(){
+    Update_Area_A_Bots();
+}
+
+rule: '做表情回主城'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsCommunicatingAnyEmote())
+{
+    PlayEffect(Type: PlayEffect.RingExplosion,Color: Color.Aqua,Position: EventPlayer(),Radius: 3);
+    Wait(1,WaitBehavior.AbortWhenFalse);
+    area = Area.Home;
+    Update_Areas_Bots();
+    Teleport(EventPlayer(), Area_Home);
+}
+playervar BotType bot_type;
+enum BotType{
+    Zombie = 1,
+    CannonWalker = 2
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: LocalPlayer().area,Location: Location.Right);
+}
+Player[] PlayersInArea(Area area):
+    AllPlayers(Team.Team2).Filter(t=>t.area==area);
+
+playervar Boolean isElite;
+rule: '区域1精英怪'
+if(PlayersInArea(Area.A).Length>0)
+//if(!Areas_bots[Area.A].IsTrueForAny(t=>t.isElite==true))
+{
+    
+    //LoopIfConditionIsTrue();
+}
+
+Number CurrentBotNumber : AllPlayers(Team.Team1).Filter(t=>IsDummyBot(t)).Length;
+Number CurrentSpecialSkinNumber(){
+    define SpecialSkin = [];
+    foreach(Player p! in AllPlayers()){
+        if(!SpecialSkin.Contains(p.Hero())){
+            SpecialSkin += p.Hero();
+        }
+    }
+    return SpecialSkin.Length;
+}
+
+rule: '精英怪初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(isElite)
+if(IsAlive())
+{
+    SetMaxHealth(EventPlayer(), 900);
+    Resurrect();
+    Wait(2,WaitBehavior.AbortWhenFalse);
+    level = 1;
+    DisableNameplates(EventPlayer(),AllPlayers());
+    CreateProgressBarInWorldText(
+        VisibleTo: PlayersWithinRadius(EventPlayer(), 20, Team.Team2, RadiusLOS.Off),
+        NormalizedHealth()*100,
+        <String>EventPlayer(),
+        EventPlayer(),
+        1,
+        Clipping.ClipAgainstSurfaces,
+        Color.Red,
+        Color.Yellow
+    );
+    StartForcingPlayerOutlines(EventPlayer(),AllPlayers(),true,Color.Yellow,OutlineType.Default);
+}
+
+rule: '精英怪移除'
+Event.OnDeath
+Team.All
+Player.All
+if(IsDummyBot())
+if(isElite)
+{
+    DropItemasGlobal(new DropItem(true,0,1));
+    DestroyDummyBot(Team.Team1,SlotOf(EventPlayer()));
+}
+
+// 规则：机器人战斗时自动开火
+rule: "机器人战斗时自动开火"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(is_fighting)
+if(IsDummyBot() && IsAlive())
+{
+    SetMoveSpeed(EventPlayer(), 80);
+    StartHoldingButton(EventPlayer(), Button.PrimaryFire); // 持续开火
+    Wait(1.5); // 持续 2 秒
+    StopHoldingButton(); // 停止开火
+    if(bot_type == BotType.CannonWalker){
+        PressButton(EventPlayer(), Button.Ability1);
+    }
+    Wait(4); // 等待 1 秒
+    if(bot_type == BotType.Zombie&&DistanceBetween(EventPlayer(),bot_target)<=4){
+        SetStatus(EventPlayer(),null,Status.Rooted,1);
+        Wait(1);
+    }
+    LoopIfConditionIsTrue(); // 循环开火
+}
+
+playervar Number Money = 100;
+
+rule: '僵尸初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+{
+    switch(bot_type){
+        case BotType.Zombie:
+            SetDamageDealt(EventPlayer(), 50);
+            break;
+        case BotType.CannonWalker:
+            //AddHealthPoolToPlayer(EventPlayer(), HealthType.Health, 600,1,1);
+            break;
+    }
+}
+
+
+rule: 'HUD遮盖防掉帧'
+{
+    for(define Counter = 0;Counter<11;Counter++){
+    CreateHudText(Text: '    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n 
+    ',Location: Location.Top,Header: '');
+    }
+}
+
+rule: '每名玩家姓名版'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+{
+    CreateInWorldText(Header: <'等级<2>',HeroIconString(HeroOf()),EventPlayer(),level>,Position: EventPlayer(),Scale: 2);
+}
+
+import '副本数据结构.del';
+
+rule: '创建副本'
+if(isInitialized)
+if(false)
+{
+    InstanceData_Pool = [
+        {
+            Name: '叹息圣堂',
+            Des: '此举将会召唤一个Level 6的精英怪\n击他可获得10金币',
+            MinPlayers: 1,
+            Time: 20,
+            Pos: Area_A
+        }
+    ];
+    Instances = [
+        new TestInstance()
+    ];
+    Instances_Init = true;
+}
+
+class TestInstance: Instance{
+    public constructor(){
+        Data = InstanceData_Pool[0];
+        isAvailable = true;
+    }
+
+    public override void Roominitialize(){
+            CreateDummyBot(Hero.Zarya,Team.Team1,-1,Area_A);
+            Areas_bots[Area.A] += LastCreatedEntity();
+            LastCreatedEntity().level = 6;
+            LastCreatedEntity().bot_type = BotType.CannonWalker;
+            LastCreatedEntity().isElite = true;
+    }
+
+    public override void Roomend(){
+        BigMessage(Header: '副本结束');
+    }
+
+}

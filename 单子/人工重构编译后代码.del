@@ -1,0 +1,709 @@
+variables
+{
+	global:
+		0: _objectVariable_0
+		1: _objectVariable_1
+		2: _objectVariable_2
+		3: _objectVariable_3
+		4: Items
+		5: TFs
+		6: BaseItems
+		7: RefreshDes
+		8: uniqueButtonID
+		9: Menu_Center
+		10: Menu_Base1
+		11: Menu_Base2
+		12: Button_Pool
+		13: _extendedGlobalCollection
+		14: MenuCameraSet
+		15: i
+		16: _classIndexes
+		17: i_0
+		18: i_1
+		19: func_group
+		20: name
+		21: menuEye
+		22: menuLookat
+		23: menuDir
+		24: id
+		25: returnValue_GetButtonByID
+		26: selected
+		27: selected_0
+
+	player:
+		0: tfs
+		1: tf_3random
+		2: items
+		3: items_6random
+		4: Gold
+		5: Gem
+		6: Dice
+		7: isInMenu
+		8: menuactive
+		9: AnchorFacing
+		10: MenuLoop
+		11: HoverVisible
+		12: isButtonHovered
+		13: HoverText
+		14: HoverBack
+		15: HoverLineCount
+		16: bns
+		17: bns_withinCURSOR
+		18: thebn
+		19: lines
+		20: rowCount
+		21: colCount
+		22: line
+		23: result
+		24: i
+		25: j
+}
+
+subroutines
+{
+	0: func_group
+	1: OpenMenu
+	2: GetButtonByID
+	3: CloseMenu
+}
+
+rule("Initial Global")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.Items = Empty Array;
+		Global.TFs = Empty Array;
+		Global.BaseItems = Empty Array;
+		Global.RefreshDes = Custom String("消耗一枚刷新骰子\n若没有骰子则消耗一枚宝石");
+		Global._extendedGlobalCollection[0] = 1;
+		Global.MenuCameraSet = Array(Vector(Empty Array, 100, Empty Array), Vector(Empty Array, Empty Array, 5));
+		Global._classIndexes[0] = -1;
+		Global.func_group = Empty Array;
+	}
+}
+
+rule("Initial Player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.tfs = Empty Array;
+		Event Player.tf_3random = Empty Array;
+		Event Player.items = Empty Array;
+		Event Player.items_6random = Empty Array;
+		Event Player.Gold = 999;
+		Event Player.Gem = 999;
+		Event Player.Dice = 9;
+	}
+}
+
+rule("天赋初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.TFs = Array(Array(0, Custom String("成长，生命，幸福，还有朋友"), Custom String("解除等级上限")), Array(1, Custom String("宝石批发"),
+			Custom String("随机获得\n1-15枚宝石")), Array(2, Custom String("猿神启动"), Custom String("替换为温斯顿\n获得大量属性\n食用香蕉获得\n额外属性")), Array(3,
+			Custom String("冰香蕉"), Custom String("高级商店\n出现冰香蕉")), Array(4, Custom String("升级咯"), Custom String("每次升级时\n多升一级")), Array(5,
+			Custom String("充值返利"), Custom String("购买高级商品后\n返还500货币")), Array(6, Custom String("无中生有"), Custom String("获得2个天赋")), Array(7,
+			Custom String("龙神之刃"), Custom String("获得65攻击力")), Array(8, Custom String("防御矩阵"), Custom String("获得40%免伤")), Array(9,
+			Custom String("屏障与巨甲"), Custom String("获得600护盾\n600护甲")), Array(10, Custom String("地狱火"), Custom String("获得50%吸血")), Array(11,
+			Custom String("能量标枪"), Custom String("获得70%\n技能额外伤害")), Array(12, Custom String("忍者足具"), Custom String("可以二段跳")), Array(13,
+			Custom String("兔子跳"), Custom String("跳跃回复30点血量")), Array(14, Custom String("一拳"), Custom String("禁用主/辅攻击\n获得100%攻击力")), Array(
+			15, Custom String("火箭重锤"), Custom String("近战发出焰浪\n并击晕敌人")), Array(16, Custom String("灭"), Custom String(
+			"攻击附带0.5%\n最大生命值伤害\n斩杀低于5%\n血量的敌人")), Array(17, Custom String("圣"), Custom String("使用终极技能时无敌")), Array(18, Custom String(
+			"熔火核心"), Custom String("持续对周围敌人\n造成5%最大生命值伤害")), Array(19, Custom String("太阳光塔"), Custom String("参与击杀获得\n20终极技能能量")), Array(20,
+			Custom String("猪神"), Custom String("获得巨量属性\n受伤增大体型\n濒死恢复生命值\n（每条命一次）")), Array(21, Custom String("神射手"), Custom String(
+			"任务：持有10000货币\n奖励：攻击穿墙\n+一定范围跟踪")), Array(22, Custom String("强固防御"), Custom String("将额外生命值\n和护盾全部\n升级为护甲")), Array(23,
+			Custom String("龙魂"), Custom String("参与击杀刷新\n小技能CD")), Array(24, Custom String("战术目镜"), Custom String("简易版自瞄")), Array(25,
+			Custom String("临别礼物"), Custom String("死亡后自爆\n对周围敌人\n造成高额伤害")), Array(26, Custom String("百合之吻"), Custom String(
+			"暴击击杀\n永久获得\n5点攻击力")), Array(27, Custom String("两颗心脏"), Custom String("血量降至50%时\n获得消灭数×80点\n临时护甲\n（30秒冷却）")), Array(28,
+			Custom String("重踏"), Custom String("跳跃向下猛踏\n造成0.1×最大生命值伤害和控制\n（最多5秒\n30秒冷却）")), Array(29, Custom String("猛击"), Custom String(
+			"击退敌人时造成\n基于击退倍率的百分比伤害\n（每100击退5%）")), Array(30, Custom String("流水禅杖"), Custom String("造成击退时\n治疗友方\n（每100击退倍率治疗50点）")), Array(
+			31, Custom String("无情连打"), Custom String("造成击退后获得\n1点永久攻击力\n+2点临时攻击力")), Array(32, Custom String("狂战士"), Custom String(
+			"攻击叠层\n每层提供0.001×最大生命值的\n百分比攻击力\n和临时吸血\n（最多50层\n持续5秒）")), Array(33, Custom String("枯萎凋零"), Custom String(
+			"造成伤害使目标\n减少50%受治疗量\n和30移动速度")), Array(34, Custom String("冰冻冲击枪"), Custom String("攻击减少目标\n30%移动速度\n持续攻击可冻住目标")), Array(35,
+			Custom String("无限火力"), Custom String("无限弹药\n按换弹重置\n（毛家花男\n无法使用）")), Array(36, Custom String("德国工艺"), Custom String(
+			"获得100%额外生命\n、护盾、护甲")), Array(37, Custom String("赏金狩猎"), Custom String("获得3层赏金猎人\n若已有则×3")), Array(38, Custom String("音波"),
+			Custom String("击退倍率×5")), Array(39, Custom String("撼地猛刺"), Custom String("站立不动时\n周期性反弹100%伤害\n（每秒一次\n不受攻击力加成）")), Array(40,
+			Custom String("超能之球"), Custom String("任务：达到15级\n奖励：攻击附带爆破效果")), Array(41, Custom String("巨人英雄"), Custom String(
+			"体型增大\n+20%免伤")), Array(42, Custom String("小小英雄"), Custom String("体型略微减小")), Array(43, Custom String("迷你英雄"), Custom String(
+			"体型减小但\n增加受到伤害")), Array(44, Custom String("不动如山"), Custom String("不被击退\n+200%额外生命值")), Array(45, Custom String("诛"),
+			Custom String("使用大招后消灭\n所有低于30%血量的角色\n（包括友方）")), Array(46, Custom String("激素"), Custom String("使用大招时获得激素\n持续至大招结束")), Array(47,
+			Custom String("风暴击"), Custom String("可以暴上加暴")), Array(48, Custom String("岚"), Custom String("弹道不下落\n+200弹道速度")), Array(49,
+			Custom String("灵符"), Custom String("每次造成治疗时\n获得1%能量")), Array(50, Custom String("呼吸器"), Custom String(
+			"每次治疗时\n获得15%治疗数额的\n生命值")), Array(51, Custom String("愈合冲击"), Custom String("治疗对周围敌人\n造成100%治疗数额的\n伤害")), Array(52,
+			Custom String("灵狐"), Custom String("获得50点技能极速")), Array(53, Custom String("桎梏灼日"), Custom String("使用大招后\n返还50%\n终极技能能量")),
+			Array(54, Custom String("毒蛇"), Custom String("击杀敌人夺取\n赏金猎人层数×100货币")), Array(55, Custom String("死亡绽放"), Custom String(
+			"参与击杀回复500点血量")), Array(56, Custom String("再来"), Custom String("下一个天赋\n永久留在\n第一个天赋位")), Array(57, Custom String("美丽冻人"),
+			Custom String("按终极技能消耗10能量\n冻结自身并无敌5秒\n再按消耗20能量\n使身体可活动")), Array(58, Custom String("地壳震击"), Custom String(
+			"按终极技能消耗30能量\n击飞并眩晕\n周围敌人")), Array(59, Custom String("细胞能量"), Custom String("按终极技能消耗1%生命值\n换取1%终极技能能量")), Array(60,
+			Custom String("归于大地"), Custom String("按终极技能消耗20能量\n击落准星最近的\n角色并减速30\n持续3秒")), Array(61, Custom String("锻造"), Custom String(
+			"按终极技能消耗25能量\n获得50点护甲")), Array(62, Custom String("跃"), Custom String("按终极技能消耗5能量\n水平跃出")), Array(63, Custom String("律动连打"),
+			Custom String("主要攻击减少\n小技能CD")), Array(64, Custom String("骨刺"), Custom String("基于护甲值的\n斩杀效果\n（每1000护甲5%）")), Array(65,
+			Custom String("刷新骰盒"), Custom String("获得9个刷新骰子")), Array(66, Custom String("引力装置"), Custom String(
+			"按终极技能消耗10能量\n使周围角色引力\n降低90点\n持续10秒")), Array(67, Custom String("12面骰"), Custom String("猪猪骰子有12种点数\n商店随机池\n添加三枚猪猪骰子")), Array(
+			68, Custom String("猪猪存钱罐"), Custom String("每次受到>100点伤害\n存一枚猪猪币\n持续至参与击杀为止")), Array(69, Custom String("金猪商店"), Custom String(
+			"高级商店替换为\n金猪商店\n只刷出特殊猪猪币")), Array(70, Custom String("5a连招"), Custom String("禁用所有技能\n攻击力翻倍")), Array(71, Custom String("灌铅骰子"),
+			Custom String("猪猪骰子永远是最大值\n商店随机池添加\n三枚猪猪骰子")), Array(72, Custom String("英雄集结"), Custom String("按集合召唤\n所有队友至身边\n（120秒冷却）")),
+			Array(73, Custom String("缚能电弧"), Custom String("按受到使用\n12秒内造成伤害\n击晕目标\n（60秒冷却）")), Array(74, Custom String("超电磁炮"),
+			Custom String("主要攻击提供\n临时百分比技能伤害\n至下次触发技能伤害为止\n（最多50%）")), Array(75, Custom String("女武神"), Custom String(
+			"按跳跃飞向并治疗\n自身20%最大生命值\n（15秒冷却）")), Array(76, Custom String("轨道镭射"), Custom String("造成伤害引导激光\n5秒内持续造成300点伤害\n（60秒冷却）")), Array(
+			77, Custom String("动能俘获"), Custom String("主要攻击将目标\n吸向自己\n（10秒冷却）")), Array(78, Custom String("破甲熔钉"), Custom String(
+			"攻击点燃目标\n再次攻击破除目标\n30%护甲值")), Array(79, Custom String("生命之握"), Custom String("治疗低于30%\n血量的友方时\n获得其30%治疗量的\n临时治疗量\n（持续4秒）")),
+			Array(80, Custom String("双龙"), Custom String("任务：同时拥有\n指定5个天赋中的\n任意3个\n奖励：替换为强化版\n源氏或半藏")), Array(81, Custom String("人见人厌"),
+			Custom String("初始赏金减少1000")), Array(82, Custom String("三原色：红"), Custom String("技能1受到\n双倍技能极速")), Array(83, Custom String(
+			"三原色：蓝"), Custom String("技能2受到\n双倍技能极速")), Array(84, Custom String("三原色：绿"), Custom String("辅助攻击模式受到\n双倍技能极速")), Array(85,
+			Custom String("绿闪"), Custom String("触发技能额外伤害时\n对自身施加\n同等治疗效果")), Array(86, Custom String("红闪"), Custom String(
+			"触发技能额外伤害时\n附带受益于百分比技能伤害的\n百分比伤害")), Array(87, Custom String("青闪"), Custom String("触发技能额外伤害时\n附带短暂眩晕效果")), Array(88,
+			Custom String("黑闪"), Custom String("技能额外伤害\n无视伤害减免\n造成真实伤害")), Array(89, Custom String("灭绝"), Custom String(
+			"获得30%攻击力\n和30%技能伤害")), Array(90, Custom String("红外侦测"), Custom String("显示所有玩家的位置")), Array(91, Custom String("龙锤"),
+			Custom String("将一把龙锤\n洗入商店")), Array(92, Custom String("变态发育"), Custom String("立刻提升4级\n变为随机英雄")), Array(93, Custom String(
+			"宝箱"), Custom String("获得随机奖励")), Array(94, Custom String("果篮"), Custom String("获得每种水果\n各一个")), Array(95, Custom String("生命之树"),
+			Custom String("疗愈灵花附带等量\n受治疗量\n商店随机池添加\n10朵疗愈灵花")), Array(96, Custom String("镜像增值"), Custom String(
+			"购买高级商品后\n商店池中添加\n一个相同的商品")), Array(97, Custom String("生化之触"), Custom String("治疗量≥200时\n获得等同治疗量的攻击力\n攻击力≥200时\n获得等同攻击力的治疗量")),
+			Array(98, Custom String("彩虹恢复包"), Custom String("食用地图上的恢复包\n可获得永久属性")), Array(99, Custom String("幽灵形态"), Custom String(
+			"每次受到单次\n超过300点伤害时\n获得1秒消散效果")), Array(100, Custom String("维生立场"), Custom String("受到伤害时治疗自身\n治疗量为伤害的20%")), Array(101,
+			Custom String("充能屏障"), Custom String("获得100%额外护盾\n护盾破碎时\n获得基于护盾量的能量\n（3%×护盾值）")), Array(102, Custom String("涅槃"),
+			Custom String("使用终极技能时死亡\n将原地复活\n并返还终极技能充能")), Array(103, Custom String("连锁闪电"), Custom String("造成伤害会对\n距离目标最近的角色\n造成50%的伤害")),
+			Array(104, Custom String("肘击！"), Custom String("近战造成的伤害翻倍")), Array(105, Custom String("生命虹吸"), Custom String(
+			"攻击根据治疗量\n获得生命值\n（4秒冷却）")), Array(106, Custom String("意外之财++"), Custom String("获得10000货币")), Array(107, Custom String("热力熔渣"),
+			Custom String("购买护甲碎片\n返还100货币\n+100%额外护甲")), Array(108, Custom String("帕拉蒂尼之牙"), Custom String(
+			"近战攻击根据暴伤倍率\n造成暴击\n+100%暴伤倍率")), Array(109, Custom String("粒子屏障"), Custom String("获得100%额外护盾\n护盾破碎时造成\n30%护盾量的伤害")), Array(110,
+			Custom String("火箭飞弹"), Custom String("任务：弹道速度达到300\n奖励：10米外造成伤害\n发射可追踪火箭弹")), Array(111, Custom String("求打"), Custom String(
+			"获得10层\n连败层数")), Array(112, Custom String("原始暴怒"), Custom String("使用终极技能后\n获得100%\n额外生命值")), Array(113, Custom String("保底"),
+			Custom String("使用终极技能后\n获得1000货币")));
+	}
+}
+
+rule("基础商店物品初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.BaseItems = Array(Array(0, Custom String("攻击力碎片"), Custom String("随机获得1-5点攻击力"), 300, 1), Array(1, Custom String("技能伤害碎片"),
+			Custom String("随机获得1%-5%技能伤害"), 300, 1), Array(2, Custom String("生命碎片"), Custom String("随机获得10-100点生命值"), 300, 1), Array(3,
+			Custom String("护盾碎片"), Custom String("随机获得20-80点护盾"), 300, 1), Array(4, Custom String("护甲碎片"), Custom String("随机获得20-60点护甲"),
+			400, 1), Array(5, Custom String("技能极速碎片"), Custom String("随机获得1-2点技能极速"), 200, 1), Array(6, Custom String("治疗量碎片"),
+			Custom String("随机获得2-6治疗量"), 200, 1), Array(7, Custom String("移速碎片"), Custom String("随机获得1-5点移动速度"), 500, 1), Array(8,
+			Custom String("吸血碎片"), Custom String("随机获得1%-3%吸血"), 500, 1), Array(9, Custom String("击退碎片"), Custom String("随机获得5-10点击退倍率"),
+			250, 1), Array(10, Custom String("宝石兑换"), Custom String("获得1宝石"), 2000, 1));
+	}
+}
+
+rule("高级商店物品初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.Items = Array(Array(0, Custom String("力量石榴"), Custom String("获得5点百分比攻击力加成"), 1, 0), Array(1, Custom String("威能蓝莓"),
+			Custom String("获得10点技能额外伤害加成"), 1, 0), Array(2, Custom String("充电特饮"), Custom String("获得20技能极速+20移动速度"), 2, 0), Array(3,
+			Custom String("巨人威化"), Custom String("根据体型和生命值提供攻击力（额外体型×最大生命值×0.005）"), 2, 0), Array(4, Custom String("猪猪币"), Custom String(
+			"获得50%基础生命值"), 1, 0), Array(5, Custom String("猪猪骰子"), Custom String("扔一个猪猪骰子，根据点数获得猪猪币"), 3, 0), Array(6, Custom String("香蕉"),
+			Custom String("攻击力+10生命值"), 100, 1), Array(7, Custom String("足力健"), Custom String("获得50移动速度"), 5, 0), Array(8, Custom String(
+			"盗版龙神之刃"), Custom String("获得30点攻击力"), 2, 0), Array(9, Custom String("盗版防御矩阵"), Custom String("获得15%免伤"), 2, 0), Array(10,
+			Custom String("盗版屏障与巨甲"), Custom String("获得200护盾+200护甲"), 2, 0), Array(11, Custom String("盗版地狱火"), Custom String("获得20%吸血"), 2,
+			0), Array(12, Custom String("盗版能量标枪"), Custom String("获得40%技能额外伤害"), 2, 0), Array(13, Custom String("盗版足力健"), Custom String(
+			"获得20移动速度"), 2, 0), Array(14, Custom String("小袋骰子"), Custom String("获得两个刷新骰子"), 1, 0), Array(15, Custom String("大袋骰子"),
+			Custom String("获得五个刷新骰子"), 2, 0), Array(16, Custom String("赏金猎人"), Custom String("获得一层赏金猎人，参与击杀提供100额外货币"), 1, 0), Array(17,
+			Custom String("强化改件"), Custom String("根据职责获得对应属性（T减伤、C攻击力、N治疗量）"), 1000, 1), Array(18, Custom String("天赋复制器"), Custom String(
+			"下一个天赋将被复制"), 5, 0), Array(19, Custom String("天赋点"), Custom String("获得一个天赋点"), 5, 0), Array(20, Custom String("极小化"),
+			Custom String("略微减小体型"), 2, 0), Array(21, Custom String("方糖苹果"), Custom String("获得40%额外生命值"), 1, 0), Array(22, Custom String(
+			"酒酿葡萄"), Custom String("获得吸血值10%的吸血值"), 1, 0), Array(23, Custom String("往复柠檬"), Custom String("获得20%技能极速"), 1, 0), Array(24,
+			Custom String("流星杨桃"), Custom String("获得5点百分比移动速度"), 1, 0), Array(25, Custom String("水绿宝石"), Custom String("下次天赋选择只会出现水绿色天赋"),
+			1, 0), Array(26, Custom String("传说金币"), Custom String("下次天赋选择只会出现橙色天赋"), 1, 0), Array(27, Custom String("疗愈灵花"), Custom String(
+			"获得5%百分比治疗量"), 500, 1), Array(28, Custom String("实验护盾"), Custom String("500点一次性生命值"), 200, 1), Array(29, Custom String("护甲包"),
+			Custom String("100点护甲"), 300, 1), Array(30, Custom String("绝招加速器"), Custom String("获得30%终极技能能量"), 500, 1), Array(31,
+			Custom String("治疗新星"), Custom String("根据本局治疗量获得各种属性值"), 2, 0), Array(32, Custom String("命运魔方"), Custom String("获得一次特殊的刷新"), 2,
+			0), Array(33, Custom String("小袋宝石"), Custom String("随机获得0-2枚宝石"), 500, 1), Array(34, Custom String("小袋钱币"), Custom String(
+			"随机获得0-500货币"), 200, 0), Array(35, Custom String("随机天赋"), Custom String("获得一个随机的天赋"), 4, 0), Array(36, Custom String("英雄币"),
+			Custom String("获得一次重新选择英雄的机会"), 1, 0), Array(37, Custom String("速射弩箭"), Custom String("获得100弹道速度"), 1, 0), Array(38,
+			Custom String("光子护盾"), Custom String("获得100%额外护盾"), 2, 0));
+	}
+}
+
+rule("商店界面初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.i = 0;
+		While(Global.i < Count Of(Global.BaseItems));
+			Global._extendedGlobalCollection[1] = Index Of Array Value(Global._classIndexes, 0);
+			Global._extendedGlobalCollection[1] = Global._extendedGlobalCollection[1] == -1 ? Count Of(Global._classIndexes)
+				: Global._extendedGlobalCollection[1];
+			Global._classIndexes[Global._extendedGlobalCollection[1]] = 1;
+			Global.uniqueButtonID += 1;
+			Global._objectVariable_1[Global._extendedGlobalCollection[1]] = Array(-3 + 2 * (Evaluate Once(Global.i) - Round To Integer(
+				Evaluate Once(Global.i) / 3, Down) * 3), 2.200 + -0.700 * Round To Integer(Evaluate Once(Global.i) / 3, Down), 1.500, True,
+				Array(1), Global.uniqueButtonID, Evaluate Once(Global.i));
+			Modify Global Variable(Button_Pool, Append To Array, Global._extendedGlobalCollection[1]);
+			Create In-World Text(Local Player.isInMenu && Array Contains(Global._objectVariable_1[Global._extendedGlobalCollection[1]][4],
+				Local Player.menuactive) ? Local Player : Null, Custom String("{0}{1}", Custom String("[{0}-{1}{2}",
+				Global.BaseItems[Evaluate Once(Global.i)][1], Global.BaseItems[Evaluate Once(Global.i)][3], Global.BaseItems[Evaluate Once(
+				Global.i)][4] == 1 ? Custom String("货币") : Custom String("宝石")), Custom String("]\n{0}", Global.BaseItems[Evaluate Once(
+				Global.i)][2])), Update Every Frame(Global.Menu_Center + Global.Menu_Base1 * (-3 + 2 * (Evaluate Once(Global.i)
+				- Round To Integer(Evaluate Once(Global.i) / 3, Down) * 3)) + Global.Menu_Base2 * (2.200 + -0.700 * Round To Integer(
+				Evaluate Once(Global.i) / 3, Down))), 1.500, Do Not Clip, Visible To Position String and Color,
+				Local Player.MenuLoop == Evaluate Once(Global.uniqueButtonID) ? Color(Orange) : Color(White), Default Visibility);
+			Global._objectVariable_2[Global._extendedGlobalCollection[1]] = Array(1, Null);
+			Global.i += 1;
+		End;
+		Global.i_0 = 0;
+		While(Global.i_0 < 6);
+			Global._extendedGlobalCollection[2] = Index Of Array Value(Global._classIndexes, 0);
+			Global._extendedGlobalCollection[2] = Global._extendedGlobalCollection[2] == -1 ? Count Of(Global._classIndexes)
+				: Global._extendedGlobalCollection[2];
+			Global._classIndexes[Global._extendedGlobalCollection[2]] = 1;
+			Global.uniqueButtonID += 1;
+			Global._objectVariable_1[Global._extendedGlobalCollection[2]] = Array(-2 + 2 * (Evaluate Once(Global.i_0) - Round To Integer(
+				Evaluate Once(Global.i_0) / 2, Down) * 2), -0.800 + -0.500 * Round To Integer(Evaluate Once(Global.i_0) / 2, Down), 2.300,
+				True, Array(1), Global.uniqueButtonID, Evaluate Once(Global.i_0));
+			Modify Global Variable(Button_Pool, Append To Array, Global._extendedGlobalCollection[2]);
+			Create In-World Text(Local Player.isInMenu && Array Contains(Global._objectVariable_1[Global._extendedGlobalCollection[2]][4],
+				Local Player.menuactive) ? Local Player : Null, Custom String("|{0}-{1}{2}|", Local Player.items_6random[Evaluate Once(
+				Global.i_0)][1], Local Player.items_6random[Evaluate Once(Global.i_0)][3], Local Player.items_6random[Evaluate Once(Global.i_0)
+				][4] == 1 ? Custom String("货币") : Custom String("宝石")), Update Every Frame(Global.Menu_Center + Global.Menu_Base1 * (-2 + 2 * (
+				Evaluate Once(Global.i_0) - Round To Integer(Evaluate Once(Global.i_0) / 2, Down) * 2)) + Global.Menu_Base2 * (
+				-0.800 + -0.500 * Round To Integer(Evaluate Once(Global.i_0) / 2, Down))), 2.300, Do Not Clip,
+				Visible To Position String and Color, Local Player.MenuLoop == Evaluate Once(Global.uniqueButtonID) ? Color(Orange) : Color(
+				White), Default Visibility);
+			Global._objectVariable_2[Global._extendedGlobalCollection[2]] = Array(2, Global._extendedGlobalCollection[2]);
+			Global._objectVariable_3[Global._extendedGlobalCollection[2]] = Array(3, Null);
+			Global.i_0 += 1;
+		End;
+		Global._extendedGlobalCollection[3] = Index Of Array Value(Global._classIndexes, 0);
+		Global._extendedGlobalCollection[3] = Global._extendedGlobalCollection[3] == -1 ? Count Of(Global._classIndexes)
+			: Global._extendedGlobalCollection[3];
+		Global._classIndexes[Global._extendedGlobalCollection[3]] = 1;
+		Global.uniqueButtonID += 1;
+		Global._objectVariable_1[Global._extendedGlobalCollection[3]] = Array(3, -1.500, 4, True, Array(1), Global.uniqueButtonID, 0);
+		Modify Global Variable(Button_Pool, Append To Array, Global._extendedGlobalCollection[3]);
+		Create In-World Text(Local Player.isInMenu && Array Contains(Global._objectVariable_1[Global._extendedGlobalCollection[3]][4],
+			Local Player.menuactive) ? Local Player : Null, Custom String("刷新"), Update Every Frame(
+			Global.Menu_Center + Global.Menu_Base1 * 3 + Global.Menu_Base2 * -1.500), 4, Do Not Clip, Visible To Position String and Color,
+			Local Player.MenuLoop == Evaluate Once(Global.uniqueButtonID) ? Color(Orange) : Color(White), Default Visibility);
+		Global._objectVariable_2[Global._extendedGlobalCollection[3]] = Array(4, Global._extendedGlobalCollection[3]);
+		Global._objectVariable_3[Global._extendedGlobalCollection[3]] = Array(5, Null);
+	}
+}
+
+rule("天赋界面初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.i_1 = 0;
+		While(Global.i_1 < 3);
+			Global._extendedGlobalCollection[4] = Index Of Array Value(Global._classIndexes, 0);
+			Global._extendedGlobalCollection[4] = Global._extendedGlobalCollection[4] == -1 ? Count Of(Global._classIndexes)
+				: Global._extendedGlobalCollection[4];
+			Global._classIndexes[Global._extendedGlobalCollection[4]] = 1;
+			Global.uniqueButtonID += 1;
+			Global._objectVariable_1[Global._extendedGlobalCollection[4]] = Array(-3 + 3 * Evaluate Once(Global.i_1), 0.500, 4, True, Array(0),
+				Global.uniqueButtonID, Evaluate Once(Global.i_1));
+			Modify Global Variable(Button_Pool, Append To Array, Global._extendedGlobalCollection[4]);
+			Create In-World Text(Local Player.isInMenu && Array Contains(Global._objectVariable_1[Global._extendedGlobalCollection[4]][4],
+				Local Player.menuactive) ? Local Player : Null, Custom String("|{0}|", Local Player.tf_3random[Evaluate Once(Global.i_1)][1]),
+				Update Every Frame(Global.Menu_Center + Global.Menu_Base1 * (-3 + 3 * Evaluate Once(Global.i_1)) + Global.Menu_Base2 * 0.500),
+				4, Do Not Clip, Visible To Position String and Color, Local Player.MenuLoop == Evaluate Once(Global.uniqueButtonID) ? Color(
+				Orange) : Color(White), Default Visibility);
+			Global._objectVariable_2[Global._extendedGlobalCollection[4]] = Array(6, Global._extendedGlobalCollection[4]);
+			Global._objectVariable_3[Global._extendedGlobalCollection[4]] = Array(7, Null);
+			Global.i_1 += 1;
+		End;
+		Global._extendedGlobalCollection[5] = Index Of Array Value(Global._classIndexes, 0);
+		Global._extendedGlobalCollection[5] = Global._extendedGlobalCollection[5] == -1 ? Count Of(Global._classIndexes)
+			: Global._extendedGlobalCollection[5];
+		Global._classIndexes[Global._extendedGlobalCollection[5]] = 1;
+		Global.uniqueButtonID += 1;
+		Global._objectVariable_1[Global._extendedGlobalCollection[5]] = Array(0, 2, 4, False, Array(0), Global.uniqueButtonID, 0);
+		Modify Global Variable(Button_Pool, Append To Array, Global._extendedGlobalCollection[5]);
+		Create In-World Text(Local Player.isInMenu && Array Contains(Global._objectVariable_1[Global._extendedGlobalCollection[5]][4],
+			Local Player.menuactive) ? Local Player : Null, Custom String("升级了！选择你的下个天赋"), Update Every Frame(
+			Global.Menu_Center + Global.Menu_Base2 * 2), 4, Do Not Clip, Visible To Position String and Color, Color(White),
+			Default Visibility);
+	}
+}
+
+rule("My Player Rule")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.items_6random = Array Slice(Randomized Array(Filtered Array(Global.Items, !Array Contains(Event Player.items,
+			Current Array Element))), 0, 6);
+		Event Player.tf_3random = Array Slice(Randomized Array(Filtered Array(Global.TFs, !Array Contains(Event Player.tfs,
+			Current Array Element))), 0, 3);
+	}
+}
+
+rule("钥匙插进去了吗")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Event Player.isInMenu == True;
+	}
+
+	actions
+	{
+		Wait(0.020, Ignore Condition);
+		Event Player.isButtonHovered = False;
+		Event Player.bns = Filtered Array(Global.Button_Pool, Array Contains(Global._objectVariable_1[Current Array Element][4],
+			Event Player.menuactive));
+		Event Player.bns_withinCURSOR = Filtered Array(Event Player.bns, Absolute Value(Horizontal Angle Towards(Event Player,
+			Event Player.AnchorFacing + Eye Position(Event Player)) / First Of(Global._extendedGlobalCollection) - First Of(
+			Global._objectVariable_1[Current Array Element])) < First Of(
+			Global._objectVariable_1[Current Array Element][2] == 1.500 ? Array(0.300, 0.200) : (
+			Global._objectVariable_1[Current Array Element][2] == 2.300 ? Array(0.400, 0.300) : Array(0.700, 0.500))) && Absolute Value((
+			Vertical Facing Angle Of(Event Player) - Vertical Angle From Direction(Event Player.AnchorFacing)) * -1 / First Of(
+			Global._extendedGlobalCollection) - Global._objectVariable_1[Current Array Element][1]) < (
+			Global._objectVariable_1[Current Array Element][2] == 1.500 ? Array(0.300, 0.200) : (
+			Global._objectVariable_1[Current Array Element][2] == 2.300 ? Array(0.400, 0.300) : Array(0.700, 0.500)))[1]);
+		Event Player.thebn = First Of(Sorted Array(Event Player.bns_withinCURSOR, Absolute Value(Horizontal Angle Towards(Event Player,
+			Event Player.AnchorFacing + Eye Position(Event Player)) / First Of(Global._extendedGlobalCollection) - First Of(
+			Global._objectVariable_1[Current Array Element])) + Absolute Value((Vertical Facing Angle Of(Event Player)
+			- Vertical Angle From Direction(Event Player.AnchorFacing)) * -1 / First Of(Global._extendedGlobalCollection)
+			- Global._objectVariable_1[Current Array Element][1])));
+		If(!Array Contains(Array(0), Global._objectVariable_1[Event Player.thebn][5]));
+			Modify Global Variable(func_group, Append To Array, Array(Global._objectVariable_3[Event Player.thebn]));
+			Call Subroutine(func_group);
+			Event Player.MenuLoop = Global._objectVariable_1[Event Player.thebn][5];
+			Event Player.HoverVisible = Global._objectVariable_0[Event Player.thebn] != 0;
+			Event Player.HoverText = Global._objectVariable_0[Event Player.thebn];
+			Event Player.isButtonHovered = True;
+			Event Player.HoverLineCount = 1;
+			If(Event Player.HoverText == Custom String(""));
+				Event Player.HoverBack = Custom String("");
+				Skip(24);
+			End;
+			Event Player.lines = String Split(Event Player.HoverText, Custom String("\n"));
+			Event Player.rowCount = Count Of(Event Player.lines);
+			Event Player.colCount = 0;
+			For Player Variable(Event Player, line, 0, Count Of(Event Player.lines), 1);
+				If(String Length(Event Player.lines[Event Player.line]) > Event Player.colCount);
+					Event Player.colCount = String Length(Event Player.lines[Event Player.line]);
+				End;
+			End;
+			Event Player.result = Custom String("");
+			Event Player.i = 0;
+			While(Event Player.i < Event Player.rowCount);
+				Event Player.j = 0;
+				While(Event Player.j < Event Player.colCount);
+					Event Player.result = Custom String("{0}{1}", Event Player.result, Custom String("="));
+					Event Player.j += 1;
+				End;
+				If(Event Player.i < Event Player.rowCount - 1);
+					Event Player.result = Custom String("{0}{1}", Event Player.result, Custom String("\n"));
+					Event Player.HoverLineCount += 1;
+				End;
+				Event Player.i += 1;
+			End;
+			Event Player.HoverBack = Event Player.result;
+		End;
+		If(!Event Player.isButtonHovered);
+			Event Player.MenuLoop = 0;
+			Event Player.HoverVisible = False;
+			Event Player.HoverText = Custom String("");
+		End;
+		Loop If Condition Is True;
+	}
+}
+
+rule("指针初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create In-World Text(Local Player.isInMenu ? Local Player : Null, Input Binding String(Button(Primary Fire)), Update Every Frame(
+			Global.Menu_Center + Global.Menu_Base1 * (Horizontal Angle Towards(Local Player, Local Player.AnchorFacing + Eye Position(
+			Local Player)) / First Of(Global._extendedGlobalCollection)) + Global.Menu_Base2 * ((Vertical Facing Angle Of(Local Player)
+			- Vertical Angle From Direction(Local Player.AnchorFacing)) * -1 / First Of(Global._extendedGlobalCollection))), 1.800,
+			Do Not Clip, Visible To Position String and Color, Color(White), Default Visibility);
+	}
+}
+
+rule("sub打开菜单")
+{
+	event
+	{
+		Subroutine;
+		OpenMenu;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, First Of(Global.MenuCameraSet), Global.MenuCameraSet[1], 200);
+		Global._extendedGlobalCollection[6].menuactive = Global.name;
+		If(!Global._extendedGlobalCollection[6].isInMenu);
+			Set Facing(Global._extendedGlobalCollection[6], Forward, To Player);
+			Global._extendedGlobalCollection[6].AnchorFacing = Facing Direction Of(Global._extendedGlobalCollection[6]);
+			Global._extendedGlobalCollection[6].isInMenu = True;
+			Set Aim Speed(Global._extendedGlobalCollection[6], 0.100);
+			Set Primary Fire Enabled(Global._extendedGlobalCollection[6], False);
+			Set Secondary Fire Enabled(Global._extendedGlobalCollection[6], False);
+			Disable Hero HUD(Global._extendedGlobalCollection[6]);
+			Disable Game Mode HUD(Global._extendedGlobalCollection[6]);
+		End;
+		Skip(Array(0, 0)[Index Of Array Value(Array(0), Global.name) + 1]);
+		Set Facing(Global._extendedGlobalCollection[6], Global._extendedGlobalCollection[6].AnchorFacing, To World);
+	}
+}
+
+rule("My Player Rule")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Event Player.MenuLoop, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Global.name = 0;
+		Global._extendedGlobalCollection[6] = Event Player;
+		Call Subroutine(OpenMenu);
+	}
+}
+
+rule("初始化菜单向量")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.menuEye = First Of(Global.MenuCameraSet);
+		Global.menuLookat = Global.MenuCameraSet[1];
+		Global.menuDir = Direction Towards(Global.menuEye, Global.menuLookat);
+		Global.Menu_Center = Global.menuEye + Global.menuDir;
+		Global.Menu_Base1 = -0.250 * Normalize(Cross Product(Up, Global.menuDir));
+		Global.Menu_Base2 = -0.250 * Normalize(Cross Product(Global.menuDir, Global.Menu_Base1));
+	}
+}
+
+rule("sub根据ID获取按钮")
+{
+	event
+	{
+		Subroutine;
+		GetButtonByID;
+	}
+
+	actions
+	{
+		Global._extendedGlobalCollection[7] = 0;
+		While(Global._extendedGlobalCollection[7] < Count Of(Filtered Array(Global.Button_Pool, Array Contains(
+			Global._objectVariable_1[Current Array Element][4], Event Player.menuactive))));
+			If(Global.id == Global._objectVariable_1[Filtered Array(Global.Button_Pool, Array Contains(
+				Global._objectVariable_1[Current Array Element][4], Event Player.menuactive))[Global._extendedGlobalCollection[7]]][5]);
+				Global.returnValue_GetButtonByID = Filtered Array(Global.Button_Pool, Array Contains(
+					Global._objectVariable_1[Current Array Element][4], Event Player.menuactive))[Global._extendedGlobalCollection[7]];
+				Skip(4);
+			End;
+			Global._extendedGlobalCollection[7] += 1;
+		End;
+		Wait(0.016, Ignore Condition);
+	}
+}
+
+rule("按钮点击")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		(Event Player.isInMenu && Is Button Held(Event Player, Button(Primary Fire))) == True;
+	}
+
+	actions
+	{
+		Global.id = Event Player.MenuLoop;
+		Call Subroutine(GetButtonByID);
+		If(Event Player.MenuLoop != 0 && Global._objectVariable_1[Global.returnValue_GetButtonByID][3]);
+			Global.id = Event Player.MenuLoop;
+			Call Subroutine(GetButtonByID);
+			Modify Global Variable(func_group, Append To Array, Array(Global._objectVariable_2[Global.returnValue_GetButtonByID]));
+			Call Subroutine(func_group);
+		End;
+	}
+}
+
+rule("悬停文本初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global._extendedGlobalCollection[8] = -0.200;
+		Create In-World Text(Local Player.isInMenu && Local Player.HoverVisible ? Local Player : Null, Local Player.HoverBack,
+			Update Every Frame(Global.Menu_Center + Global.Menu_Base1 * (Horizontal Angle Towards(Local Player,
+			Local Player.AnchorFacing + Eye Position(Local Player)) / First Of(Global._extendedGlobalCollection)) + Global.Menu_Base2 * ((
+			Vertical Facing Angle Of(Local Player) - Vertical Angle From Direction(Local Player.AnchorFacing)) * -1 / First Of(
+			Global._extendedGlobalCollection) + Global._extendedGlobalCollection[8] * Local Player.HoverLineCount)), 3, Do Not Clip,
+			Visible To Position String and Color, Color(Black), Default Visibility);
+		Create In-World Text(Local Player.isInMenu && Local Player.HoverVisible ? Local Player : Null, Local Player.HoverText,
+			Update Every Frame(Global.Menu_Center + Global.Menu_Base1 * (Horizontal Angle Towards(Local Player,
+			Local Player.AnchorFacing + Eye Position(Local Player)) / First Of(Global._extendedGlobalCollection)) + Global.Menu_Base2 * ((
+			Vertical Facing Angle Of(Local Player) - Vertical Angle From Direction(Local Player.AnchorFacing)) * -1 / First Of(
+			Global._extendedGlobalCollection) + Global._extendedGlobalCollection[8] * Local Player.HoverLineCount)), 1.500, Do Not Clip,
+			Visible To Position String and Color, Color(Yellow), Default Visibility);
+	}
+}
+
+rule("My Rule")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Is Button Held(Local Player, Button(Primary Fire)), Null, Null, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("关闭菜单")
+{
+	event
+	{
+		Subroutine;
+		CloseMenu;
+	}
+
+	actions
+	{
+		Event Player.isInMenu = False;
+		Stop Camera(Event Player);
+		Set Aim Speed(Event Player, 100);
+		Set Primary Fire Enabled(Event Player, True);
+		Set Secondary Fire Enabled(Event Player, True);
+		Enable Hero HUD(Event Player);
+		Enable Game Mode HUD(Event Player);
+		Set Facing(Event Player, Event Player.AnchorFacing, To World);
+		Wait(0.016, Ignore Condition);
+	}
+}
+
+rule("lambda")
+{
+	event
+	{
+		Subroutine;
+		func_group;
+	}
+
+	actions
+	{
+		Skip(Array(35, 0, 2, 17, 19, 27, 29, 34)[Index Of Array Value(Array(1, 2, 3, 4, 5, 6, 7), First Of(Last Of(Global.func_group)))
+			+ 1]);
+		Small Message(All Players(All Teams), Global._objectVariable_1[Global.Button_Pool[Event Player.MenuLoop]][6]);
+		Skip(33);
+		Global.selected = Event Player.items_6random[Global._objectVariable_1[Global.Button_Pool[Event Player.MenuLoop]][6]];
+		If(Global.selected[4] == 1 && Event Player.Gold < Global.selected[3]);
+			Skip(30);
+		End;
+		If(Global.selected[4] == 0 && Event Player.Gem < Global.selected[3]);
+			Skip(27);
+		End;
+		If(Global.selected[4] == 1);
+			Event Player.Gold -= Global.selected[3];
+		Else;
+			Event Player.Gem -= Global.selected[3];
+		End;
+		Modify Player Variable(Event Player, items, Append To Array, Array(Global.selected));
+		Event Player.items_6random = Array Slice(Randomized Array(Filtered Array(Global.Items, !Array Contains(Event Player.items,
+			Current Array Element))), 0, 6);
+		Skip(18);
+		Global._objectVariable_0[Global.Button_Pool[Event Player.MenuLoop]] = Event Player.items_6random[Global._objectVariable_1[Global.Button_Pool[Event Player.MenuLoop]][6]][2];
+		Skip(16);
+		If(Event Player.Dice > 0);
+			Event Player.Dice -= 1;
+			Event Player.items_6random = Array Slice(Randomized Array(Filtered Array(Global.Items, !Array Contains(Event Player.items,
+				Current Array Element))), 0, 6);
+		Else If(Event Player.Gem > 0);
+			Event Player.Gem -= 1;
+			Event Player.items_6random = Array Slice(Randomized Array(Filtered Array(Global.Items, !Array Contains(Event Player.items,
+				Current Array Element))), 0, 6);
+		End;
+		Skip(8);
+		Global._objectVariable_0[Global.Button_Pool[Event Player.MenuLoop]] = Global.RefreshDes;
+		Skip(6);
+		Global.selected_0 = Event Player.tf_3random[Global._objectVariable_1[Global.Button_Pool[Event Player.MenuLoop]][6]];
+		Modify Player Variable(Event Player, tfs, Append To Array, Array(Global.selected_0));
+		Small Message(All Players(All Teams), Custom String("{0}{1}", Custom String("已获取"), Global.selected_0[1]));
+		Event Player.menuactive = 1;
+		Skip(1);
+		Global._objectVariable_0[Global.Button_Pool[Event Player.MenuLoop]] = Event Player.tf_3random[Global._objectVariable_1[Global.Button_Pool[Event Player.MenuLoop]][6]][2];
+		Modify Global Variable(func_group, Remove From Array By Index, Count Of(Global.func_group) - 1);
+	}
+}

@@ -1,0 +1,846 @@
+import 'Quyu.del';
+
+enum HexId {
+    IronExhaustVent = 0,
+    IronEye = 1,
+    MoveHeal = 2,
+    ReloadHeal = 3,
+    PrecisionBarrage = 4,
+    ReturnToBattle = 5,
+    Requiem = 6,
+    SpiderEye = 7,
+    LightningSuppressor = 8,
+    Adrenaline = 9,
+    SiphonGloves = 10,
+    ArmorGenerator = 11,
+    GreatInventor = 12,
+    BreadAndCheese = 13,
+    Unstoppable = 14,
+    HeavyHitter = 15,
+    Bloodthirst = 16,
+    FirstAidKit = 17,
+    DarkHumor = 18,
+    SpeedIsKing = 19,
+    YourHealthPack = 20,
+    Castling = 21,
+    Arbiter = 22,
+    ArcaneUppercut = 23,
+    VeteranSniper = 24,
+    FineWine = 25,
+    CycleRepeat = 26,
+    Resolve = 27,
+    AstralBody = 28,
+    Revenge = 29,
+    ShrinkRay = 30,
+    ParasiticBond = 31,
+    HeartsInSync = 32,
+    VitalBloom = 33,
+    HeavenlyScatter = 34,
+    SpringJump = 35,
+    Heartsteel = 36,
+    Prism = 37,
+    EmergencyChip = 38,
+    AirspaceNemesis = 39,
+    GiantSlayer = 40,
+    BufferPad = 41,
+    WilhelmHeavyArmor = 42,
+    BrutalForce = 43,
+    UltimateCharger = 44,
+    ArmorPierce = 45,
+    BerserkCombo = 46,
+    PrecisionLock = 47,
+    RendingWound = 48,
+    ExplosiveShot = 49,
+    SteelGiant = 50,
+    GlassCannon = 51,
+    WarmUp = 52,
+    GravityPulse = 53,
+    ResonanceBarrier = 54,
+    SoulLink = 55,
+    TimeRift = 56,
+    Harvest = 57,
+    DivineSunderer = 58,
+    ElisasMiracle = 59,
+    ShatteredQueensCrown = 60,
+    DemonKingsCrown = 61,
+    RumbleQuake = 62,
+    FullFirepower = 63,
+    AssassinCloak = 64,
+    UltraRange = 65,
+    KnockbackIndifference = 66,
+    HeatMaster = 67,
+    SoarUp = 68,
+    MeteorStrike = 69,
+    ColdDissipation = 70,
+    ThornGuard = 71,
+    BeLikeBird = 72,
+    HaikeShooter = 73,
+    HomeRun = 74,
+    GravityGaze = 75,
+    TripleWalnut = 76,
+    QuakeAftershock = 77,
+    WallRideDamageBoost = 78,
+    Braver = 79,
+    RedPacket = 80,
+    BigRedPacket = 81,
+    HackerCracking = 82
+}
+globalvar HexDef[] HexDefs = [
+    {
+        Id: HexId.IronExhaustVent,
+        Name: '铁甲排气口',
+        Description: '使用技能时
+获得100+10%最大生命值点过量生命值
+持续4s
+CD 7.5s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 7.5
+    },
+    {
+        Id: HexId.IronEye,
+        Name: '铁眼',
+        Description: '受到暴击后
+会在1s内回复10%最大生命值',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.MoveHeal,
+        Name: '移动回血',
+        Description: '移动时
+每秒回复生命值
+随速度提升',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ReloadHeal,
+        Name: '装填回血',
+        Description: '恢复你装填时间*75的生命值',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.PrecisionBarrage,
+        Name: '精准弹幕',
+        Description: '攻击远距离的敌人
+会发射一枚100点伤害的追踪导弹',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 4
+    },
+    {
+        Id: HexId.ReturnToBattle,
+        Name: '返回战场',
+        Description: '现在你死亡后
+复活进度会从50%开始',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Requiem,
+        Name: '断魂曲',
+        Description: '造成暴击会短暂入侵目标',
+        AllowedHeroes: AllHeroes().Filter(t => !ArrayContains(NonCritical_Heros, t)),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.SpiderEye,
+        Name: '蜘蛛之眼',
+        Description: '你对生命值低于50%的敌人
+造成的伤害提高15%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.LightningSuppressor,
+        Name: '闪电抑制器',
+        Description: '造成暴击会对目标施加30%治疗减免
+持续2秒',
+        AllowedHeroes: AllHeroes().Filter(t => !ArrayContains(NonCritical_Heros, t)),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Adrenaline,
+        Name: '肾上腺素',
+        Description: '急救包会使移动速度加快25%
+持续5秒
+并获得200点过量生命值',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.SiphonGloves,
+        Name: '虹吸手套',
+        Description: '近身攻击造成伤害时
+治疗100点生命值
+2sCD',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 2
+    },
+    {
+        Id: HexId.ArmorGenerator,
+        Name: '护甲发生器',
+        Description: '将300生命值转化为护甲',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.GreatInventor,
+        Name: '大发明家',
+        Description: '你的Shift技能获得100技能急速',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.BreadAndCheese,
+        Name: '面包与奶酪',
+        Description: '你的E技能获得100技能急速',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Unstoppable,
+        Name: '势不可挡',
+        Description: '在使用你的终极技能后
+你会获得持续4s的无敌',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.HeavyHitter,
+        Name: '重量级打手',
+        Description: '对8m内的敌人造成额外伤害
+相当于你10%最大生命值
+CD:3s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 3
+    },
+    {
+        Id: HexId.Bloodthirst,
+        Name: '渴血',
+        Description: '获得20吸血',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.FirstAidKit,
+        Name: '急救用具',
+        Description: '获得20%治疗强度',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.DarkHumor,
+        Name: '恶趣味',
+        Description: '击退敌人时
+回复100生命值
+CD1秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 1
+    },
+    {
+        Id: HexId.SpeedIsKing,
+        Name: '唯快不破',
+        Description: '你的移动速度比目标越快
+则对其造成越多伤害',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.YourHealthPack,
+        Name: '你的血包',
+        Description: '当你吃血包时
+治疗你的队友等额数值',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Castling,
+        Name: '王车易位',
+        Description: '现在你释放终极技能时
+会使你与你的队友交换位置
+并同时获得1s无敌',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Arbiter,
+        Name: '裁决使',
+        Description: '参与击杀后刷新你的基础技能
+并加成大招充能50%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ArcaneUppercut,
+        Name: '秘术冲拳',
+        Description: '你的近战攻击
+会减少所有技能冷却时间1秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.VeteranSniper,
+        Name: '老练狙神',
+        Description: '用一个非终极技能命中一个15m外的敌人时
+将这个技能的冷却时间缩短至0.5秒
+同时只能触发一个技能',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 1
+    },
+    {
+        Id: HexId.FineWine,
+        Name: '佳酿',
+        Description: '在使用一个技能时恢复175
+CD4s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 4
+    },
+    {
+        Id: HexId.CycleRepeat,
+        Name: '循环往复',
+        Description: '获得60技能急速',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Resolve,
+        Name: '坚决',
+        Description: '在跌到50%以下生命值时
+在3秒里持续恢复共60%最大生命值
+（每回合最多触发一次）',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.AstralBody,
+        Name: '星界躯体',
+        Description: '获得1000生命值
+但你造成的伤害降低15%
+体型变为原来的150%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Revenge,
+        Name: '复仇',
+        Description: '在你的队友阵亡后
+获得大幅提升伤害和全能吸血
+持续到该回合结束',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ShrinkRay,
+        Name: '缩小射线',
+        Description: '你的攻击会降低敌方15%造成伤害
+持续3秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ParasiticBond,
+        Name: '寄生关系',
+        Description: '你获得你搭档15%已造成伤害的治疗效果',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.HeartsInSync,
+        Name: '心心相印',
+        Description: '你的治疗会共享给你的搭档30%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.VitalBloom,
+        Name: '生机绽放',
+        Description: '每隔2秒
+就会向距离准星最近的敌军发射弹道
+造成这两秒期间你的治疗量数额的伤害',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.HeavenlyScatter,
+        Name: '天女散花',
+        Description: '你使用技能时
+会朝你面朝方向释放随机弹幕',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 2
+    },
+    {
+        Id: HexId.SpringJump,
+        Name: '弹簧跳',
+        Description: '你在跳跃时获得20%伤害减免
+获得跳跃高度100%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Heartsteel,
+        Name: '心之钢',
+        Description: '每次你释放大招
+永久获得100点生命值
+以及10%生命加成',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Prism,
+        Name: '棱彩',
+        Description: '全属性加成20%
+但你的攻击力基础值不能超过200',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.EmergencyChip,
+        Name: '应急芯片',
+        Description: '生命值低于30%时
+获得30吸血',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.AirspaceNemesis,
+        Name: '空域克星',
+        Description: '对空中的敌人造成伤害
+会使其移速降低30
+持续2s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.GiantSlayer,
+        Name: '巨人杀手',
+        Description: '目标的生命值每高出你200点
+对其造成5%额外伤害
+最多35%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.BufferPad,
+        Name: '缓冲衬垫',
+        Description: '受击晕、沉睡、限制影响时
+在3秒内恢复最大生命值的10%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0.5
+    },
+    {
+        Id: HexId.WilhelmHeavyArmor,
+        Name: '威尔海姆重甲',
+        Description: '生命值低于50%时，获得35伤害抵抗',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.BrutalForce,
+        Name: '残暴之力',
+        Description: '获得25造成伤害
+10技能急速',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.UltimateCharger,
+        Name: '终极充能器',
+        Description: '每回合开始时，大招充能为100%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ArmorPierce,
+        Name: '破甲穿刺',
+        Description: '攻击破坏目标20%护甲和护盾
+CD 3秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 3
+    },
+    {
+        Id: HexId.BerserkCombo,
+        Name: '狂暴连击',
+        Description: '连续命中同一目标3次后
+造成10%目标当前生命值数额的伤害
+CD 4秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 4
+    },
+    {
+        Id: HexId.PrecisionLock,
+        Name: '精准锁定',
+        Description: '若你的爆头伤害数额
+大于敌方最大生命值12%
+造成200点伤害
+并击倒敌方2s
+CD 12秒',
+        AllowedHeroes: AllHeroes().Filter(t => !ArrayContains(NonCritical_Heros, t)),
+        Quality: HexQuality.epic,
+        Cooldown: 12
+    },
+    {
+        Id: HexId.RendingWound,
+        Name: '撕裂伤口',
+        Description: '左右键造成最多3层的叠层
+之后造成10*层数的撕裂伤害',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.ExplosiveShot,
+        Name: '爆裂射击',
+        Description: '开火时触发爆炸
+造成50点范围伤害',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 2
+    },
+    {
+        Id: HexId.SteelGiant,
+        Name: '钢铁巨人',
+        Description: '设置你的受到击退为40%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.GlassCannon,
+        Name: '玻璃大炮',
+        Description: '损失70%最大生命值
+获得50伤害提升
+以及15%总伤害加成',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.WarmUp,
+        Name: '热身动作',
+        Description: '回合内做表情可以提升4%造成伤害
+最多提升24%百分比加成
+回合内生效',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.GravityPulse,
+        Name: '引力脉冲',
+        Description: '伤害会对敌人施加引力场
+3s内设置其引力为200%并减速20%
+CD: 8s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 8
+    },
+    {
+        Id: HexId.ResonanceBarrier,
+        Name: '共鸣屏障',
+        Description: '队友使用终极技能时
+你获得300点临时护盾
+持续4s
+CD: 10s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 10
+    },
+    {
+        Id: HexId.SoulLink,
+        Name: '灵魂链接',
+        Description: '队友死亡时
+继承其50%属性加成
+持续至回合结束',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.TimeRift,
+        Name: '时间裂隙',
+        Description: '使用终极技能后1s
+所有技能冷却清零
+CD: 15s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 15
+    },
+    {
+        Id: HexId.Harvest,
+        Name: '收菜',
+        Description: '你的锻造器属性提升60%（全局有效）',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.DivineSunderer,
+        Name: '神圣分离者',
+        Description: '释放技能后
+下一次攻击会附带(50+5%目标最大生命值)伤害
+若为暴击触发
+恢复50%附带伤害值的生命值',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 2
+    },
+    {
+        Id: HexId.ElisasMiracle,
+        Name: '艾莉莎的奇迹',
+        Description: '获得+40造成治疗
+受到伤害后4秒内效果减半',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 4
+    },
+    {
+        Id: HexId.ShatteredQueensCrown,
+        Name: '破碎王后之冕',
+        Description: '在回合开始时获得50伤害抵抗
+受到伤害后可存留3秒',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.DemonKingsCrown,
+        Name: '魔王之冕',
+        Description: '使你的全属性提升12%
+每回合失败后降低8%(可负加成)
+每回合胜利后提升4%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.RumbleQuake,
+        Name: '隆隆震地',
+        Description: '在大招期间
+获得80技能急速',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.FullFirepower,
+        Name: '火力全开',
+        Description: '获得999子弹(如果工坊允许的话)',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.AssassinCloak,
+        Name: '刺客斗篷',
+        Description: '在每回合开始的时候进入隐身
+造成或受到伤害时取消',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.UltraRange,
+        Name: '超远距离',
+        Description: '你的弹道速度为300%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.KnockbackIndifference,
+        Name: '击退冷淡',
+        Description: '你的造成击退为10%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.average,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.HeatMaster,
+        Name: '耐热达人',
+        Description: '蹲下时，受到的火圈伤害为40%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.SoarUp,
+        Name: '腾空而起',
+        Description: '在空中时,在5s内回复25%已损失生命值
+落地会提前结束回复
+CD：3s',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 3
+    },
+    {
+        Id: HexId.MeteorStrike,
+        Name: '星陨打击',
+        Description: '你在降落时，会根据你的高度造成范围伤害
+如果特别高，还会击倒范围内的敌人',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 5
+    },
+    {
+        Id: HexId.ColdDissipation,
+        Name: '寒冷消散',
+        Description: '你的消散会冻结穿过的敌人1s',
+        AllowedHeroes: [Hero.Moira],
+        Quality: HexQuality.epic,
+        Cooldown: // ??
+    0
+    },
+    {
+        Id: HexId.ThornGuard,
+        Name: '荆棘防护',
+        Description: '在金身期间,反弹你受到的伤害',
+        AllowedHeroes: [Hero.Orisa],
+        Quality: HexQuality.epic,
+        Cooldown: // 奥??
+    0
+    },
+    {
+        Id: HexId.BeLikeBird,
+        Name: '你当像鸟',
+        Description: '在地面上左右键造成伤害
+可以减少E技能冷却1s',
+        AllowedHeroes: [Hero.Freja],
+        Quality: HexQuality.rare,
+        Cooldown: // 芙??
+    0
+    },
+    {
+        Id: HexId.HaikeShooter,
+        Name: '黑客飞弹',
+        Description: '你的飞弹现在附带入侵效果',
+        AllowedHeroes: [Hero.Juno],
+        Quality: HexQuality.rare,
+        Cooldown: // 朱?
+    0
+    },
+    {
+        Id: HexId.HomeRun,
+        Name: '全垒打',
+        Description: '你的Shift可以击倒敌人',
+        AllowedHeroes: [Hero.Hazard],
+        Quality: HexQuality.average,
+        Cooldown: // 骇?
+    0
+    },
+    {
+        Id: HexId.GravityGaze,
+        Name: '直视引力',
+        Description: '释放Shift期间
+所有视线内的敌人会强制看向你',
+        AllowedHeroes: [Hero.Sigma],
+        Quality: HexQuality.rare,
+        Cooldown: //西??
+    0
+    },
+    {
+        Id: HexId.TripleWalnut,
+        Name: '三联核桃',
+        Description: '你的左键现在变成了散射',
+        AllowedHeroes: [Hero.Sigma],
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.QuakeAftershock,
+        Name: '地震余波',
+        Description: '强音期间，每秒释放一次地震
+对敌人造成60点伤害,并强制减速',
+        AllowedHeroes: [Hero.Lucio],
+        Quality: HexQuality.rare,
+        Cooldown: //DJ
+    0
+    },
+    {
+        Id: HexId.WallRideDamageBoost,
+        Name: '滑墙增伤',
+        Description: '滑墙期间，获得60%伤害加成',
+        AllowedHeroes: [Hero.Lucio],
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.Braver,
+        Name: '勇敢之举',
+        Description: '随机切换一个英雄\n但获得全属性+10%',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.RedPacket,
+        Name: '红包',
+        Description: '每回合额外获得一次普通锻体奖励',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.BigRedPacket,
+        Name: '大红包',
+        Description: '每回合额外获得两次普通锻体奖励',
+        AllowedHeroes: AllHeroes(),
+        Quality: HexQuality.epic,
+        Cooldown: 0
+    },
+    {
+        Id: HexId.HackerCracking,
+        Name: '入侵裂地',
+        Description: '你的Shift现在获得入侵效果',
+        AllowedHeroes: [Hero.Doomfist],
+        Quality: HexQuality.rare,
+        Cooldown: 0
+    }
+];

@@ -1,0 +1,221 @@
+import 'struct属性.del';
+import '品质.del';
+import '解压缩.del';
+import '菜单.del';
+enum PART{
+    Head,
+    Body,
+    Foot,
+    Hand,
+    Neck
+}
+globalvar String[] PART_Names = ["头盔", "胸甲", "靴子","武器", "护符"];
+
+single struct Equip {
+    public String Name;
+    public String Desc;
+    public Number[] EquipShuxing;
+    public Number EquipLevel;
+    public QUALITY Quality;
+    public PART Part;
+}
+globalvar String[] EquipData_to_Decompress = ["【s小刀∞s一把新手武器∞【~∞0∞5∞0∞0∞0∞0】∞1∞0∞3】∞【s布帽∞s一顶简单的布帽，提供基础保护∞【0∞+∞0∞0∞5∞0∞0】∞1∞0∞0】∞【s布甲∞s一件轻便的布制铠甲，适合新手∞【0∞:∞0∞0∞~∞0∞5】∞1∞0∞1】","【s布靴∞s一双轻便的布靴，提升移动舒适度∞【0∞~∞~∞0∞0∞0∞0】∞1∞0∞2】∞【s木质护符∞s一枚简单的木质护符，略微提升治疗效果∞【0∞0∞0∞~∞0∞5∞0】∞1∞0∞4】","【s铁盔∞s一顶坚固的铁质头盔，提供可靠保护∞【0∞f∞0∞0∞%∞0∞5】∞3∞0∞0】∞【s精金铠甲∞s一件精致的精金铠甲，兼具防御与威严∞【~∞T∞0∞0∞+∞~∞~】∞5∞1∞1】"];
+globalvar Equip[] EquipData_Pool = [];
+globalvar Any[] EquipData_DeCompressed;
+
+void EquipData_Initialize() {
+    EquipData_DeCompressed = Decompress(EquipData_to_Decompress);
+    for (define i! = 0; i < EquipData_DeCompressed.Length; i++) {
+        EquipData_Pool[EquipData_Pool.Length] = {
+            Name: EquipData_DeCompressed[i][0],
+            Desc: EquipData_DeCompressed[i][1],
+            EquipShuxing: EquipData_DeCompressed[i][2],
+            EquipLevel: EquipData_DeCompressed[i][3],
+            Quality: EquipData_DeCompressed[i][4],
+            Part: EquipData_DeCompressed[i][5]
+        };
+    }
+}
+String GetEquipShuxingString(Equip equip) {
+    String output! = '\n【0】【1】【2】【3】【4】【5】【6】';
+
+    for(define i! = 0; i < Shuxing_Names.Length; i++){
+        if(equip.EquipShuxing[i] > 0){
+            output = output.Replace('【'+i+'】', '  '+Shuxing_Names[i]+' '+equip.EquipShuxing[i]+'\n');
+        }else{
+            output = output.Replace('【'+i+'】', '');
+        }
+        
+    }
+    return output;
+}
+
+Color GetEquipColor(in Equip equip) {
+    return QUALITY_Light_Colors[equip.Quality];
+}
+
+String GetEquipString(Equip equip)''{
+    return equip.Name + '\n' +
+    
+    '[等级]: ' + equip.EquipLevel + '\n' +
+    '[品质]: ' + QUAILITY_Names[equip.Quality] + ' ' +
+    '[部位]: ' + PART_Names[equip.Part] + '\n' +
+    GetEquipShuxingString(equip)+ '\n\n'+
+    '"' + equip.Desc + '"'+'\n';
+}
+globalvar Number[] ShuxingIndex = [0,1,2,3,4,5];
+playervar Number[] equip_Suit_Index = [];
+playervar Equip[] equipBag = [];
+void EquipItem(Player player, Equip equip)'穿戴子程序' {
+    define test = equip_Suit_Index[<Number>equip.Part];
+    if(test >= 0){
+        UnequipItem(player, equipBag[equip_Suit_Index[equip.Part]]);
+    }
+    //赋值装备属性
+    for(define i! = 0; i < equip.EquipShuxing.Length; i++){
+        if(equip.EquipShuxing[i] != 0){
+            player.shuxing[i].ModAbs(equip.EquipShuxing[i]);
+        }
+    }
+
+    RevShuxing(player);
+    Wait(0.1);
+}
+
+void UnequipItem(Player player, Equip equip)'卸下子程序' {
+    //减去装备属性
+    for(define i! = 0; i < equip.EquipShuxing.Length; i++){
+        if(equip.EquipShuxing[i] != 0){
+            player.shuxing[i].ModAbs(-equip.EquipShuxing[i]);
+        }
+    }
+    RevShuxing(player);
+    Wait(0.1);
+}
+
+void OpenEquipMenu() {
+    updateEquipMenu();
+}
+void updateEquipMenu()'' {
+    Button_LocalPool = ButtonData_Pool;
+    define i = 0;
+    for(i=0;i<5;i++){
+      Button_LocalPool[GetButtonID('身上装备'+i)].Label = (selectEquipIndexOfBag==equip_Suit_Index[i]&&selectEquipIndexOfBag!=-1?IconString(Icon.ArrowRight):'')+equipBag[equip_Suit_Index[i]].Name.Replace('0','空');
+      if(equip_Suit_Index[i]!=-1){
+        Button_LocalPool[GetButtonID('身上装备'+i)].Interactable = true;
+        Button_LocalPool[GetButtonID('身上装备'+i)].DefaultColor = GetEquipColor(equipBag[equip_Suit_Index[i]]);
+        Button_LocalPool[GetButtonID('身上装备'+i)].HoverLabel = GetEquipString(equipBag[equip_Suit_Index[i]]);
+      }else{
+        Button_LocalPool[GetButtonID('身上装备'+i)].Interactable = false;
+        Button_LocalPool[GetButtonID('身上装备'+i)].HoverLabel = '';
+      }
+    }
+    for(i=0;i<6;i++){   
+        Button_LocalPool[GetButtonID('装备箱'+i)].Label = (selectEquipIndexOfBag==i+page*6&&selectEquipIndexOfBag!=-1?IconString(Icon.ArrowRight):'')+equipBag[i+page*6].Name.Replace('0','空');
+        if(equipBag[i+page*6]!=null){
+        Button_LocalPool[GetButtonID('装备箱'+i)].Interactable = true;
+        Button_LocalPool[GetButtonID('装备箱'+i)].DefaultColor = GetEquipColor(equipBag[i+page*6]);
+        Button_LocalPool[GetButtonID('装备箱'+i)].HoverLabel = GetEquipString(equipBag[i+page*6]);
+        }else{
+            Button_LocalPool[GetButtonID('装备箱'+i)].Interactable = false;
+            Button_LocalPool[GetButtonID('装备箱'+i)].HoverLabel = '';
+        }
+    }
+}
+rule: '测试'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isInitialized)
+{
+    //EquipItem(EventPlayer(),EquipData_Pool[0]);
+    equipBag = EquipData_Pool;
+}
+
+playervar Number selectEquipIndexOfBag;
+playervar Number CurrentDisplayMode;
+rule: '注册装备菜单按钮点击函数'
+{
+
+}
+
+// 注册穿戴和卸下按钮点击
+rule: '注册穿戴和卸下按钮'
+if(isMenuInitialized)
+{
+    RegisterEquipMenu();
+}   
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: LocalPlayer().MenuLoop);
+    CreateHudText(Header: '指定按钮id'+GetButtonID('切换显示按钮'));
+}
+
+void RegisterEquipMenu(){
+    // 穿戴按钮
+    registerButtonClick(GetButtonID('穿戴按钮'), () => {
+        if(selectEquipIndexOfBag != -1 && !equip_Suit_Index.Contains(selectEquipIndexOfBag)) {
+            
+            EquipItem(EventPlayer(), equipBag[selectEquipIndexOfBag]);
+            equip_Suit_Index[equipBag[selectEquipIndexOfBag].Part] = selectEquipIndexOfBag;
+            updateEquipMenu();
+        }else{
+            SmallMessage(EventPlayer(),'错误: 请先选择一件未穿戴的装备');
+        }
+    });
+
+    // 卸下按钮
+    registerButtonClick(GetButtonID('卸下按钮'), () => {
+        if(selectEquipIndexOfBag != -1 && equip_Suit_Index.Contains(selectEquipIndexOfBag)) {
+            UnequipItem(EventPlayer(), equipBag[selectEquipIndexOfBag]);
+            equip_Suit_Index[equipBag[selectEquipIndexOfBag].Part] = -1;
+            updateEquipMenu();
+        }else{
+            SmallMessage(EventPlayer(),'错误: 请选择已穿戴的装备');
+        }
+    });
+
+    // 更新装备箱按钮点击，选择装备
+    registerButtonGroupClick([GetButtonID('装备箱0'), GetButtonID('装备箱1'), GetButtonID('装备箱2'), 
+    GetButtonID('装备箱3'), GetButtonID('装备箱4'), GetButtonID('装备箱5')], () => {
+        selectEquipIndexOfBag = MenuLoop-GetButtonID('装备箱0')+page*6;
+        updateEquipMenu();
+        Button_LocalPool[MenuLoop].HoverLabel = GetEquipString(equipBag[selectEquipIndexOfBag]);
+    });
+    registerButtonGroupClick([GetButtonID('装备左翻页')], () => {
+        page = Max(0,page-1);
+        updateEquipMenu();
+    });
+    registerButtonGroupClick([GetButtonID('装备右翻页')], () => {
+        page = Min(RoundToInteger(equipBag.Length/6,Rounding.Down),page+1);
+        updateEquipMenu();
+    });
+    registerButtonGroupClick([4,5,6,7,8],()=>{
+        define selectIndex = MenuLoop-4;
+        if(equip_Suit_Index[selectIndex]!=-1){
+            selectEquipIndexOfBag = equip_Suit_Index[selectIndex];
+            Button_LocalPool[MenuLoop].Label = IconString(Icon.ArrowRight)+equipBag[equip_Suit_Index[selectIndex]].Name;
+        }
+        updateEquipMenu();
+    });
+}
+
+rule: '测试'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    equip_Suit_Index = [-1,-1,-1,0,-1];
+}
+
+rule: 'My Rule'
+if(false)
+{
+    CreateHudText(Header: '当前selectEquipIndexOfBag:'+LocalPlayer().selectEquipIndexOfBag);
+    CreateHudText(Header: '当前selectEquip:'+LocalPlayer().equipBag[LocalPlayer().selectEquipIndexOfBag].Name);
+    CreateHudText(Header: '当前page:'+LocalPlayer().page);
+    CreateHudText(Header: '全局装备数组数量:'+EquipData_Pool.Length);
+    CreateHudText(Header: '全局解压数组数量:'+EquipData_DeCompressed.Length);
+    CreateHudText(Header: '装备栏第二号位索引:'+[LocalPlayer().equip_Suit_Index[1]]);
+}

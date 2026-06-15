@@ -1,0 +1,89 @@
+import 'Quyu.del';
+single struct City {
+    public String Name;
+    public String Des;
+}
+
+globalvar City[] City_Pool! = [
+    {Name: '不再缩圈', Des: '现在不会缩圈了，尽情拉扯吧！'},
+    {Name: '背水一战', Des: '你的队伍获得一次免除淘汰的机会'},
+    {Name: '急冻冰箱', Des: '现在死后转而变为冰雕\n队友摧毁冰雕可以复活一次'},
+    {Name: '捣蛋鬼', Des: '淘汰的队伍可以干扰战局'},
+    {Name: '断头台', Des: '所有队伍生命值变为50\n但赢一局能回复10点生命值'},
+    {Name: '平等馈赠', Des: '随机一个任意品阶的海克斯\n所有玩家获得'},
+    {Name: '刺客信条', Des: '所有玩家获得\n棱彩海克斯 刺客斗篷\n在战斗开始时会进入隐身\n造成或受到伤害取消'},
+    {Name: '大乱斗', Des: '现在，每个战斗回合\n所有队伍转而传送到一个超大区域乱斗\n活到最后的队伍胜利'},
+    {Name: '回归基本功', Des: '禁用终极技能\n但技能急速+50%\n生命值+50%'},
+    {Name: '老年生活', Des: '全体玩家的移速和技能急速\n百分比-50%'},
+    {Name: '你们开心了？', Des: '每个玩家获得一次更换英雄的机会'}
+];
+
+enum HexGuideMode{
+    All,
+    PlayTeams
+}
+
+globalvar Boolean CurrentHexGuideMode = false;
+globalvar String[] HexGuideMode_Strings = [
+    '全部',
+    '战局'
+];
+playervar Rune[] GuideMenu_Runes! = Rune_Pool.Slice(0,6);
+playervar Number GuideMenu_Rune_Index! = 0;
+
+playervar Number GuideMenu_TeamIndex! = 0;
+playervar Boolean GuideMenu_TeamMember_Index! = false;
+rule: '图鉴菜单初始化'
+{
+    // 主菜单按钮
+    new MenuButton(
+        header: <'海克斯图鉴: <0>',HexGuideMode_Strings[<Number>CurrentHexGuideMode]>,
+        posX: 0,
+        posY: 1.7,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: true,
+        ofmenuActives: [MenuActive.GuideMenu]
+    ).SetOnClick(()=>{
+        CurrentHexGuideMode = !CurrentHexGuideMode;
+    });
+
+    for(Number i! = 0; i < 6;i++){
+        Number i_ : i%3;
+        Number x_ : EvaluateOnce(-2 + i_*0.5);
+        Number y_ : EvaluateOnce(1 - i_*0.5);
+        new MenuButton(
+            header: <'<1><0>',LocalPlayer().roundReward[0].Name,LocalPlayer().roundReward_index==0?IconString(Icon.ArrowRight):''>,
+            posX: EvaluateOnce(x_),
+            posY: EvaluateOnce(y_),
+            ShowColor: InteratableColor_Local(Default:Quaility_Color[LocalPlayer().GuideMenu_Runes[EvaluateOnce(i)].RuneQaulity][1],Hover:Quaility_Color[LocalPlayer().GuideMenu_Runes[EvaluateOnce(i)].RuneQaulity][0],Visible: LocalPlayer().GuideMenu_Rune_Index==0),
+            scale: ButtonScale.Large,
+            interactable: true,
+            ofmenuActives: [MenuActive.GuideMenu]
+        ).SetOnClick(()=>{EventPlayer().roundReward_index=EvaluateOnce(i);        });
+    }
+    
+    new MenuButton(
+        header: EntityExists(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])?<'<0><1>',HeroIconString(HeroOf(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])),Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0]>:'',
+        posX: -1.2,
+        posY: 1.4,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: EntityExists(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])?true:false,
+        ofmenuActives: [MenuActive.GuideMenu]
+    ).SetOnClick(()=>{
+        GuideMenu_TeamMember_Index = 0;
+    });
+
+        new MenuButton(
+        header: EntityExists(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])?<'<0><1>',HeroIconString(HeroOf(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])),Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0]>:'',
+        posX: -1.2,
+        posY: 1.4,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: EntityExists(Teams[LocalPlayer().GuideMenu_TeamIndex].Members[0])?true:false,
+        ofmenuActives: [MenuActive.GuideMenu]
+    ).SetOnClick(()=>{
+        GuideMenu_TeamMember_Index = 0;
+    });
+}

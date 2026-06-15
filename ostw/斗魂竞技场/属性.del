@@ -1,0 +1,96 @@
+class Shuxing{
+    public ShuxingBase Attack;
+    public ShuxingBase CoolDown;
+    public ShuxingBase Speed;
+    public ShuxingBase HealBoost;
+    public ShuxingBase Drain;
+    public ShuxingBase Armor;
+    public ShuxingBase Health;
+    public ShuxingBase Shields;
+    public ShuxingBase Reduction;
+    public ShuxingBase Scale;
+    public ShuxingBase JumpVerticalSpeed;
+
+    public constructor(){
+        Attack = new ShuxingBase();
+        CoolDown = new ShuxingBase(abs: 0);
+        Speed = new ShuxingBase();
+        HealBoost = new ShuxingBase();
+        Drain = new ShuxingBase(abs: 0);
+        Armor = new ShuxingBase(abs: 0);
+        Health = new ShuxingBase(abs: 0);
+        Shields = new ShuxingBase(abs: 0);
+        Reduction = new ShuxingBase(abs: 0);
+        Scale = new ShuxingBase();
+        JumpVerticalSpeed = new ShuxingBase();
+    }
+}
+class ShuxingBase{
+    public Number Abs;
+    public Number Pct;
+    public Number Forge;
+
+    Number RealShuxing(in Player p! = EventPlayer()):
+        Abs+Forge*p.Forge_Multiplier;
+
+    Number RealShuxing_Local():
+        Abs+Forge*LocalPlayer().Forge_Multiplier;
+
+    Number VirtualShuxing(in Player p! = EventPlayer()):
+        RealShuxing(p)*(1+Pct/100);
+
+    Number VirtualShuxing_Local():
+        RealShuxing_Local()*(1+Pct/100);
+    
+    public constructor(in Number abs=100){
+        Abs = abs;
+    }
+}
+rule: '持续赋值属性实现'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    AddHealthPoolToPlayer(HealthType: HealthType.Armor,Player: EventPlayer(),MaxHealth: shuxing.Armor.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Shields,Player: EventPlayer(),MaxHealth: shuxing.Shields.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Health,Player: EventPlayer(),MaxHealth: shuxing.Health.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+
+}
+void RevShuxing(Player p! = EventPlayer())'sub属性持续赋值'{
+    SetMoveSpeed(p,p.shuxing.Speed.VirtualShuxing(p)); 
+    SetDamageDealt(p,p.shuxing.Attack.VirtualShuxing(p));
+    SetDamageReceived(p,Max(20,100*100/(100+1.5 *p.shuxing.Reduction.VirtualShuxing(p))));
+    SetHealingDealt(p,p.shuxing.HealBoost.VirtualShuxing(p));
+
+    SetJumpVerticalSpeed(p,p.shuxing.JumpVerticalSpeed.VirtualShuxing(p));
+}
+Number CooldownReductionPerTick : 0.5 * (shuxing.CoolDown / (100 + shuxing.CoolDown));
+playervar Number last_halfsec_Damaged;
+playervar Number last_halfsec_Healed;
+rule: '技能急速效果实践+吸血效果实现'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+{
+    Heal(EventPlayer(),EventPlayer(),(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt)-last_halfsec_Damaged)*shuxing.Drain.VirtualShuxing()/100);
+
+    last_halfsec_Damaged = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt);
+
+    last_halfsec_Healed = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.HealingDealt);
+
+    if(shuxing.CoolDown.VirtualShuxing()>0){
+        SetAbilityCooldown(EventPlayer(),Button.Ability1,Max((AbilityCooldown(EventPlayer(),Button.Ability1)-CooldownReductionPerTick),0));
+        SetAbilityCooldown(EventPlayer(),Button.Ability2,Max((AbilityCooldown(EventPlayer(),Button.Ability2)-CooldownReductionPerTick),0));
+        SetAbilityCooldown(EventPlayer(),Button.Jump,Max((AbilityCooldown(EventPlayer(),Button.Jump)-CooldownReductionPerTick),0));
+        SetAbilityCooldown(EventPlayer(),Button.SecondaryFire,Max((AbilityCooldown(EventPlayer(),Button.SecondaryFire)-CooldownReductionPerTick),0));
+        SetAbilityCooldown(EventPlayer(),Button.Crouch,Max((AbilityCooldown(EventPlayer(),Button.Crouch)-CooldownReductionPerTick),0));
+    }
+    
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+playervar Shuxing shuxing = new Shuxing();
+playervar Number Forge_Multiplier = 1;

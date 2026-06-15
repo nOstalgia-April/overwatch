@@ -1,0 +1,53 @@
+class Item {
+    public Item_ ID;
+    public String Name;
+    public Number Max_Count;
+    virtual void OnUse(){
+        if(true){}
+    }
+    virtual Boolean CanUse(){
+        return true;
+    }
+}
+
+class Bandage : Item{
+    public constructor(){
+        ID = Item_.Bandage;
+        Name = '绷带';
+    }
+    override void OnUse(){
+        Damage(EventPlayer(),EventPlayer(),10);
+    }
+}
+
+enum Item_{
+    Bandage = 1
+}
+
+class Slot {
+    public Item Instance;
+    public Number Count;
+
+    public constructor(){
+        Instance = null;
+        Count = 0;
+    }
+}
+
+struct Bag {
+    public Slot[] Slots;
+}
+
+playervar Bag bag;
+
+void AddIntoBag(in Player p, in Item_ ItemID, in Number count){
+
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    
+}

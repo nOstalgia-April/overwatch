@@ -1,0 +1,287 @@
+class Power {
+    public virtual void onCardDraw(Card card) { if(true){} }
+    public virtual void onManualDiscard(Card card) { if(true){} }
+    public virtual void onPlayCard(Card card, Any target) { if(true){} }
+    public virtual void onUseCard(Card card, Any action) { if(true){} }
+    public virtual void atStartOfTurn() { if(true){} }
+    public virtual void atEndOfTurn() { if(true){} }
+    public virtual void onShuffle() { if(true){} }
+    public virtual Number onLoseHp(Number amount) { return amount; }
+    public virtual Number onGainBlock(Number amount) { return amount; }
+}
+
+class Relic {
+    public virtual void atBattleStart() { if(true){} }
+    public virtual void atTurnStart() { if(true){} }
+    public virtual void onCardDraw(Card card) { if(true){} }
+    public virtual void onPlayCard(Card card, Any target) { if(true){} }
+    public virtual void onShuffle() { if(true){} }
+    public virtual void onVictory() { if(true){} }
+}
+
+single struct Card {
+    public Number Id;
+    public Number ManaCost;
+    public String Name;
+    public String Description;
+}
+
+class CardDef {
+    public Number Id;
+    public Number ManaCost;
+    public String Name;
+    public String Description;
+
+    public constructor() {
+        Id = 0;
+        ManaCost = 0;
+        Name = "";
+        Description = "";
+    }
+
+    public virtual void OnDraw(Player p, Card card) { if(true){} }
+    public virtual void OnPlay(Player p, Card card, Any target) { if(true){} }
+    public virtual void OnUse(Player p, Card card, Any action) { if(true){} }
+}
+
+class CardPile {
+    public Card[] Cards = [];
+
+    public Number Count():
+        Cards.Length;
+
+    public Boolean IsEmpty():
+        Cards.Length == 0;
+
+    public void Clear() {
+        Cards = [];
+    }
+
+    public void Add(Card card) {
+        Cards += card;
+    }
+
+    public Card DrawTop() {
+        if (Cards.Length == 0) {
+            return null;
+        }
+        define top! = Cards[0];
+        Cards.ModRemoveByIndex(0);
+        return top;
+    }
+
+    public Card RemoveAt(Number index) {
+        if (index < 0 || index >= Cards.Length) {
+            return null;
+        }
+        define picked! = Cards[index];
+        Cards.ModRemoveByIndex(index);
+        return picked;
+    }
+
+    public Card RemoveByValue(Card card) {
+        if (!Cards.Contains(card)) {
+            return null;
+        }
+        Cards = RemoveFromArray(Cards, card);
+        return card;
+    }
+
+    public void MoveAllTo(CardPile target) {
+        foreach (Card c in Cards) {
+            target.Add(c);
+        }
+        Cards = [];
+    }
+}
+
+class DrawPile : CardPile {}
+class Hand : CardPile {}
+class DiscardPile : CardPile {}
+class ExhaustPile : CardPile {}
+class Limbo : CardPile {}
+
+globalvar CardDef[] CardDefs = [];
+globalvar Boolean CardDefsInitialized! = false;
+
+playervar DrawPile draw_pile = new DrawPile();
+playervar Hand hand = new Hand();
+playervar DiscardPile discard_pile = new DiscardPile();
+playervar ExhaustPile exhaust_pile = new ExhaustPile();
+playervar Limbo limbo = new Limbo();
+playervar Number hand_limit! = 5;
+playervar Power[] powers = [];
+playervar Relic[] relics = [];
+playervar Boolean pending_card_active! = false;
+playervar Card pending_card!;
+
+Card[] ShuffleArray(Card[] input) {
+    Card[] result = [];
+    Card[] temp = input;
+    while (temp.Length > 0) {
+        define c! = RandomValueInArray(temp);
+        result += c;
+        temp = RemoveFromArray(temp, c);
+    }
+    return result;
+}
+
+CardDef GetCardDef(Card card) {
+    if (card == null) {
+        return null;
+    }
+    if (card.Id < 0 || card.Id >= CardDefs.Length) {
+        return null;
+    }
+    return CardDefs[card.Id];
+}
+
+Card CreateCard(Number id) {
+    define def! = CardDefs[id];
+    if (def == null) {
+        return {Id: id, ManaCost: 0, Name: "", Description: ""};
+    }
+    return {Id: id, ManaCost: def.ManaCost, Name: def.Name, Description: def.Description};
+}
+
+void TriggerCardDraw(Player p, Card card) {
+    define def! = GetCardDef(card);
+    if (def != null) {
+        def.OnDraw(p, card);
+    }
+    foreach (Power pw in p.powers) {
+        pw.onCardDraw(card);
+    }
+    foreach (Relic r in p.relics) {
+        r.onCardDraw(card);
+    }
+}
+
+void TriggerCardPlay(Player p, Card card, Any target) {
+    foreach (Power pw in p.powers) {
+        pw.onPlayCard(card, target);
+    }
+    foreach (Relic r in p.relics) {
+        r.onPlayCard(card, target);
+    }
+}
+
+void TriggerShuffle(Player p) {
+    foreach (Power pw in p.powers) {
+        pw.onShuffle();
+    }
+    foreach (Relic r in p.relics) {
+        r.onShuffle();
+    }
+}
+
+void EmptyDeckShuffleAction(in Player p = EventPlayer()) {
+    if (p.discard_pile.IsEmpty()) {
+        return;
+    }
+    p.draw_pile.Cards = ShuffleArray(p.discard_pile.Cards);
+    p.discard_pile.Clear();
+    TriggerShuffle(p);
+}
+
+void DrawCardAction(in Player p = EventPlayer(), in Number count = 1) {
+    for (define i! = 0; i < count; i++) {
+        if (p.hand.Count() >= p.hand_limit) {
+            SmallMessage(p, "手牌已满");
+            return;
+        }
+        if (p.draw_pile.IsEmpty()) {
+            EmptyDeckShuffleAction(p);
+        }
+        define card! = p.draw_pile.DrawTop();
+        if (card == null) {
+            return;
+        }
+        p.hand.Add(card);
+        TriggerCardDraw(p, card);
+    }
+}
+
+void PlayCardAction(in Player p = EventPlayer(), in Card card, in Any target = null) {
+    define picked! = p.hand.RemoveByValue(card);
+    if (picked == null) {
+        return;
+    }
+    p.limbo.Add(picked);
+    define def! = GetCardDef(picked);
+    if (def != null) {
+        def.OnPlay(p, picked, target);
+    }
+    TriggerCardPlay(p, picked, target);
+    if (!p.pending_card_active) {
+        p.limbo.MoveAllTo(p.discard_pile);
+    }
+}
+
+void DiscardAction(in Player p = EventPlayer(), in Card card = null) {
+    define picked! = card;
+    if (picked == null) {
+        picked = p.hand.DrawTop();
+    } else {
+        picked = p.hand.RemoveByValue(picked);
+    }
+    if (picked == null) {
+        return;
+    }
+    p.limbo.Add(picked);
+    p.limbo.MoveAllTo(p.discard_pile);
+}
+
+// Example limbo card: Aim Strike (requires confirm to resolve)
+class CardDef_AimStrike : CardDef {
+    public constructor() {
+        Id = 0;
+        Name = "Aim Strike";
+        Description = "Enter limbo. Confirm to strike.";
+        ManaCost = 1;
+    }
+
+    public override void OnPlay(Player p, Card card, Any target) {
+        p.pending_card_active = true;
+        p.pending_card = card;
+        SmallMessage(p, "Hold Primary Fire to confirm");
+    }
+
+    public override void OnUse(Player p, Card card, Any action) {
+        define hitPos! = action;
+        if (hitPos != null) {
+            PlayEffect(Type: PlayEffect.BadExplosion, Color: Color.Orange, Position: hitPos, Radius: 1);
+        }
+    }
+}
+
+rule: "Init CardDefs"
+{
+    if (!CardDefsInitialized) {
+        CardDefs[0] = new CardDef_AimStrike();
+        CardDefsInitialized = true;
+    }
+}
+
+rule: "Resolve Pending Card"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(pending_card_active)
+if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    define hitPos! = RayCastHitPosition(
+        StartPOS: EyePosition(EventPlayer()),
+        EndPOS: EyePosition(EventPlayer()) + FacingDirectionOf(EventPlayer()) * 30,
+        PlayersToExclude: AllPlayers()
+    );
+    define card! = pending_card;
+    define def! = GetCardDef(card);
+    if (def != null) {
+        def.OnUse(EventPlayer(), card, hitPos);
+    }
+    pending_card_active = false;
+    limbo.RemoveByValue(card);
+    discard_pile.Add(card);
+    MinWait();
+}

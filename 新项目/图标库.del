@@ -1,0 +1,10 @@
+enum PresetIcon{
+    None,
+    RingThin
+}
+
+globalvar String[] Icon_Pool = [
+    '',
+    IconString(Icon.RingThin)
+];
+

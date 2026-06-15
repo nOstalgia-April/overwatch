@@ -1,0 +1,29 @@
+single struct Perk {
+    public Number ID;
+    public String Name;
+    public String Icon;
+    public String Description;
+    public Hero[] ofHeroes;
+    public Number Tier;
+}
+
+globalvar Perk[] Perk_Pool = [];
+globalvar Number PerkUniqueID = -1;
+
+Number NewPerk(String name, String icon, String description, Hero[] ofHeroes, Number tier){
+    PerkUniqueID++;
+    Perk_Pool += {
+        ID: PerkUniqueID,
+        Name: name,
+        Icon: icon,
+        Description: description,
+        ofHeroes: ofHeroes,
+        Tier: tier
+    };
+    return PerkUniqueID;
+}
+
+enum PerkName{
+    
+}
+

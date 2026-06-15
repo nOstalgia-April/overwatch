@@ -1,0 +1,121 @@
+import '新项目菜单.del';
+import '塔防怪物.del';
+import '塔防寻路.del';
+import '塔防核心波数控制.del';
+rule: '解压缩'
+{
+    InitializeMenu();
+    TowerPF_Init();
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsGameInProgress())
+if(HasSpawned())
+{
+    Teleport(EventPlayer(),Position: CorePos);
+}
+rule: '打开通用技能树'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact)&&IsButtonHeld(Button: Button.Crouch))
+{
+    if(isInMenu){
+        CloseMenu();
+        
+    }else if(DirectorState.InIntermission){
+        OpenMenu(EventPlayer(),MenuActive.CurrentSkillTreeMenu);
+    }
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: '可以同时按下 蹲+互动 开关技能树',
+        VisibleTo: DirectorState.InIntermission?AllPlayers():null
+    );
+    CreateHudText(
+        Header: <'金币: <0>',LocalPlayer().Coin>,
+        Location: Location.Right
+    );
+}
+
+rule: 'My Player Rule'
+Event.OnFinalBlow
+Team.Team2
+Player.All
+{
+    define c;
+    if(Victim().BotRole==ActionRole.CoreAttacker){
+        c = RandomInteger(12,32);
+    }
+    else{
+        c = RandomInteger(40,70);
+    }
+    Coin += c;
+    SmallMessage(
+        VisibleTo: EventPlayer(),
+        Header: '获得 金币+'+c
+    );
+}
+
+rule: 'My Rule'
+if(IsGameInProgress())
+if(TD_ready)
+if(DirectorState.CurrentWaveIndex == -1)
+{
+    WaveDirector_StartWave(0);
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    DisableRespawning();
+    DisableCompletion();
+    DisableMessages();
+    DisableKillFeed();
+    DisableGameModeHud();
+    DisableGameModeInworldUI();
+    DisableAnnouncer();
+    DisableMessages();
+    DisableMusic();
+    //DisableScoreboard();
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(IsDead())
+{
+    BigMessage(VisibleTo: EventPlayer(),Header: '等待5s复活！');
+    Wait(5);
+    Resurrect();
+    Teleport(EventPlayer(),Position: CorePos);
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+if(false)
+{
+    Wait(3,WaitBehavior.AbortWhenFalse);
+    SetAllowedHeroes(Hero: FilteredArray(AvailableHero,ArrayElement()!=HeroOf()));
+    Wait(0.1);
+    SetAllowedHeroes(Hero: AvailableHero);
+}
+globalvar Hero[] AvailableHero;
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    AvailableHero = AllowedHeroes();
+}

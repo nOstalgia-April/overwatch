@@ -1,0 +1,126 @@
+
+
+class Instance{
+    public Number TimeStamp;
+    public Player[] Players;
+    public Player[] Bots;
+    public InstanceData Data;
+    public Boolean isActive;
+    public Boolean isAvailable;
+    public void RoomInitialize(){
+        Roominitialize();
+        TimeStamp = TotalTimeElapsed();
+        isActive = true;
+        Instances_Active += this;
+    }
+        public virtual void Roominitialize(){
+            if(true){}
+        }
+    public void PlayerInitialize(){
+        Players += EventPlayer();
+        Playerinitialize();
+    }
+        public virtual void Playerinitialize(){
+            if(true){}
+        }
+    public void RoomEnd(){
+        isActive = false;
+        foreach(Player bot in Bots){
+            DestroyDummyBot(
+                Team: Team.Team1,
+                SlotOf(bot)
+            );
+        }
+        Roomend();
+    }
+        public virtual void Roomend(){
+            if(true){}
+        }
+    public virtual void RoomVictory(){
+
+    }
+    public Number GetTime(){
+        return TotalTimeElapsed()-TimeStamp;
+    }
+    public virtual Boolean Available(){
+        return true;
+    }
+    public virtual Boolean EndCondition(){
+        return false;
+    }
+
+
+    public String GetString(){
+    return this.Data.Name+'：\n\n  '+this.Data.Des+'\n\n=='+'最小人数：'+this.Data.MinPlayers+'  '+'限时：'+this.Data.Time+'秒'+'\n'+(this.isActive?'正在运行中...'+'\n\n'+'开始时间：'+this.GetTime()+'秒':'')+'\n'+'“区域内要求等级内的玩家同时按下蹲键进入副本”';
+    }
+}
+
+
+globalvar InstanceData[] InstanceData_Pool = [];
+single struct InstanceData {
+    public String Name;
+    public Number MinPlayers;
+    public Number Time;
+    public Vector Pos;
+    public String Des;
+}
+globalvar Instance[] Instances = [];
+globalvar Boolean Instances_Init = false;
+rule: '初始化副本'
+if(Instances_Init)
+{
+    foreach(Instance data in Instances){
+        CreateEffect(
+            VisibleTo: EvaluateOnce(data).isAvailable?AllPlayers(),
+            Type: Effect.Ring,
+            Color: Color.Red,
+            Position: EvaluateOnce(data).Data.Pos,
+            Radius: 4
+        );
+        CreateInWorldText(
+            VisibleTo: AllPlayers(),
+            Header: IconString(Icon.Spiral)+(EvaluateOnce(data)).Data.Name+IconString(Icon.Spiral),
+            Position: EvaluateOnce(data).Data.Pos+Vector(0,2,0),
+            Scale: 3,
+            Clipping: Clipping.ClipAgainstSurfaces,
+            TextColor: Color.Red
+        );
+    }
+    CreateInWorldText(
+        VisibleTo: Instances.IsTrueForAny(t=>DistanceBetween(t.Data.Pos,LocalPlayer())<=8&&t.Data.Pos != null) && IsAlive(LocalPlayer()) ? LocalPlayer() : null,
+        Header: Instances.Filter(t=>DistanceBetween(t.Data.Pos,LocalPlayer())<=8).First.GetString(),
+        Position: UpdateEveryFrame(EyePosition(LocalPlayer())+FacingDirectionOf(LocalPlayer())*2),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+playervar Instance theInstance;
+globalvar Instance[] Instances_Active = [];
+rule: '触发副本'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+{
+    theInstance = Instances.Filter(t=>t.Available()&&DistanceBetween(t.Data.Pos,EventPlayer().Position())<=4).Sort(t=>DistanceBetween(t.Data.Pos,EventPlayer().Position())).First;
+    Player[] RangePlayers = PlayersWithinRadius(theInstance.Data.Pos, 4,Team.Team2,RadiusLOS.Surfaces).Filter(t=>IsAlive(t));
+    if(RangePlayers.Filter(t=>t.IsButtonHeld(Button.Crouch)).Length>=theInstance.Data.MinPlayers){
+        theInstance.RoomInitialize();
+        theInstance.Players = RangePlayers.Filter(t=>t.IsButtonHeld(Button.Crouch));
+    }
+}
+
+rule: '加入副本'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+{
+    theInstance = Instances.Filter(t=>t.Available()&&DistanceBetween(t.Data.Pos,EventPlayer().Position())<=4).Sort(t=>DistanceBetween(t.Data.Pos,EventPlayer().Position())).First;
+    if(theInstance.isActive){
+        theInstance.PlayerInitialize();
+    }
+}

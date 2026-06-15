@@ -1,0 +1,155 @@
+变量
+{
+	全局:
+		0: nodes_location
+		1: nodes_link
+
+	玩家:
+		30: bot_start
+		33: bot_now_groups
+		34: bot_for_1
+		35: bot_now
+		36: bot_visited
+		37: bot_now_weight
+		38: bot_nodes_distance
+		39: bot_now_ID
+		41: bot_nodes_preset_now
+}
+
+子程序
+{
+	51: Sub51
+	53: Sub53
+}
+
+规则("初始化")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		全局.nodes_distance = 空数组;
+		全局.nodes_preset_now = 空数组;
+		For 全局变量(for_1, 0, 数量(全局.nodes_location), 1);
+			修改全局变量(nodes_distance, 添加至数组, 9999);
+			修改全局变量(nodes_preset_now, 添加至数组, -1);
+		End;
+		全局.nodes_basic_distance = 空数组;
+		For 全局变量(for_1, 0, 数量(全局.nodes_location), 1);
+			全局.nodes_basic_distance[全局.for_1] = 空数组;
+			全局.now_groups = 全局.nodes_link[全局.for_1];
+			For 全局变量(for_2, 0, 数量(全局.now_groups), 1);
+				在索引处修改全局变量(nodes_basic_distance, 全局.for_1, 添加至数组, 
+					相距距离(全局.nodes_location[全局.for_1], 全局.nodes_location[全局.now_groups[全局.for_2]]));
+			End;
+		End;
+	}
+}
+规则("sub53 最短路径模块Dijstra")
+{
+    事件
+    {
+        子程序;
+        Sub53;
+    }
+
+    动作
+    {
+        While(真);
+            等待(0.0250, 无视条件);
+            // 如果是第一次迭代，初始化为起点
+            If(事件玩家.is_first_iteration == 真);
+                事件玩家.now = 事件玩家.start;
+                事件玩家.now_ID = 数组值的索引(事件玩家.nodes_location, 事件玩家.now);
+                事件玩家.is_first_iteration = 假;
+            Else;
+                // 选择未标记节点中离出发点最近的
+                事件玩家.unvisited_nodes = 已过滤的数组(事件玩家.nodes_location, 数组包含(事件玩家.visited, 当前数组元素) == 0);
+                事件玩家.unvisited_nodes_distance = 已过滤的数组(事件玩家.nodes_distance, 数组值的索引(事件玩家.nodes_location, 事件玩家.unvisited_nodes));
+                If(数量(事件玩家.unvisited_nodes) == 0);
+                    中止;
+                End;
+                事件玩家.now_ID = 数组值的索引(事件玩家.nodes_distance, 首个(已排序的数组(事件玩家.unvisited_nodes_distance, 当前数组元素)));
+                事件玩家.now = 事件玩家.nodes_location[事件玩家.now_ID];
+            End;
+
+            // 标记当前节点为已访问
+            事件玩家.visited[事件玩家.now_ID] = 1;
+
+            // 获取当前节点的邻接节点组
+            事件玩家.now_groups = 事件玩家.nodes_link[事件玩家.now_ID];
+
+            // 遍历邻接节点
+            For 玩家变量(事件玩家, for_1, 0, 数量(事件玩家.now_groups), 1);
+                If(事件玩家.visited[事件玩家.now_groups[事件玩家.for_1]] == 0);
+                    // 使用预计算的距离
+                    事件玩家.now_weight = 事件玩家.nodes_basic_distance[事件玩家.now_ID][事件玩家.for_1];
+                    事件玩家.maybe_distance = 事件玩家.nodes_distance[事件玩家.now_ID] + 事件玩家.now_weight;
+                    // 更新距离和前驱节点
+                    If(事件玩家.maybe_distance < 事件玩家.nodes_distance[事件玩家.now_groups[事件玩家.for_1]]);
+                        事件玩家.nodes_distance[事件玩家.now_groups[事件玩家.for_1]] = 事件玩家.maybe_distance;
+                        事件玩家.nodes_preset_now[事件玩家.now_groups[事件玩家.for_1]] = 事件玩家.now_ID;
+                    End;
+                End;
+            End;
+
+            // 如果终点已被访问，终止
+            If(事件玩家.visited[数组值的索引(事件玩家.nodes_location, 事件玩家.end)] == 1);
+                中止;
+            End;
+        End;
+    }
+}
+
+
+规则("sub51 玩家初始化寻路，即将调用最短路径模块")
+{
+    事件
+    {
+        子程序;
+        Sub51;
+    }
+
+    动作
+    {
+        事件玩家.nodes_location = 全局.nodes_location;
+        事件玩家.nodes_link = 全局.nodes_link;
+        事件玩家.visited = 映射的数组(事件玩家.nodes_location, 0); // 所有节点未访问
+        事件玩家.nodes_distance = 映射的数组(事件玩家.nodes_location, 9999); // 所有距离为无穷大
+        事件玩家.nodes_distance[数组值的索引(事件玩家.nodes_location, 事件玩家.start)] = 0; // 起点距离为0
+        事件玩家.nodes_preset_now = 映射的数组(事件玩家.nodes_location, -1); // 前驱节点初始化为-1
+        事件玩家.is_first_iteration = 真; // 标记第一次迭代
+        事件玩家.nodes_basic_distance = 全局.nodes_basic_distance;
+        调用子程序(Sub53); // 直接调用 Sub53
+        调用子程序(Sub54);
+    }
+}
+
+规则("sub54 生成路径图")
+{
+    事件
+    {
+        子程序;
+        Sub54;
+    }
+
+    动作
+    {
+        事件玩家.path = 空数组;
+        事件玩家.current = 事件玩家.end;
+        While(事件玩家.current != 事件玩家.start);
+            修改玩家变量(事件玩家, path, 添加至数组, 事件玩家.current);
+            事件玩家.current = 事件玩家.nodes_location[事件玩家.nodes_preset_now[数组值的索引(事件玩家.nodes_location, 事件玩家.current)]];
+        End;
+        修改玩家变量(事件玩家, path, 添加至数组, 事件玩家.start);
+        事件玩家.path = 已排序的数组(事件玩家.path, 当前数组索引 * -1); // 反转路径
+        For 玩家变量(事件玩家, for_1, 0, 数量(事件玩家.path) - 1, 1);
+    创建光束效果(所有玩家(所有队伍), 抓钩光束, 事件玩家.path[事件玩家.for_1], 事件玩家.path[事件玩家.for_1 + 1], 颜色(天蓝色), 可见);
+    End;
+    }
+}
+
+

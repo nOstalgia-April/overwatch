@@ -1,0 +1,21 @@
+import '颜色池.del';
+
+enum QUALITY {
+  Average,
+  Rare,
+  Epic,
+  Legendary,
+  Unique
+}
+globalvar Color[] QUALITY_Light_Colors = [
+  EpicColor_Light,
+  ColdWhite_Light,
+  RareColor_Light
+];
+globalvar String[] QUAILITY_Names = [
+  "普通",
+  "稀有",
+  "史诗",
+  "传说",
+  "独特"
+];

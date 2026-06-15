@@ -1,0 +1,226 @@
+import pyperclip
+
+# 定义128位映射表
+dictionary = "0123456789~!@#$%^&*_+[];',./{}:|<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ=`¡¢£¤¥¦§©ª¬®¯°±²³µ¿ØĀāĂăĄąĆćĈĉĊċČčĎďĐđĒē"
+# 添加一个特殊字符作为负数标记（选择字典中不常用的字符）
+NEGATIVE_SIGN = '​​Ω'
+FLOAT_SIGN = '∑'
+DIVIDE_SIGN = '∞'
+VECTOR_SEPARATOR = '∫'
+LEFT_BRACKET = '【'
+RIGHT_BRACKET = '】'
+
+def compress_number(num):
+    """压缩单个数字为映射表中的字符或128进制表示，处理负数"""
+    is_negative = num < 0
+    abs_num = abs(num)
+    
+    if abs_num < len(dictionary):
+        result = dictionary[abs_num]
+    else:
+        result = []
+        while abs_num > 0:
+            remainder = abs_num % len(dictionary)
+            result.append(dictionary[remainder])
+            abs_num = abs_num // len(dictionary)
+        result = ''.join(reversed(result))
+    
+    # 如果是负数，添加负号前缀
+    return f"{NEGATIVE_SIGN}{result}" if is_negative else result
+
+def compress_item(item):
+    """压缩单个元素（数字、字符串、列表或向量）"""
+    if isinstance(item, float):
+        # 处理小数：保留三位精度，乘以1000，并标记为\f
+        rounded = round(item, 3)
+        scaled = int(rounded * 1000)
+        return f"{FLOAT_SIGN}{compress_number(scaled)}"
+    elif isinstance(item, int):
+        return f"{compress_number(int(item))}"
+    elif isinstance(item, str):
+        return f"s{item}"
+    elif isinstance(item, tuple) and len(item) == 3:  # 向量处理
+        return f"v{compress_item(item[0])}{VECTOR_SEPARATOR}{compress_item(item[1])}{VECTOR_SEPARATOR}{compress_item(item[2])}"
+    elif isinstance(item, list):  # 列表处理（单层）
+        compressed_items = [compress_item(sub) for sub in item]
+        return f"{LEFT_BRACKET}{DIVIDE_SIGN.join(compressed_items)}{RIGHT_BRACKET}"  # 改为方括号
+    else:
+        raise ValueError(f"Unsupported item type: {type(item)}")
+
+def compress(input_data):
+    """压缩数据"""
+    if isinstance(input_data, list):
+        compressed_items = [compress_item(item) for item in input_data]
+        return DIVIDE_SIGN.join(compressed_items)  # 移除外层的方括号
+    else:
+        return compress_item(input_data)  # 直接返回压缩后的单个元素
+
+def split_into_chunks(text, chunk_size=128):
+    """将字符串分割成指定大小的块，确保不分割嵌套结构和单个数据项"""
+    chunks = []
+    current_chunk = ""
+    
+    # 按数据项分隔符（反斜杠）拆分，但保留嵌套结构的完整性
+    items = []
+    i = 0
+    n = len(text)
+    
+    while i < n:
+        if text[i] == LEFT_BRACKET:
+            # 找到匹配的】
+            depth = 1
+            j = i + 1
+            while j < n and depth > 0:
+                if text[j] == LEFT_BRACKET:
+                    depth += 1
+                elif text[j] == RIGHT_BRACKET:
+                    depth -= 1
+                j += 1
+            # 提取完整的嵌套结构
+            nested_item = text[i:j]
+            items.append(nested_item)
+            i = j
+        else:
+            # 普通项，找到下一个反斜杠或结束
+            j = i
+            while j < n and text[j] != DIVIDE_SIGN:
+                j += 1
+            item = text[i:j]
+            items.append(item)
+            i = j + 1 if j < n else j
+    
+    # 现在items中包含完整的嵌套结构和普通项
+    for item in items:
+        # 跳过空项
+        if not item:
+            continue
+            
+        # 如果当前块为空，直接添加
+        if not current_chunk:
+            new_chunk = item
+        else:
+            # 尝试添加分隔符和当前项
+            new_chunk = current_chunk + DIVIDE_SIGN + item
+        
+        # 检查是否超出块大小
+        if len(new_chunk) <= chunk_size:
+            current_chunk = new_chunk
+        else:
+            # 如果添加后超出大小，保存当前块并开始新块
+            if current_chunk:
+                chunks.append(f'"{current_chunk}"')
+            current_chunk = item
+    
+    # 添加最后一个块
+    if current_chunk:
+        chunks.append(f'"{current_chunk}"')
+    
+    return chunks
+
+# 示例使用
+if __name__ == "__main__":
+    test_data = [
+        (-31.290, 4.550, 39.807),
+(-16.279, 6.500, 39.847),
+(-5.221, 8.500, 44.289),
+(-6.166, 10.500, 34.596),
+(-11.134, 10.551, 30.036),
+(-8.087, 10.549, 26.945),
+(1.377, 7.549, 21.287),
+(-1.349, 6.390, 17.047),
+(-18.548, 6.389, 28.763),
+(-31.655, 6.389, 31.343),
+(-44.665, 6.549, 33.206),
+(-46.938, 6.551, 23.636),
+(-13.292, 11.049, 19.126),
+(-6.143, 6.391, 12.208),
+(-14.892, 6.554, 16.419),
+(-19.007, 6.389, 9.551),
+(-11.718, 6.412, 4.259),
+(-3.138, 6.550, -7.425),
+(-18.857, 6.401, 5.647),
+(-28.181, 6.549, 21.746),
+(-27.681, 6.391, 14.610),
+(-52.338, 8.549, 30.984),
+(-54.125, 8.550, 9.823),
+(-48.976, 8.549, 9.416),
+(-51.312, 9.550, 3.457),
+(-54.546, 9.549, -1.917),
+(-49.097, 9.550, -1.921),
+(-50.950, 9.550, -7.525),
+(-50.835, 11.549, -13.038),
+(-25.336, 8.551, 9.252),
+(-27.676, 10.549, 2.481),
+(-19.347, 10.550, -4.126),
+(-19.564, 10.549, -9.575),
+(-30.795, 11.442, -9.139),
+(-44.277, 11.550, -12.613),
+(-41.065, 6.389, 9.838),
+(-41.037, 7.549, -6.545),
+(-37.735, 7.553, -22.837),
+(-36.786, 7.549, -36.927),
+(-37.382, 6.397, 6.624),
+(-35.447, 6.391, -14.324),
+(-21.048, 6.390, -12.974),
+(-28.142, 6.390, -3.294),
+(-30.38, 7.105, -8.964),
+(-7.838, 6.551, -15.830),
+(-2.463, 6.549, 8.341),
+(7.648, 7.246, 8.326),
+(11.751, 9.551, 1.479),
+(3.309, 6.551, -9.988),
+(-2.024, 6.550, -13.651),
+(-39.958, 7.550, -15.285),
+(-58.609, 11.549, -14.503),
+(-57.234, 11.549, -23.874),
+(-56.951, 11.550, -35.874),
+(-50.900, 11.549, -36.586),
+(-50.398, 13.500, -27.583),
+(-52.027, 13.624, -24.327),
+(-43.254, 13.500, -21.076),
+(-44.324, 11.550, -35.959),
+(-40.466, 10.550, -29.658),
+(-35.818, 10.547, -29.414),
+(-21.072, 10.550, -26.188),
+(-21.842, 10.549, -19.463),
+(-11.877, 10.561, -34.012),
+(-0.602, 9.549, -46.427),
+(-9.527, 10.594, -30.879),
+(-12.894, 8.551, -25.437),
+(-7.327, 6.550, -19.952),
+(-7.069, 6.549, -29.373),
+(-11.953, 6.550, -33.415),
+(-16.072, 6.551, -27.655),
+(-22.544, 6.500, -30.631),
+(-32.521, 7.550, -43.923),
+(-29.732, 8.549, -36.950),
+(-30.307, 7.549, -48.414),
+(-26.348, 6.391, -45.107),
+(-42.474, 9.549, -51.589),
+(-34.693, 8.083, -50.797),
+(-14.789, 7.578, -52.390),
+(-9.133, 7.550, -49.368),
+(6.421, 8.550, -41.327),
+(13.849, 8.551, -34.815),
+(9.808, 7.550, -25.364),
+(8.661, 6.551, -13.110),
+(4.352, 6.549, -13.160),
+(4.445, 7.549, -24.975),
+(2.319, 7.550, -36.445),
+(-2.283, 5.474, -31.382),
+(-15.217, 5.500, -43.304),
+(-23.030, 7.551, -35.503),
+(-15.754, 6.500, 43.598)
+
+    ]
+    compressed = compress(test_data)
+    print("原始输入:", test_data)
+    print("压缩结果:", compressed)
+    
+    # 将压缩结果分割成128字节的块
+    chunks = split_into_chunks(compressed, 128)
+    print(f"\n分割后的{len(chunks)}节块:")
+    chunks_joined = ",".join(chunks)
+    print(chunks_joined)
+
+    pyperclip.copy(chunks_joined)

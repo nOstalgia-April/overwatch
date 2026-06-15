@@ -1,0 +1,57 @@
+import '菜单.del';
+import '颜色池.del';
+playervar Number level = 1;
+playervar Number exp = 0;
+
+Number EXP_to_Level(in Number level):
+    75 * (level^1.1) + 100;
+
+rule: 'My Player Rule'
+Event.OnElimination
+Team.All
+Player.All
+{
+    define Temp_EXP = Max(RandomInteger(30,60)*Victim().level,10);
+    exp += Temp_EXP;
+    SmallMessage(EventPlayer(),<'经验+<0>',Temp_EXP>);
+    if(exp>EXP_to_Level(level)){
+        PlayEffect(Type: PlayEffect.GoodPickupEffect,Color: Color.Orange,Position: EventPlayer());
+        PlayEffect(Type: PlayEffect.RingExplosion,Color: Color.Orange,Position: EventPlayer(),VisibleTo: EventPlayer());
+        PlayEffect(VisibleTo: EventPlayer(),Position: EventPlayer(),Type: PlayEffect.BuffImpactSound,Radius: 200);
+        BigMessage(EventPlayer(),'升级了！！');
+        level++;
+        exp = 0;
+    }
+}
+rule: 'My Rule'
+{
+    //经验条
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Value: 100*LocalPlayer().exp/EXP_to_Level(LocalPlayer().level),
+            Text: '',
+            Position: MenuButtonPosition_Local(PosX: 0,PosY: -3.17),
+            Scale: 1.6,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: EXP_Color_Light,
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'当前等级<2>     Exp <0>/<1>',LocalPlayer().exp,EXP_to_Level(LocalPlayer().level),LocalPlayer().level>,
+            Position: MenuButtonPosition_Local(0,-2.8),
+            Scale: 1.3,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.White
+        );
+}
+
+void LevelUpActions(){
+
+}
+
+void RegisterLevelUpActions(()=>void action){
+    
+}

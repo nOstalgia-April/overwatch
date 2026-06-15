@@ -1,0 +1,84 @@
+
+playervar ShuxingBase[] shuxing;
+
+struct ShuxingBase {
+    public Number Abs = 100;
+    public Number Percent;
+    public static ShuxingBase New(in Number abs, in Number percent): {Abs: abs, Percent: percent};
+    public ref void ModAbs(in Number mod){
+        Abs += mod;
+    }
+    public ref void ModPercent(in Number mod){
+        Percent += mod;
+    }
+    public Number GetValue(){
+        return Abs * (1 + Percent / 100);
+    }
+}
+globalvar String[] Shuxing_Names = ["攻击", "生命", "速度", "治疗", "护甲", "护盾", "减伤"];
+
+globalvar ShuxingBase[] shuxing_templet = [
+    // 攻击, 生命, 速度, 治疗, 护甲, 护盾, 减伤
+    ShuxingBase.New(100, 0),
+    ShuxingBase.New(0, 0),
+    ShuxingBase.New(100, 0),
+    ShuxingBase.New(0, 0),
+    ShuxingBase.New(230, 0),
+    ShuxingBase.New(100, 0),
+    ShuxingBase.New(30, 0)
+];
+ShuxingBase Attack(in Player p = EventPlayer()) : p.shuxing[0];
+ShuxingBase Healths(in Player p = EventPlayer()) : p.shuxing[1];
+ShuxingBase Speed(in Player p = EventPlayer()) : p.shuxing[2];
+ShuxingBase Heal(in Player p = EventPlayer()) : p.shuxing[3];
+ShuxingBase Armors(in Player p = EventPlayer()) : p.shuxing[4];
+ShuxingBase Shields(in Player p = EventPlayer()) : p.shuxing[5];
+ShuxingBase Reduction(in Player p = EventPlayer()) : p.shuxing[6];
+
+
+enum Shuxing {
+    Attack,
+    Healths,
+    Speed,
+    Heal,
+    Armors,
+    Shields,
+    Reduction
+}
+rule: '测试，玩家初始化属性'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!IsDummyBot())
+{
+    shuxing = shuxing_templet;
+}
+
+rule: '持续赋值属性实现'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+if(!IsDummyBot())
+{
+    AddHealthPoolToPlayer(HealthType: HealthType.Armor,Player: EventPlayer(),MaxHealth: Armors().GetValue(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Shields,Player: EventPlayer(),MaxHealth: Shields().GetValue(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Health,Player: EventPlayer(),MaxHealth: Healths().GetValue(),Recoverable: true,Reevaluation: true);
+}
+
+void RevShuxing(Player p! = EventPlayer())'sub属性持续赋值'{
+    SetMoveSpeed(p,Speed(p).GetValue()); 
+    SetDamageDealt(p,Attack(p).GetValue());
+    SetDamageReceived(p,Max(20,100*100/(100+1.5 *Reduction(p).GetValue())));
+    SetHealingDealt(p,Heal(p).GetValue());
+}
+
+rule: 'HUD文本显示属性面板'
+{
+    CreateHudText(Text: <'<0><1>\n<2>',HeroIconString(HeroOf(LocalPlayer())),LocalPlayer(),<'——————————————————★\n✰<0>\n✰<1>\n✰<2>\n—————————★',<'攻击: <0>  生命: <1>  速度: <2>',Attack(LocalPlayer()).GetValue(),Healths(LocalPlayer()).GetValue(),Speed(LocalPlayer()).GetValue()>,<'治疗: <0>  护甲: <1>  护盾: <2>',Heal(LocalPlayer()).GetValue(),Armors(LocalPlayer()).GetValue(),Shields(LocalPlayer()).GetValue()>,<'减伤: <0>',Reduction(LocalPlayer()).GetValue()>>>
+    ,
+    Location: Location.Left,
+    SortOrder: -9999,
+    TextColor: Color.Yellow 
+    );
+}

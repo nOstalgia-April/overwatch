@@ -1,0 +1,81 @@
+import '解压形式寻路.del';
+rule: 'My Rule'
+if(IsAssemblingHeroes())
+{
+    SetMatchTime(5);
+}
+
+rule: 'My Rule'
+if(IsGameInProgress())
+if(AllPlayers().Length<18)
+{
+    CreateDummyBot(
+        Hero: Hero.Torbjorn,
+        Team: Team.Team1,
+        Position: RandomValueInArray(nodes_location)
+    );
+    LastCreatedEntity().bot_type = BotType.Zombie;
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+
+// 规则：机器人战斗时自动开火
+rule: "机器人战斗时自动开火"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(is_fighting)
+if(IsDummyBot() && IsAlive())
+{
+    SetMoveSpeed(EventPlayer(), 80);
+    StartHoldingButton(EventPlayer(), Button.PrimaryFire); // 持续开火
+    Wait(1.5); // 持续 2 秒
+    StopHoldingButton(); // 停止开火
+    if(bot_type == BotType.CannonWalker){
+        PressButton(EventPlayer(), Button.Ability1);
+    }
+    Wait(4); // 等待 1 秒
+    if(bot_type == BotType.Zombie&&DistanceBetween(EventPlayer(),bot_target)<=4){
+        SetStatus(EventPlayer(),null,Status.Rooted,1);
+        Wait(1);
+    }
+    LoopIfConditionIsTrue(); // 循环开火
+}
+
+rule: '僵尸初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+{
+    switch(bot_type){
+        case BotType.Zombie:
+            SetDamageDealt(EventPlayer(), 50);
+            break;
+        case BotType.CannonWalker:
+            //AddHealthPoolToPlayer(EventPlayer(), HealthType.Health, 600,1,1);
+            break;
+    }
+}
+playervar BotType bot_type;
+enum BotType{
+    Zombie = 1,
+    CannonWalker = 2
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+{
+    Teleport(
+        Player: EventPlayer(),
+        Position: EyePosition()+10*FacingDirectionOf()
+    );
+}
+rule: 'My Rule'
+{
+    Initialize_pf();
+}

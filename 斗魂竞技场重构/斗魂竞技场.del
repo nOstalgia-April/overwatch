@@ -1,0 +1,86 @@
+// 队伍颜色管理
+single struct TeamColorState {
+    public Color[] Pool;
+}
+
+globalvar TeamColorState TeamColorManager;
+
+void ResetTeamColorPool(){
+    TeamColorManager.Pool = [Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple, Color.Orange, Color.Aqua, Color.Turquoise, Color.Violet];
+}
+
+Color PopTeamColor(){
+    if(TeamColorManager.Pool.Length == 0){
+        ResetTeamColorPool();
+    }
+    Color nextColor! = TeamColorManager.Pool[0];
+    TeamColorManager.Pool.ModRemoveByIndex(0);
+    return nextColor;
+}
+
+globalvar Number UniqueTeamID = 0;
+globalvar PlayTeam[] AllTeams = [];
+
+class PlayTeam{
+    public Number ID;
+    public Player[] Members;
+    public PlayTeam Opponent;
+    public Color TeamColor;
+    public Number Health;
+    public Number ByeCount;
+
+    public constructor(Player[] members)'新队伍初始化'{
+        UniqueTeamID++;
+        this.ID = UniqueTeamID;
+        this.TeamColor = PopTeamColor();
+        this.Members = members;
+        this.Health = 100;
+        this.ByeCount = 0;
+        AllTeams += this;
+        foreach(Player p in members){
+            p.PlayerTeam = this;
+            this.MemberInitEffects(p);
+            p.TeamMate = members.Filter(m => m != p);
+        }
+    }
+
+    public void MemberInitEffects(Player p)'初始化成员特效'{
+        CreateEffect(
+            VisibleTo: p,
+            Type: Effect.Ring,
+            Color: this.TeamColor,
+            Position: p,
+            Radius: 1.25,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+    }
+
+    public void AddMember(Player member)'添加成员'{
+        this.Members += member;
+        member.PlayerTeam = this;
+        member.TeamMate = this.Members.Filter(m => m != member);
+        this.MemberInitEffects(member);
+    }
+
+    static void CreateOddTeam(Player lonePlayer)'创建单人队伍'{
+        PlayTeam oddTeam = new PlayTeam([lonePlayer]);
+        oddTeam.MemberInitEffects(lonePlayer);
+    }
+}
+
+playervar PlayTeam PlayerTeam = null;
+playervar Player TeamMate;
+
+void DivisionSetup(){
+    Player[] shuffledPlayers = AllPlayers().Randomize();
+    ResetTeamColorPool();
+    AllTeams = [];
+
+    for(define index=0; index + 1 < shuffledPlayers.Length; index += 2){
+        new PlayTeam([shuffledPlayers[index], shuffledPlayers[index + 1]]);
+    }
+
+    if(shuffledPlayers.Length % 2 != 0){
+        PlayTeam.CreateOddTeam(shuffledPlayers.Last);
+    }
+}

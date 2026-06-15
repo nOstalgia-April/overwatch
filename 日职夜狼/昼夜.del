@@ -1,0 +1,44 @@
+globalvar Boolean is_day = true;
+globalvar Number Day_Night_Counter = 0;
+
+Number DayTime : 60;
+Number NightTime : 30;
+//出于实际，这里的Day实际上也是夜晚，但是Night指的是月圆之夜
+rule: '时钟运行'
+{
+    ChaseVariableAtRate(
+        variable: Day_Night_Counter,
+        destination: 0,
+        rate: 1,
+        reevaluation: RateChaseReevaluation.DestinationAndRate
+    );
+    CreateHudText(
+        Header: <'<0>剩余时间',is_day?'下一次月圆: ':'月圆之夜剩余时间: '>+Day_Night_Counter,
+    );
+}
+rule: '日夜交替'
+if(Day_Night_Counter == 0)
+{
+    if(is_day){
+        DayToNight();
+        is_day = false;
+        Day_Night_Counter = NightTime;
+    }else{
+        NightToDay();
+        is_day = true;
+        Day_Night_Counter = DayTime;
+    }
+}
+
+void DayToNight(){
+    BigMessage(
+        AllPlayers(),
+        '月圆之夜降临了',
+    );
+}
+void NightToDay(){
+    BigMessage(
+        AllPlayers(),
+        '月圆之夜结束了',
+    );
+}

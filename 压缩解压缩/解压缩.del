@@ -1,0 +1,88 @@
+globalvar String Dictionary = "0123456789~!@#$%^&*_+[];',./{}:|<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ=`¡¢£¤¥¦§©ª¬®¯°±²³µ¿ØĀāĂăĄąĆćĈĉĊċČčĎďĐđĒē";
+globalvar String[] _Input = ['[sButton1\0\0\3\1\[0]\s等级【0】\sButton1]\[sButton2\0\0\3\1\[0]\s等级【0】\sButton2]'];
+// 主解压函数
+Any[] Decompress(String[] compressed_datas!)'' {
+    Any[] output! = [];
+    foreach(String compressed_data! in compressed_datas) {
+        String[] items! = split_with_braces(compressed_data);
+        foreach(String item! in items) {
+            output[output.Length] = Decompress_Item(item);
+            MinWait();
+        }
+        MinWait();
+    }
+    return output;
+}
+
+recursive Any Decompress_Item(String item!)'' {
+    // 先检查是否是完整的嵌套列表（以[开头和]结尾）
+    if(item.CharAt(0) == '[' && item.CharAt(item.Length-1) == ']') {
+        Any[] nested! = [];
+        String inner! = item.Slice(1, item.Length-2);
+        String[] sub_items! = split_with_braces(inner);
+        foreach(String sub_item! in sub_items) {
+            nested[nested.Length] = Decompress_Item(sub_item);
+            MinWait();
+        }
+        return nested;
+    }
+    // 如果不是嵌套列表，再检查其他类型
+    switch(item.CharAt(0)) {
+        case 's':
+            return item.Slice(1, 999); // 返回字符串部分
+        case 'v':
+            String[] parts! = item.Slice(1, item.Length-1).Split('/');
+            return Vector(
+                GetNumber(parts[0]),
+                GetNumber(parts[1]),
+                GetNumber(parts[2])
+            );
+        default:
+            return GetNumber(item); // 返回数字部分
+    }
+}
+
+rule: '测试'
+{
+    define Test = Decompress(_Input);
+    CreateHudText(Header: CountOf(Test));
+    define test1 = Test[0];
+    define test2 = Test[1];
+    CreateHudText(Header: test1);
+    CreateHudText(Header: test2);
+}
+
+Number GetNumber(String input)'' {
+    Number num! = 0;
+    for(Number i! = 0; i < input.Length; i++){
+        String char! = input.CharAt(i);
+        num = num * 128 + Dictionary.IndexOf(char);
+        CreateHudText();
+    }
+    return num;
+}
+
+String[] split_with_braces(String input)'' {
+    String[] result! = [];
+    String current! = "";
+    Number brace_level! = 0;
+    for (Number i! = 0; i < input.Length; i++) {
+        String char = input.CharAt(i);
+        if (char == '[') {
+            brace_level++;
+            current = current + char;
+        } else if (char == ']') {
+            brace_level--;
+            current = current + char;
+        } else if (char == '\\' && brace_level == 0) {
+            result += current;
+            current = "";
+        } else {
+            current = current + char;
+        }
+    }
+    if (current != "") {
+        result += current;
+    }
+    return result;
+}

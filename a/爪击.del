@@ -1,0 +1,48 @@
+playervar define CurrentPet;
+playervar define TeamColor;
+playervar define Spell_Value1;
+playervar define For1;
+playervar define Spell_Effect1;
+playervar define Spell_Value2;
+playervar define Tempvar;
+playervar define Spell_Value3;
+playervar define Spell_Value4;
+playervar define Spell_Pos1;
+playervar define Spell_Value5;
+playervar define Spell_Pos2;
+
+rule: "70 claws"
+Event.OngoingPlayer
+{
+    CreateEffect(LocalPlayer(), Effect.WinstonPrimalRageSound, Color.Red, EventPlayer(), 200, EffectRev.VisibleToPositionAndRadius);
+    Spell_Effect1 = LastCreatedEntity();
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+    Spell_Pos2 = [1, -1][RandomReal(0, 1)];
+    Spell_Pos1 = Forward();
+    ChaseVariableAtRate(Spell_Pos1, EyePosition(EventPlayer()) + FacingDirectionOf(EventPlayer()) * 3, 9999, RateChaseReevaluation.DestinationAndRate);
+    Spell_Value1 = Forward();
+    ChaseVariableAtRate(Spell_Value1, Normalize(CrossProduct(FacingDirectionOf(EventPlayer()), Up())), 9999, RateChaseReevaluation.DestinationAndRate);
+    Spell_Value2 = Forward();
+    ChaseVariableAtRate(Spell_Value2, Normalize(CrossProduct(Spell_Value1, FacingDirectionOf(EventPlayer()))), 9999, RateChaseReevaluation.DestinationAndRate);
+    Spell_Value3 = false;
+    ChaseVariableOverTime(Spell_Value3, 2, 0.4, TimeChaseReevaluation.DestinationAndDuration);
+    for (For1 = false; 3; 1)
+    {
+        CreateBeamEffect(LocalPlayer(), BeamType.ZaryaParticleBeam, Spell_Pos1 + Spell_Pos2 * Spell_Value1 * (-4 + 8 * Min(1, Spell_Value3)) * (EvaluateOnce(For1) == 1 ? 0.9 : 0.8) + Spell_Value2 * ([0.5, 1.15, 1.5][EvaluateOnce(For1)] - Min(1, Spell_Value3) * [2.5, 2.3, 1.5][EvaluateOnce(For1)]), Spell_Pos1 + Spell_Pos2 * Spell_Value1 * (-4 + 8 * Max(0, Spell_Value3 - 1)) * (EvaluateOnce(For1) == 1 ? 1 : 0.8) + Spell_Value2 * ([0.5, 1.15, 1.5][EvaluateOnce(For1)] - Max(0, Spell_Value3 - 1) * [2.5, 2.3, 1.5][EvaluateOnce(For1)]), LocalPlayer().TeamColor, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+    }
+    Spell_Value4 = false;
+    Spell_Value5 = [];
+    while (Spell_Value4 < 0.4)
+    {
+        Tempvar = RemoveFromArray(FilteredArray(PlayersWithinRadius(EyePosition(EventPlayer()), 7, OppositeTeamOf(TeamOf(EventPlayer())), RadiusLOS.Off), EventPlayer() != ArrayElement() && IsInViewAngle(EventPlayer(), EyePosition(ArrayElement()), 80)), Append(CurrentPet, Spell_Value5));
+        Damage(Tempvar, EventPlayer(), 85);
+        ModifyVariable(Spell_Value5, Operation.AppendToArray, Tempvar);
+        Tempvar = false;
+        Spell_Value4 += 0.048;
+        Wait(0.048, WaitBehavior.IgnoreCondition);
+    }
+    DestroyEffect(RemoveFromArray(Spell_Effect1, FirstOf(Spell_Effect1)));
+    Wait(0.2, WaitBehavior.IgnoreCondition);
+    Spell_Pos1 = 500 * Up();
+}

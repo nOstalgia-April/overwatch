@@ -1,0 +1,388 @@
+//copyright
+//Edit from ItsDeltin's Pathmap-editor
+//menu boundary from Zezombye's overwordle
+//special thanks to Josbird,ItsDeltin,Zezombye
+enum MenuAction
+{
+    None,
+    ExitMenu,
+    test1,
+    test2,
+    FuncPrimary,
+    FuncSecondary
+}
+
+struct CursorMenuButton
+{
+    public String Label; // [0] *
+    public Any PrimaryAction; // [1]
+    public Any SecondaryAction; // [2]
+    public Number PosX; // [4]
+    public Number PosY; // [5]
+    public Number ClickWidth; // [6]
+    public Number ClickHeight; // [7]
+    public Color DefaultColor; // [8]
+    public Color HoverColor; // [9]
+    // [10] == use default font?
+    public Boolean Interactable; // [11]
+    public Boolean Visible; // [12] (NOTICE: only used in debug clickWidth/height visual right now)
+    public Number ID; //按钮的ID
+    public String Name; //按钮的名字
+    public Number Scale;//按钮的大小
+}
+Number ButtonIndexFromID(Number id, Player player = EventPlayer()): player.cm_buttons.Map(button => button.ID).IndexOf(id);
+globalvar Number cm_i; // 临时变量
+globalvar Number cm_uniqueButtonID!; // 给予每个按钮一个独特的ID
+Number NextButtonId(): cm_uniqueButtonID + 1; // 获取下一个按钮的ID
+globalvar Number cm_s_menuWidth!; // 全局菜单宽度
+globalvar Number cm_s_menuHeight!; // 全局菜单高度
+globalvar Boolean cm_s_buttonClickSounds!; // 点击声音开关
+globalvar Boolean cm_s_debugMode!; // debug模式
+globalvar Boolean cm_s_disableGameHud!; // 关闭游戏hud
+globalvar Any[] cm_exitButtonProperties!; // 退出按钮属性
+globalvar Number[] cm_menuFrame!; // 菜单框架,内为entity的ID
+playervar Number additionalXOffset;playervar Number additionalYOffset; // 指针偏移量
+globalvar Number SENSIVITY!; // 指针灵敏度
+playervar CursorMenuButton[] cm_buttons; // 全局按钮数组
+playervar Boolean cm_isInMenu!; // 是否在菜单中
+playervar Any cm_currActionID; // 当前触发按钮的ID
+playervar Vector cm_menuOriginalFacing!; // 菜单原始朝向
+Number BORDER_TOP_LEFT_X : -(cm_s_menuWidth / 2 + 0.05); // 菜单左上角X坐标
+Number BORDER_TOP_LEFT_Y : -(cm_s_menuHeight / 2 - 0.05); // 菜单左上角Y坐标
+Number BORDER_BOTTOM_RIGHT_X : cm_s_menuWidth / 2 + 0.05; // 菜单右下角X坐标
+Number BORDER_BOTTOM_RIGHT_Y : cm_s_menuHeight / 2 + 0.05; // 菜单右下角Y坐标
+
+Number CURSOR_X(Player p):
+    AngleDifference(HorizontalAngleFromDirection(FacingDirectionOf(p)),HorizontalAngleFromDirection(p.cm_menuOriginalFacing))*SENSIVITY - p.additionalXOffset;
+Number CURSOR_Y(Player p):
+    -AngleDifference(VerticalAngleFromDirection(FacingDirectionOf(p)),VerticalAngleFromDirection(p.cm_menuOriginalFacing))*SENSIVITY - p.additionalYOffset;
+Number CURSOR_X_LOCAL:
+    AngleDifference(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())),HorizontalAngleFromDirection(LocalPlayer().cm_menuOriginalFacing))*SENSIVITY - LocalPlayer().additionalXOffset;  
+Number CURSOR_Y_LOCAL:
+    -AngleDifference(VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())),VerticalAngleFromDirection(LocalPlayer().cm_menuOriginalFacing))*SENSIVITY - LocalPlayer().additionalYOffset;
+Number CURSOR_X_LOCAL_NOSENSIVITY:
+    AngleDifference(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())),HorizontalAngleFromDirection(LocalPlayer().cm_menuOriginalFacing))*SENSIVITY - LocalPlayer().additionalXOffset;  
+Number CURSOR_Y_LOCAL_NOSENSIVITY:
+    -AngleDifference(VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())),VerticalAngleFromDirection(LocalPlayer().cm_menuOriginalFacing))*SENSIVITY - LocalPlayer().additionalYOffset;
+
+String cm_c_horizontalLine: "━"; // ext global [3]
+String cm_c_verticalLine: "┃\n"; // ext global [4]
+
+
+
+rule: "Global init"
+{ 
+    // 初始化全局变量
+    cm_s_menuWidth = WorkshopSettingReal("Josbird's Cursor Menu", "宽度", 5, 0, 10, 1);
+    cm_s_menuHeight = WorkshopSettingReal("Josbird's Cursor Menu", "高度", 2.5, 0, 5, 2);
+    cm_s_buttonClickSounds = WorkshopSettingToggle("Josbird's Cursor Menu", "按钮点击音效", true, 3);
+    cm_s_debugMode = WorkshopSettingToggle("Josbird's Cursor Menu", "测试模式(展开按钮范围)", false, 4);
+    cm_s_disableGameHud = WorkshopSettingToggle("Josbird's Cursor Menu", "开启菜单时关闭游戏HUD", true, 7);
+    cm_exitButtonProperties = [MenuAction.ExitMenu, cm_s_menuWidth / 2 - 0.15, cm_s_menuHeight / 2 - 0.15, 0.35];
+    SENSIVITY = WorkshopSettingReal("Josbird's Cursor Menu", "默认灵敏度", 0.3, 0, 1, 5);
+    // 预加载HUD资源
+        for (define i! = 0; 50; 1) {
+        Number index: EvaluateOnce(i);
+
+        CreateInWorldText(
+            VisibleTo: UpdateEveryFrame(LocalPlayer().cm_isInMenu && index < LocalPlayer().cm_buttons.Length ? LocalPlayer() : null),
+            Header: UpdateEveryFrame(LocalPlayer().cm_buttons[index].Label),
+            Position: UpdateEveryFrame(
+                LocalPlayer().EyePosition() + 100 * (
+                    LocalPlayer().cm_buttons[index].PosX * CrossProduct(
+                        FacingDirectionOf(LocalPlayer()),
+                        DirectionFromAngles(
+                            HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())),
+                            VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90
+                        )
+                    ) + LocalPlayer().cm_buttons[index].PosY * DirectionFromAngles(
+                            HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())),
+                            VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90
+                    ) + 3 * FacingDirectionOf(LocalPlayer())
+                )
+            ),
+            Scale: UpdateEveryFrame(LocalPlayer().cm_buttons[index].Scale),
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: LocalPlayer().cm_buttons[index].Interactable
+                && AbsoluteValue(CURSOR_X_LOCAL - LocalPlayer().cm_buttons[index].PosX) <= LocalPlayer().cm_buttons[index].ClickWidth / 2
+                && AbsoluteValue(CURSOR_Y_LOCAL + LocalPlayer().cm_buttons[index].PosY) <= LocalPlayer().cm_buttons[index].ClickHeight / 2
+                ? LocalPlayer().cm_buttons[index].HoverColor : LocalPlayer().cm_buttons[index].DefaultColor,
+                Spectators.DefaultVisibility
+        );
+        MinWait();
+    }
+    //预加载GUI
+
+    //加载边框
+    createBorderEdges();
+    //加载边框角点
+    cm_menuFrame += CreateInWorldText(<Player>LocalPlayer().cm_isInMenu, "┌", UpdateEveryFrame(EyePosition(LocalPlayer())+ (100 * (BORDER_TOP_LEFT_X* (CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))+ (-1 * BORDER_TOP_LEFT_Y* (DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90))) + 3 * FacingDirectionOf(LocalPlayer())))),3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+    cm_menuFrame += CreateInWorldText(<Player>LocalPlayer().cm_isInMenu, "┐",UpdateEveryFrame(EyePosition(LocalPlayer())+ (100 * (BORDER_BOTTOM_RIGHT_X* (CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))+ (-1 * BORDER_TOP_LEFT_Y* (DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90))) + 3 * FacingDirectionOf(LocalPlayer())))),3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+    cm_menuFrame += CreateInWorldText(<Player>LocalPlayer().cm_isInMenu, "└",UpdateEveryFrame(EyePosition(LocalPlayer())+ (100 * (BORDER_TOP_LEFT_X* (CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))+ (-1 * BORDER_BOTTOM_RIGHT_Y* (DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90))) + 3 * FacingDirectionOf(LocalPlayer())))),3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+    cm_menuFrame += CreateInWorldText(<Player>LocalPlayer().cm_isInMenu, "┘",UpdateEveryFrame(EyePosition(LocalPlayer())+ (100 * (BORDER_BOTTOM_RIGHT_X* (CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))+ (-BORDER_BOTTOM_RIGHT_Y* (DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90))) + 3 * FacingDirectionOf(LocalPlayer())))),3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+
+    //加载关闭按钮
+CreateIcon(<Player>LocalPlayer().cm_isInMenu, <Vector>UpdateEveryFrame(EyePosition(LocalPlayer()) + 100 * (cm_exitButtonProperties[1] * CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)) + (cm_exitButtonProperties[2] - 0.25) * DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90) + 3 * FacingDirectionOf(LocalPlayer()))), Icon.X, IconRev.VisibleToPositionAndColor, AbsoluteValue(CURSOR_X_LOCAL- cm_exitButtonProperties[1]) <= cm_exitButtonProperties[3] / 2 && AbsoluteValue(CURSOR_Y_LOCAL+ cm_exitButtonProperties[2]) <= cm_exitButtonProperties[3] / 2 ? Color.Yellow : Color.Red, false);
+    //加载指针
+    //cm_menuFrame += CreateInWorldText(FilteredArray(EventPlayer(), cm_isInMenu && TotalTimeElapsed() % 0.032 >= 0.016), "▲", UpdateEveryFrame(EyePosition(EventPlayer()) + 100 * (AngleDifference(HorizontalAngleFromDirection(FacingDirectionOf(EventPlayer())), HorizontalAngleFromDirection(cm_menuOriginalFacing)) * CrossProduct(FacingDirectionOf(EventPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(EventPlayer())), VerticalAngleFromDirection(FacingDirectionOf(EventPlayer())) - 90)) + (AngleDifference(VerticalAngleFromDirection(FacingDirectionOf(EventPlayer())), VerticalAngleFromDirection(cm_menuOriginalFacing)) - 0.2) * DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(EventPlayer())), VerticalAngleFromDirection(FacingDirectionOf(EventPlayer())) - 90) + 3 * FacingDirectionOf(EventPlayer()))), 3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+    cm_menuFrame += CreateInWorldText(<Player>LocalPlayer().cm_isInMenu, "▲", UpdateEveryFrame(EyePosition(LocalPlayer()) + (100 * (Max(Min(CURSOR_X_LOCAL, BORDER_BOTTOM_RIGHT_X), BORDER_TOP_LEFT_X) * (CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))+ (-1 * Max(Min(CURSOR_Y_LOCAL, BORDER_BOTTOM_RIGHT_Y), BORDER_TOP_LEFT_Y)* (DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)))   +  3*FacingDirectionOf(LocalPlayer())))),3, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, Color.White, Spectators.DefaultVisibility);
+}
+void createBorderEdges() "Create menu border edges"
+{
+    String stringBuilder = "";
+    for (cm_i = 0; 4.6 * cm_s_menuWidth - 1; 1)
+
+    
+    cm_menuFrame += MakeHorizontalLine(stringBuilder, 1);
+    cm_menuFrame += MakeHorizontalLine(stringBuilder, -1);
+
+    stringBuilder = "";
+
+    for (cm_i = 0.3; cm_s_menuHeight; 0.3)
+        stringBuilder = "{0}{1}".Format([stringBuilder, cm_c_verticalLine]);
+
+    cm_menuFrame += MakeVerticalLine(stringBuilder, 1);
+    cm_menuFrame += MakeVerticalLine(stringBuilder, -1);
+}
+
+Any MakeHorizontalLine(in String str, in Number multiplier)
+{
+    return CreateInWorldText(<Player>LocalPlayer().cm_isInMenu,str,<Vector>UpdateEveryFrame(EyePosition(LocalPlayer()) + 100 * ((BORDER_TOP_LEFT_Y*multiplier + (multiplier == 1?-0.12:-0.03))* DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90) + 3 * FacingDirectionOf(LocalPlayer()))),4,Clipping.DoNotClip,InworldTextRev.VisibleToAndPosition,Color.White,Spectators.DefaultVisibility);
+}
+
+Any MakeVerticalLine(in String str, in Number multiplier) {
+    return CreateInWorldText(<Player>LocalPlayer().cm_isInMenu,str,<Vector>UpdateEveryFrame(EyePosition(LocalPlayer()) + 100 * ((BORDER_TOP_LEFT_X*multiplier)* CrossProduct(FacingDirectionOf(LocalPlayer()), DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90)) + ((-BORDER_BOTTOM_RIGHT_Y + 0.4)) * DirectionFromAngles(HorizontalAngleFromDirection(FacingDirectionOf(LocalPlayer())), VerticalAngleFromDirection(FacingDirectionOf(LocalPlayer())) - 90) + 3 * FacingDirectionOf(LocalPlayer()))),4,Clipping.DoNotClip,InworldTextRev.VisibleToAndPosition,Color.White,Spectators.DefaultVisibility);
+}
+rule: 'capturing offset'
+Event.OngoingPlayer
+{
+    ChaseVariableAtRate(EventPlayer().additionalXOffset,UpdateEveryFrame(EventPlayer().additionalXOffset + Max(0, CURSOR_X(EventPlayer()) - BORDER_BOTTOM_RIGHT_X)  - Max(0, BORDER_TOP_LEFT_X - CURSOR_X(EventPlayer()))), 9999,RateChaseReevaluation.DestinationAndRate);
+    ChaseVariableAtRate(EventPlayer().additionalYOffset,UpdateEveryFrame(EventPlayer().additionalYOffset + Max(0, CURSOR_Y(EventPlayer()) - BORDER_BOTTOM_RIGHT_Y) - Max(0, BORDER_TOP_LEFT_Y - CURSOR_Y(EventPlayer()))), 9999,RateChaseReevaluation.DestinationAndRate);
+
+}
+
+rule: "Open menu"
+Event.OngoingPlayer
+if (!IsDummyBot(EventPlayer()))
+if (cm_isInMenu)
+{
+    // createExitButton();
+    // MinWait();
+    // if (cm_s_debugMode)
+    // {
+    //     createClickAreas();
+    // }
+}
+rule: "Close menu"
+Event.OngoingPlayer
+if (!IsDummyBot())
+if (!cm_isInMenu)
+{
+    SetAimSpeed(EventPlayer(), 100);
+    SetPrimaryFireEnabled(EventPlayer(), true);
+    SetSecondaryFireEnabled(EventPlayer(), true);
+    // DestroyIcon(cm_exitIconEntity);    
+    if (cm_s_disableGameHud)
+    {
+        EnableHeroHud();
+        EnableGameModeHud(EventPlayer());
+    }
+
+}
+
+disabled rule: "Toggle menu"
+Event.OngoingPlayer
+if (!IsDummyBot(EventPlayer()))
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (!IsCommunicatingAnyEmote(EventPlayer()))
+{
+    cm_isInMenu = !cm_isInMenu;
+}
+
+Number createButton(
+    in String label = null,
+    in Any primaryAction = 0,
+    in Any secondaryAction = 0,
+    in Number scale = 1.75,
+    in Number posX = 0,
+    in Number posY = 0,
+    in Number clickWidth = 0.2,
+    in Number clickHeight = 0.2,
+    in Color defaultColor = Color.White,
+    in Color hoverColor = Color.Blue,
+    in Boolean interactable = true,
+    in Boolean visible = true,
+    in String name = '张三按钮'
+) {
+    return __createButtonSubroutine([label, primaryAction, secondaryAction, posX, posY, clickWidth, clickHeight, defaultColor, hoverColor, interactable, visible, scale, name]);
+}
+Number createButton(
+    in String label,
+    in Boolean => void onClick,
+    in Number posX = 0,
+    in Number posY = 0,
+    in Number clickWidth = 0.2,
+    in Number clickHeight = 0.2,
+    in Color defaultColor = Color.White,
+    in Color hoverColor = Color.Blue,
+    in Boolean interactable = true,
+    in Boolean visible = true,
+    in Number scale = 1.75,
+    in String name = '张三按钮'
+) {
+    return __createButtonSubroutine([label, [MenuAction.FuncPrimary, onClick], [MenuAction.FuncSecondary, onClick], posX, posY, clickWidth, clickHeight, defaultColor, hoverColor, interactable, visible, scale, name]);
+}
+Number __createButtonSubroutine(Any[] input) "CM: Create button"
+{
+
+    cm_uniqueButtonID++;
+    define label: input[0]; define primaryAction: input[1];
+    define secondaryAction: input[2]; define posX: input[3];
+    define posY: input[4]; define clickWidth: input[5];
+    define clickHeight: input[6]; define defaultColor: input[7];
+    define hoverColor: input[8]; define interactable: input[9]; 
+    define visible: input[10];define scale: input[11];
+    define name: input[12];
+
+    AllPlayers().cm_buttons += { Label: label, PrimaryAction: [primaryAction], SecondaryAction: [secondaryAction], PosX: posX, PosY: posY, ClickWidth: clickWidth,
+                        ClickHeight: clickHeight, DefaultColor: defaultColor, HoverColor: hoverColor, Interactable: interactable, Visible: visible, ID: cm_uniqueButtonID,Name: name ,Scale: scale};
+    CreateHudText(AllLivingPlayers(),scale);
+    return cm_uniqueButtonID;
+}
+rule: 'Detect button press'
+Event.OngoingPlayer
+if (cm_isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.PrimaryFire) || IsButtonHeld(EventPlayer(), Button.SecondaryFire))
+{
+    define primary = IsButtonHeld(EventPlayer(), Button.PrimaryFire);
+    //退出按钮事件
+    if (
+        AbsoluteValue(CURSOR_X(EventPlayer()) - cm_exitButtonProperties[1]) 
+            <= cm_exitButtonProperties[3] / 2 
+        && AbsoluteValue(CURSOR_Y(EventPlayer()) + cm_exitButtonProperties[2]) 
+            <= cm_exitButtonProperties[3] / 2
+        )
+            cm_currActionID = FirstOf(cm_exitButtonProperties);
+    else{
+        for (define i = 0; cm_buttons.Length; 1)
+            if (cm_buttons[i].Interactable && AbsoluteValue(CURSOR_X(EventPlayer()) - cm_buttons[i].PosX) <= cm_buttons[i].ClickWidth / 2 && AbsoluteValue(CURSOR_Y(EventPlayer()) + cm_buttons[i].PosY) <= cm_buttons[i].ClickHeight / 2)
+                cm_currActionID = primary ? cm_buttons[i].PrimaryAction : cm_buttons[i].SecondaryAction;
+    }
+    if (cm_currActionID && cm_s_buttonClickSounds)
+    {
+
+        PlayEffect(EventPlayer(), PlayEffect.ExplosionSound, Color.White, EventPlayer(), 30);
+    }
+
+    MinWait();
+    cm_currActionID = null;
+}
+
+void print(in String name,in Any value){
+    CreateHudText(LocalPlayer(),<"<0> :<1>",name,value>);
+}
+
+rule: "Exit menu"
+Event.OngoingPlayer
+if (cm_currActionID == MenuAction.ExitMenu)
+{
+    cm_isInMenu = false;
+}
+
+disabled rule: 'My Rule'
+Event.OngoingPlayer
+if (cm_currActionID == MenuAction.test1)
+{
+    SmallMessage(AllPlayers(),"test1");
+}
+disabled rule: 'My Rule'
+Event.OngoingPlayer
+if (cm_currActionID == MenuAction.test2)
+{
+    SmallMessage(AllPlayers(),"test2");
+}
+rule: 'Func Primary'
+Event.OngoingPlayer
+if (cm_currActionID[0] == MenuAction.FuncPrimary)
+{
+    (<Boolean => void>cm_currActionID[1]).Invoke(true);
+}
+
+rule: 'Func Secondary'
+Event.OngoingPlayer
+if (cm_currActionID[0] == MenuAction.FuncSecondary)
+{
+    (<Boolean => void>cm_currActionID[1]).Invoke(false);
+}
+
+
+void DestroyButton(Number buttonID) "CM: Destroy button"
+{
+    Number removeButtonIndex = ButtonIndexFromID(buttonID);
+    cm_buttons.ModRemoveByIndex(removeButtonIndex);
+}
+
+void SetLabel(in Number buttonID, in String label)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].Label = label;
+}
+
+void SetColor(in Number buttonID, in Color color)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].DefaultColor = color;
+}
+
+void SetHoverColor(in Number buttonID, in Color color)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].HoverColor = color;
+}
+
+void SetPosY(in Number buttonID, in Number posY)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].PosY = posY;
+}
+void SetPosX(in Number buttonID, in Number posX)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].PosX = posX;
+}
+
+void SetInteractability(in Number buttonID, in Boolean interactable, in Player player = EventPlayer())
+{
+    player.cm_buttons[ButtonIndexFromID(buttonID, player)].Interactable = interactable;
+}
+
+void SetInteractabilityAndColor(in Number buttonID, in Boolean interactable, in Color color, in Player player = EventPlayer())
+{
+    Number buttonIndex! = ButtonIndexFromID(buttonID, player);
+    player.cm_buttons[buttonIndex].Interactable = interactable;
+    player.cm_buttons[buttonIndex].DefaultColor = color;
+}
+
+void SetVisible(in Number buttonID, in Boolean visible)
+{
+    cm_buttons[ButtonIndexFromID(buttonID)].Visible = visible;
+}
+
+Any GetLabel(in Number buttonID)
+{
+    return cm_buttons[ButtonIndexFromID(buttonID)].Label;
+}
+
+Number GetPosX(in Number buttonID)
+{
+    return cm_buttons[ButtonIndexFromID(buttonID)].PosX;
+}
+Number GetPosY(in Number buttonID)
+{
+    return cm_buttons[ButtonIndexFromID(buttonID)].PosY;
+}
+Number GetClickWidth(in Number buttonID)
+{
+    return cm_buttons[ButtonIndexFromID(buttonID)].ClickWidth;
+}
+Number GetClickHeight(in Number buttonID)
+{
+    return cm_buttons[ButtonIndexFromID(buttonID)].ClickHeight;
+}
+

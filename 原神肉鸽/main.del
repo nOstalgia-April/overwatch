@@ -1,0 +1,37 @@
+class Agent{
+    public Number Level;
+    public Hero _Hero;
+
+    public constructor(in Hero _hero){
+        Level = 1;
+        _Hero = _hero;
+    }
+}
+
+globalvar Agent[] Agent_Pool = [];
+playervar Agent cur_agent;
+void Init_Agents(){
+    Agent_Pool += new Agent(Hero.Ana);
+    Agent_Pool += new Agent(Hero.Echo);
+    //Agent_Pool += new Agent(Hero.Doomfist);
+    //Agent_Pool += new Agent(Hero.Ashe);
+}
+
+void Change_Agent(){
+
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+{
+    cur_agent = Agent_Pool.Filter(t=>t!=cur_agent).Random();
+    ForcePlayerHero(EventPlayer(),cur_agent._Hero);
+}
+
+rule: 'My Player Rule'
+{
+    Init_Agents();
+}

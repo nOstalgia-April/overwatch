@@ -1,0 +1,106 @@
+import '地图文本菜单.del';
+rule: 'Select Observed'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+if(!isInMenu)
+{
+    define allies! = FilteredArray(AllPlayers(TeamOf(EventPlayer())), ArrayElement() != EventPlayer() && IsAlive(ArrayElement()) && HasSpawned(ArrayElement()));
+    if(CountOf(allies) > 0)
+    {
+        Observed = RandomValueInArray(allies);
+        OrbitForward = DirectionFromAngles(HorizontalFacingAngleOf(), 0);
+        OrbitRight = Normalize(CrossProduct(Vector(0, 1, 0), OrbitForward));
+        OrbitOffset = Vector(0, 1.800, 0) + 0.800 * OrbitRight + -3 * OrbitForward;
+    }
+    else
+    {
+        Observed = null;
+    }
+    Wait(9999, WaitBehavior.AbortWhenFalse);
+    MinWait();
+}
+
+rule: 'Observe Menu Open'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Observed != null)
+if(!isInMenu)
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    OpenMenu(EventPlayer(), MenuActive.RoleMenu);
+}
+
+rule: 'Observe Menu Close'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isInMenu)
+if(!IsButtonHeld(EventPlayer(), Button.Interact) || Observed == null)
+{
+    CloseMenu(EventPlayer());
+}
+
+rule: 'Orbit Drag'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Observed != null)
+if(OrbitAlwaysOn || IsButtonHeld(EventPlayer(), Button.SecondaryFire))
+{
+    OrbitForward = DirectionFromAngles(HorizontalFacingAngleOf(), 0);
+    OrbitRight = Normalize(CrossProduct(Vector(0, 1, 0), OrbitForward));
+    OrbitOffset = Vector(0, 1.800, 0) + 0.800 * OrbitRight + -3 * OrbitForward;
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+
+rule: 'Camera Start'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Observed != null)
+if(Observed != ObservedLast)
+{
+    ObservedLast = Observed;
+    ChaseVariableAtRate(variable: Eye, destination: RayCastHitPosition(
+            StartPOS: Observed.EyePosition(),
+            EndPOS: 
+                Observed.EyePosition()
+                +
+                OrbitOffset,
+            PlayersToExclude: AllPlayers()
+        ),200,reevaluation: RateChaseReevaluation.DestinationAndRate);
+    ChaseVariableAtRate(variable: Lookat, destination: Observed.EyePosition() + 10 * FacingDirectionOf(),200,reevaluation: RateChaseReevaluation.DestinationAndRate);
+
+    StartCamera(
+        Player: EventPlayer(),
+        EyePosition: Eye,
+        LookAtPosition: Lookat,
+        BlendSpeed: 20
+    );
+
+    DisableHeroHud();
+}
+
+rule: 'Camera Stop'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Observed == null)
+if(ObservedLast != null)
+{
+    ObservedLast = null;
+    StopCamera(EventPlayer());
+}
+
+
+playervar Player Observed;
+playervar Player ObservedLast;
+playervar Vector OrbitForward;
+playervar Vector OrbitRight;
+playervar Vector OrbitOffset;
+playervar Boolean OrbitAlwaysOn = false;

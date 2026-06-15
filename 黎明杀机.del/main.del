@@ -1,0 +1,427 @@
+﻿
+// Stores all potential generator positions
+globalvar Vector[] MachinePositions = [];
+// Tracks current repair completion for each generator (percentage)
+globalvar Number[] MachinePercents = [];
+Number MachineRadius : 3.5;
+// Prevents rerunning setup logic
+globalvar Boolean MachineInitialized = false;
+Vector MenuButtonPosition_Local(in Number PosX, in Number PosY):
+    UpdateEveryFrame((CameraEye_Local + CameraDir_Local * 10) + 0.1*MenuFlatBase1_Local * PosX + 0.1*MenuFlatBase2_Local * PosY);
+    Vector CameraEye_Local:
+        EyePosition(LocalPlayer());
+
+    Vector CameraLookat_Local:
+        EyePosition(LocalPlayer()) + FacingDirectionOf(LocalPlayer());
+
+    Vector CameraEye:
+        EyePosition();
+
+    Vector CameraLookat:
+        EyePosition() + FacingDirectionOf();
+
+    Vector MenuFlatBase1_Local:
+        (-25 * Normalize(CrossProduct(Vector(0, 1, 0), CameraDir_Local)));
+
+    Vector MenuFlatBase2_Local:
+        (-25 * Normalize(CrossProduct(CameraDir_Local, MenuFlatBase1_Local)));
+
+    Vector CameraDir_Local:
+        FacingDirectionOf(LocalPlayer());
+// 初始化所有电机的刷出位置
+void InitMachinePositions()
+{
+    MachinePositions.ModAppend(Vector(187.40, 1.00, 71.47));
+    MachinePositions.ModAppend(Vector(176.72, 7.00, 65.57));
+    MachinePositions.ModAppend(Vector(196.98, 16.50, 69.48));
+    MachinePositions.ModAppend(Vector(219.35, 8.00, 84.29));
+    MachinePositions.ModAppend(Vector(193.08, 9.00, 116.17));
+    MachinePositions.ModAppend(Vector(182.82, 1.00, 83.27));
+    MachinePositions.ModAppend(Vector(213.25, 8.00, 56.07));
+}
+void InitMachinePercents()
+{
+// Reset generator progress so every unit starts at 0%
+    MachinePercents = MachinePositions.Map(t=>0);
+}
+// 创建电机相关的特效、进度条和提示
+void InitMachineEffects(){
+    OnceMachinePositions = MachinePositions.Randomize().Slice(0,5);
+    CreateProgressBarInWorldText(
+            VisibleTo: OnceMachinePositions.IsTrueForAny(t=>DistanceBetween(t,LocalPlayer())<=MachineRadius)?LocalPlayer():null,
+            Value: MachinePercents[OnceMachinePositions.IndexOf(OnceMachinePositions.Filter(t=>DistanceBetween(t,LocalPlayer())<=MachineRadius).First)],
+            Position: MenuButtonPosition_Local(0,0),
+            Text: MachinePercents[OnceMachinePositions.IndexOf(OnceMachinePositions.Filter(t=>DistanceBetween(t,LocalPlayer())<=MachineRadius).First)]<100?"正在维修中 "+'......'.Slice(0,TotalTimeElapsed().Floor()%6):'已维修完毕',
+            Scale: 2,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: Color.Red,
+            TextColor: Color.Red,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor
+    );
+    // 遍历随机挑选的电机，附加环形提示与立柱效果
+    // 为每个电池箱添加可视化图标和粒子效果
+    for(i_ = 0; i_ < 5; i_++)
+    {
+        Number i : EvaluateOnce(i_);
+        Vector pos : OnceMachinePositions[i];
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.Ring,
+            Color: MachinePercents[i]>=100?Color.Orange:Color.Red,
+            Position: pos+Vector(0,0.1,0),
+            Radius: MachineRadius,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        Number Height : 3;
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.WreckingBallAdaptiveShieldTargetEffect,
+            Color: MachinePercents[i]>=100?Color.Team2:Color.Team1,
+            Position: pos+Vector(0,Height*(1-0.01*MachinePercents[i]),0),
+            Radius: 5,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        //维修的时候显示
+        CreateEffect(
+            VisibleTo: PlayersWithinRadius(pos, MachineRadius, Team.All, RadiusLOS.Surfaces).Filter(t=>t.IsAlive()).Length>0 && MachinePercents[i]<100 ?AllPlayers():null,
+            Type: Effect.SigmaGraviticFluxTargetEffect,
+            Color: Color.Red,
+            Position: pos+Vector(0,Height*(1-0.01*MachinePercents[i]),0),
+            Radius: 5,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        CreateEffect(
+            VisibleTo: PlayersWithinRadius(pos, MachineRadius, Team.All, RadiusLOS.Surfaces).Filter(t=>t.IsAlive()).Length>0?AllPlayers():null,
+            Type: Effect.WinstonTeslaCannonTargetSound,
+            Color: Color.Red,
+            Position: pos,
+            Radius: 200,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+        CreateEffect(
+            VisibleTo: PlayersWithinRadius(pos, MachineRadius, Team.All, RadiusLOS.Surfaces).Filter(t=>t.IsAlive()).Length>0?AllPlayers():null,
+            Type: Effect.WinstonTeslaCannonTargetSound,
+            Color: Color.Red,
+            Position: pos,
+            Radius: 200,
+            Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+        );
+    }
+}
+
+rule: '初始化电机点位'
+{
+    InitMachinePositions();
+    InitMachinePercents();
+    InitMachineEffects();
+    // 标记初始化完成，避免重复设置
+    MachineInitialized = true;
+}
+// 每场随机抽取的电机列表
+globalvar Vector[] OnceMachinePositions;
+globalvar Number i_;
+// 当前玩家锁定的电机索引
+playervar Number MachineID;
+Number RepairSpeed_PerSecond : 3;
+Number RepairTick : 0.1;
+// 多人同时维修时的收益递减表
+globalvar Number[] RepairDiminishingTable = [1, 0.9, 0.8, 0.75, 0.6];
+// 玩家携带电池提高的维修速度倍率
+playervar Number BatteryRepairSpeed = 1;
+rule: '修电机'
+Event.OngoingPlayer
+Team.All
+Player.All
+// 检查玩家附近是否存在可维修的电机
+if(OnceMachinePositions.IsTrueForAny(t=>DistanceBetween(t,EventPlayer())<=MachineRadius+1))
+{
+    // 将玩家锁定到距离最近的那台电机
+    MachineID = OnceMachinePositions.IndexOf(OnceMachinePositions.Sort(t=>DistanceBetween(t,EventPlayer())).First);
+    if(DistanceBetween(OnceMachinePositions[MachineID],EventPlayer())<=MachineRadius&&IsStanding()&&MachinePercents[MachineID]<100){
+        // 电池加成后的实际维修速度
+        Number RepairSpeed: RepairSpeed_PerSecond*RepairTick*BatteryRepairSpeed;
+        MachinePercents[MachineID] = Min(100,MachinePercents[MachineID]+RepairSpeed_PerSecond*RepairTick);
+        battery.Capacity = Max(battery.Capacity-RepairSpeed,0);
+        if(MachinePercents[MachineID]>=100){
+            // 完成维修后广播提示效果
+            BigMessage(
+                Header: '电机启动成功！\n            x/x'
+            );
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.HanzoSonicArrowInitialPulseEffect,
+                Color: Color.Blue,
+                Position: OnceMachinePositions[MachineID],
+                Radius: 4
+            );
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.WreckingBallPiledriverImpactSound,
+                Color: Color.Blue,
+                Position: OnceMachinePositions[MachineID],
+                Radius: 200
+            );
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.HanzoSonicArrowInitialPulseEffect,
+                Color: Color.Blue,
+                Position: OnceMachinePositions[MachineID],
+                Radius: 4
+            );
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.WreckingBallPiledriverImpactSound,
+                Color: Color.Blue,
+                Position: OnceMachinePositions[MachineID],
+                Radius: 200
+            );
+        }
+    }
+    Wait(RepairTick);
+    LoopIfConditionIsTrue();
+}
+// 地图上刷出基础电池箱的位置
+globalvar Vector[] BatteryPositions = [];
+// 电池箱顶部用于特效的附加坐标
+globalvar Vector[] TopBatteryPositions = [];
+// 目前只配置了一个电池刷新点，后续可继续扩展
+void InitBatteryPositions()
+{
+    BatteryPositions.ModAppend(Vector(187.40, 1.00, 71.47));
+}
+// 用于与电池对应的装饰/特效位置
+void InitTopBatteryPositions()
+{
+    TopBatteryPositions.ModAppend(Vector(0,0,0));
+}
+// 随机抽取要刷新的电池箱列表
+globalvar Vector[] OnceBatteryPositions = [];
+playervar Number FindBatteryPct;
+Number BatteryCanRadius : 3;
+// 创建电池箱特效和搜索进度条
+void InitBatteryEffects(){
+    OnceBatteryPositions = BatteryPositions.Randomize().Slice(0,5);
+    CreateProgressBarInWorldText(
+            VisibleTo: OnceBatteryPositions.IsTrueForAny(t=>DistanceBetween(t,LocalPlayer())<=BatteryCanRadius&&DistanceBetween(t,RayCastHitPosition(EyePosition(LocalPlayer()),EyePosition(LocalPlayer())+FacingDirectionOf(LocalPlayer())*1,null,null,false))<=1)?LocalPlayer():null,
+            Value: LocalPlayer().FindBatteryPct,
+            Position: MenuButtonPosition_Local(0,-1),
+            Text: LocalPlayer().battery!=null?'你已拥有一个电池，请先丢弃它':(LocalPlayer().IsButtonHeld(Button.Interact)?"正在翻找中 "+'......'.Slice(0,TotalTimeElapsed().Floor()%6):'长按互动开始进行翻找'),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: Color.Red,
+            TextColor: Color.Red,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor
+    );
+    for(i_ = 0; i_ < 5; i_++)
+    {
+        Number i : EvaluateOnce(i_);
+        Vector pos : OnceBatteryPositions[i];
+        CreateIcon(
+            VisibleTo: AllPlayers(),
+            Position: pos,
+            Icon: Icon.Trashcan,
+            IconColor: Color.White,
+            Reevaluation: IconRev.VisibleToPositionAndColor,
+            ShowWhenOffscreen: false
+        );
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Position: pos,
+            Type: Effect.Sparkles,
+            Color: Color.White,
+            Radius: 1
+        );
+    }
+}
+rule: '电池箱初始化'
+{
+    // 初始化电池刷点并生成对应特效
+    InitBatteryPositions();
+    InitBatteryEffects();
+}
+// 定义电池的基础属性，用于随机抽取
+single struct Battery {
+    public String Name;
+    public Number Capacity;
+    public Number Speed;
+    public String Des;
+    public String Icon;
+
+    public static Battery New(String name, Number capacity, Number speed, String des, String icon): { Name: name, Capacity: capacity, Speed: speed, Des: des ,Icon: icon};
+}
+
+// 所有可能获得的电池类型池
+globalvar Battery[] Battery_Pool = [
+    Battery.New('电池', 40, 100, '基础电池',AbilityIconString(Hero.Ana,Button.Ability1)),
+    Battery.New('小电池', 25, 150, '充的更快了',AbilityIconString(Hero.Cassidy,Button.Ability2)),
+    Battery.New('大电池', 75, 50, '容量更大了，移速减缓',AbilityIconString(Hero.Roadhog,Button.Ability2)),
+    //特殊
+    Battery.New('轻便电池', 25, 150, '携带时移速加快',AbilityIconString(Hero.Cassidy,Button.Ability2)),
+    Battery.New('再生电池', 30, 80, '空闲时自动回复储能，直至再次充满（一次性）',AbilityIconString(Hero.Tracer,Button.Ultimate)),
+    Battery.New('绝缘电池', 40, 100, '不再出现QTE检测',AbilityIconString(Hero.Tracer,Button.Ultimate)),
+    Battery.New('防御电池', 15, 100, '携带时可以免疫一次屠夫的攻击',AbilityIconString(Hero.Tracer,Button.Ultimate)),
+    Battery.New('黄金电池', 120, 150, '更大，更快，更强',AbilityIconString(Hero.Roadhog,Button.Ability2)),
+    Battery.New('簧鑫电池', 120, 100, '更大，更快，更强，但...\n不处在修机状态时，会随机向屠夫报点',AbilityIconString(Hero.Roadhog,Button.Ability2))
+];
+// 用于标记电池索引，方便抽取或重置
+globalvar Number[] Battery_IDs = Battery_Pool.Map(t=>Battery_Pool.IndexOf(t));
+// 玩家当前携带的电池信息
+playervar Battery battery = null;
+rule: '找电池'
+Event.OngoingPlayer
+Team.All
+Player.All
+if (OnceBatteryPositions.IsTrueForAny(t => DistanceBetween(t, EventPlayer()) <= BatteryCanRadius && DistanceBetween(t,RayCastHitPosition(EyePosition(EventPlayer()),EyePosition(EventPlayer())+FacingDirectionOf(EventPlayer())*1))<=1))
+if (EventPlayer().IsButtonHeld(Button.Interact))
+
+{
+    if(EventPlayer().battery == null)
+    {
+        if (EventPlayer().FindBatteryPct < 100)
+        {
+            Number FindSpeed: 20; // 每秒增加的翻找进度
+            Number FindTick: 0.1; // 刷新间隔
+            EventPlayer().FindBatteryPct = Min(100, EventPlayer().FindBatteryPct + FindSpeed * FindTick);
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.Soldier76SprintStartSound,
+                Position: PositionOf(),
+                Radius: 200
+            );
+            if (EventPlayer().FindBatteryPct >= 100)
+            {
+                // 找到电池，增加 BatteryRepairSpeed 或其他奖励
+                EventPlayer().battery = Battery_Pool.Random();
+                BatteryRepairSpeed = battery.Speed;
+                BigMessage(
+                    EventPlayer(),
+                    battery.Name+'!'
+                );
+                PlayEffect(
+                    VisibleTo: AllPlayers(),
+                    Type: PlayEffect.GoodPickupEffect,
+                    Color: Color.Green,
+                    Position: OnceBatteryPositions[OnceBatteryPositions.IndexOf(OnceBatteryPositions.Sort(t => DistanceBetween(t, EventPlayer())).First)],
+                    Radius: 4
+                );
+                EventPlayer().FindBatteryPct = 0; // 重置翻找进度
+                Wait(1);
+            }
+        }
+        Wait(0.1); // 与修电机一致的刷新间隔
+        LoopIfConditionIsTrue();
+        FindBatteryPct = 0;
+    }else{
+        SmallMessage(
+            EventPlayer(),
+            '必须丢弃该电池才能翻找'
+        );
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.DebuffImpactSound,
+            Position: PositionOf(),
+            Radius: 200
+        );
+        Wait(1);
+    }
+}
+
+rule: '屠夫心跳，红光初始化'
+Event.OngoingPlayer
+Team.Team1
+Player.All
+{
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.WinstonPrimalRageSound,
+        Position: EventPlayer(),
+        Radius: 200
+    );
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.WinstonPrimalRageSound,
+        Position: EventPlayer(),
+        Radius: 200
+    );
+    for(define i = 0; i < 1; i++){
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.AsheDynamiteBurningParticleEffect,
+            Position: WorldVectorOf(Vector(0,0.2,1.5),EventPlayer(),<LocalVector>Transformation.RotationAndTranslation),
+            Color: Color.Red
+        );
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.AsheDynamiteBurningParticleEffect,
+            Position: WorldVectorOf(Vector(0,0.2,2.5),EventPlayer(),<LocalVector>Transformation.RotationAndTranslation),
+            Color: Color.Red
+        );
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.AsheDynamiteBurningParticleEffect,
+            Position: WorldVectorOf(Vector(0.5,0.2,1),EventPlayer(),<LocalVector>Transformation.RotationAndTranslation),
+            Color: Color.Red
+        );
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.AsheDynamiteBurningParticleEffect,
+            Position: WorldVectorOf(Vector(-0.5,0.2,1),EventPlayer(),<LocalVector>Transformation.RotationAndTranslation),
+            Color: Color.Red
+        );
+    }
+}
+
+playervar Number HealthState = 2;
+globalvar Color[] HealthColor = [Color.Red, Color.Yellow, Color.Green];
+rule: '队伍HUD显示'
+{
+    for(i_ = 0; i_ < 5; i_++){
+        Number i : EvaluateOnce(i_);
+        CreateHudText(
+            VisibleTo: HasSpawned(PlayersInSlot(i,Team.Team2))?AllPlayers():null,
+            Header: <'        \n   <0>   \n ',HeroIconString(HeroOf(PlayersInSlot(i,Team.Team2)))>,
+            Subheader: IconString(Icon.Happy)+'                                        ',
+            Text: <'<1>\n\n容量：<0>',PlayersInSlot(i,Team.Team2).battery.Capacity,PlayersInSlot(i,Team.Team2).battery.Name>,
+            Location: Location.Left,
+            SortOrder: i==SlotOf(LocalPlayer())?-100:i,
+            HeaderColor: HealthColor[PlayersInSlot(i,Team.Team2).HealthState],
+            TextColor: Color.White,
+            SubheaderColor: Color.White,
+            Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+            Spectators: Spectators.DefaultVisibility
+        );
+    }
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: '\n\n\n\n\n\n\n\n\n\n\n\n',
+        Location: Location.Left,
+        SortOrder: -101,
+    );
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: '\n\n',
+        Location: Location.Left,
+        SortOrder: -99,
+    );
+}
+rule: '电池HUD显示'
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Header: <'                \n     <0>     \n ',LocalPlayer().battery.Icon>,
+        Text: <'<0>\n\n充能速度<1>%\n<2>',LocalPlayer().battery.Name,LocalPlayer().battery.Speed,LocalPlayer().battery.Des>,
+        Location: Location.Left,
+        SortOrder: -999,
+        HeaderColor: Color.Orange,
+        TextColor: Color.White,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        Spectators: Spectators.DefaultVisibility
+    );
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    DisableHeroHud();
+}

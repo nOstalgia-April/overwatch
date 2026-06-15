@@ -1,0 +1,8 @@
+Color GradientColor(Number[] Start_RGB,Number[] End_RGB,Number Loader):
+    CustomColor(
+        End_RGB[0] - Loader*(End_RGB[0]-Start_RGB[0]),
+        End_RGB[1] - Loader*(End_RGB[1]-Start_RGB[1]),
+        End_RGB[2] - Loader*(End_RGB[2]-Start_RGB[2]),
+
+        200 - Loader*(200-75)
+);

@@ -1,0 +1,75 @@
+import '品质.del';
+
+import '装备.del';
+
+enum ContainerType {
+    Shop,
+    Inventory
+}
+
+struct Container {
+    public ContainerType type;
+    public Item[] items;
+    public Number pageSize = 8; // 每页显示数量
+    //public Number currentPage;
+}
+
+class Item {
+    // 只有最基础的共享属性
+    public Number Price;
+    
+    public constructor(in Number price = 100) {
+        Price = price;
+    }
+    
+    // 抽象接口 - 必须由子类实现
+    public virtual Number GetID() { return 1415; }
+    public virtual String GetName() { return ""; }
+    public virtual String GetDes() { return ""; }
+    public virtual QUALITY GetQuality() { return QUALITY.Average; }
+    public virtual Color GetDisplayColor() { return Color.White; }
+    public virtual String GetDetailedInfo() { return ""; }
+    public virtual void Use(Player player) { if(true){}}
+    public virtual Boolean IsEquipment() { return false; }
+    public virtual Boolean IsUsable() { return false; }
+}
+
+class EquipmentItem : Item {
+    public Equip EquipData;
+    public constructor(in Equip equipData, in Number price = 0){
+        EquipData = equipData;
+        Price = 100;
+    }
+    
+    public override Number GetID() {
+        return EquipData_Pool.IndexOf(EquipData);
+    }
+    
+    public override String GetName() {
+        return EquipData.Name;
+    }
+    
+    public override String GetDes() {
+        return EquipData.Desc;
+    }
+    
+    public override QUALITY GetQuality() {
+        return EquipData.Quality;
+    }
+    
+    public override Color GetDisplayColor() {
+        return GetEquipColor(EquipData);
+    }
+    
+    public override String GetDetailedInfo() {
+        return GetEquipString(EquipData);
+    }
+    
+    public override Boolean IsEquipment() {
+        return true;
+    }
+    
+    public override Boolean IsUsable() {
+        return true; // 装备可以"使用"（穿戴）
+    }
+}

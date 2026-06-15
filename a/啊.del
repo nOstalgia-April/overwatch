@@ -1,0 +1,74 @@
+
+
+playervar define pf_pathfinding;
+playervar define pf_target;
+playervar define pf_target_optnode;
+playervar define pf_nextnode;
+playervar define pf_currentnode;
+playervar define pf_target_optnode_updatetime;
+playervar define pf_timepassed;
+playervar define temp1;
+playervar define pf_lastnode;
+playervar define pf_update;
+playervar define pf_destination;
+playervar define pf_destination_index;  
+playervar define temp2;
+playervar define temp3;
+
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(HasSpawned())
+{
+    CreateDummyBot(Team: Team.Team1,Position: HostPlayer());
+
+
+    
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.Team1
+Player.All
+if(IsButtonHeld(HostPlayer(),Button.Crouch))
+{
+    CreateIcon(Position: EventPlayer());
+    CreateHudText(Header: pf_pathfinding);
+    pf_pathfinding = 1;
+    pf_target = HostPlayer();
+}
+playervar Player[] bot_targetArray;
+playervar Player bot_target;
+rule: '机器人寻路ai'
+Event.OngoingPlayer
+Team.Team1
+Player.All
+if(IsAlive())
+{
+    
+}
+playervar Number Timer;
+rule: '机器人寻路管理-无垢巨人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+{
+    bot_targetArray = AllPlayers(Team.Team2).Filter(t=>IsInLineOfSight(t,EventPlayer())&&DistanceBetween(t,EventPlayer())<=15);
+    bot_target = bot_targetArray.Sort(t=>DistanceBetween(t,EventPlayer())).First;
+    if(bot_target != null&&AbsoluteValue(YOf(bot_target)-YOf(EventPlayer()))<=3&&IsInLineOfSight(PositionOf(EventPlayer()),bot_target,BarrierLOS.NoBarriersBlock    )){
+                    pf_pathfinding = false;
+                    StartThrottleInDirection(Direction: DirectionTowards(EventPlayer(),bot_target),Magnitude: 1,Behavior: ThrottleBehavior.ReplaceExistingThrottle);
+            }
+           else if(Timer>=2){
+                Timer = 0;
+                pf_pathfinding = 1;
+                pf_target = HostPlayer();
+            }
+            
+    Timer+=0.2;
+    Wait(0.2);
+    LoopIfConditionIsTrue();
+}

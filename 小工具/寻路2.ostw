@@ -1,0 +1,202 @@
+globalvar define op_vect;
+globalvar define op_edge;
+globalvar define op_distance_martix;
+globalvar define vect_count;
+globalvar define StN_char_index;
+globalvar define highserverload;
+playervar define pf_pathfinding;
+playervar define pf_target;
+playervar define pf_target_optnode;
+playervar define pf_nextnode;
+playervar define pf_currentnode;
+playervar define pf_target_optnode_updatetime;
+playervar define pf_timepassed;
+playervar define TEMP1;
+playervar define pf_lastnode;
+playervar define pf_update;
+playervar define pf_destination;
+
+rule: "——————————————————PATHFINDING——————————————————"
+{
+}
+
+rule: "判断服务器负载是否过高"
+if ((ServerLoadAverage() >= 200 || ServerLoadPeak() >= 230) == true)
+if (highserverload != true)
+if (TotalTimeElapsed() >= 15)
+{
+    Wait(1.5, WaitBehavior.RestartWhenTrue);
+    Wait(0.1, WaitBehavior.AbortWhenFalse);
+    highserverload = 1;
+    WaitUntil(ServerLoadAverage() <= 170, 99999);
+    highserverload = false;
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+}
+
+void pf_target_opt() "子程序(1)_定位目标最佳对应节点"
+{
+    # 判断变量是否是人物
+    if (EyePosition(pf_target) == 0)
+    {
+        if (TotalTimeElapsed() % 5 >= (highserverload ? 4 : 3) && pf_update == 0)
+        {
+        }
+        else
+        {
+            pf_update = 0;
+            TEMP1 = pf_target + Vector(0, 0.5, 0);
+            # 确定视野内最近节点
+            pf_destination = IndexOfArrayValue(op_vect, FirstOf(SortedArray(FilteredArray(op_vect, IsInLineOfSight(TEMP1, ArrayElement() + Vector(0, 1.25, 0), BarrierLOS.NoBarriersBlock)), DistanceBetween(ArrayElement(), TEMP1))));
+            # 如果目标视野内无节点，则定位至最近
+            if (pf_destination == -1)
+            {
+                pf_destination = IndexOfArrayValue(op_vect, FirstOf(SortedArray(op_vect, DistanceBetween(ArrayElement(), TEMP1))));
+            }
+        }
+    }
+    else
+    {
+        if (pf_target.pf_target_optnode_updatetime > TotalTimeElapsed() && pf_update != 1)
+        {
+            pf_destination = pf_target.pf_target_optnode;
+        }
+        else
+        {
+            pf_update = 0;
+            TEMP1 = EyePosition(pf_target) - Vector(0, 0.25, 0);
+            # 确定视野内最近节点
+            pf_target.pf_target_optnode = IndexOfArrayValue(op_vect, FirstOf(SortedArray(FilteredArray(op_vect, IsInLineOfSight(TEMP1, ArrayElement() + Vector(0, 1.25, 0), BarrierLOS.NoBarriersBlock)), DistanceBetween(ArrayElement(), TEMP1))));
+            # 如果目标视野内无节点，则定位至最近
+            if (pf_target.pf_target_optnode == -1)
+            {
+                pf_target.pf_target_optnode = IndexOfArrayValue(op_vect, FirstOf(SortedArray(op_vect, DistanceBetween(ArrayElement(), TEMP1))));
+            }
+            pf_destination = pf_target.pf_target_optnode;
+            pf_target.pf_target_optnode_updatetime = TotalTimeElapsed() + RandomReal(0.5, 1.5) + (highserverload ? 3.5 : 2);
+        }
+    }
+}
+
+void pf_event_opt() "子程序(2)_定位寻路者最佳对应节点"
+{
+    TEMP1 = EyePosition(EventPlayer()) - Vector(0, 0.25, 0);
+    # 确定视野内最近节点
+    pf_nextnode = IndexOfArrayValue(op_vect, FirstOf(SortedArray(FilteredArray(op_vect, IsInLineOfSight(TEMP1, ArrayElement() + Vector(0, 1.25, 0), BarrierLOS.NoBarriersBlock)), DistanceBetween(TEMP1, ArrayElement()) + AbsoluteValue(YOf(ArrayElement()) - YOf(TEMP1)))));
+    # 如果目标视野内无节点，则定位至最近
+    if (pf_nextnode == -1)
+    {
+        pf_nextnode = IndexOfArrayValue(op_vect, FirstOf(SortedArray(op_vect, DistanceBetween(TEMP1, ArrayElement()) + AbsoluteValue(YOf(ArrayElement()) - YOf(TEMP1)))));
+    }
+}
+
+void pf_selectnextnode() "子程序(3)_选择下一节点"
+{
+    TEMP1 = pf_destination;
+    TEMP1 = MappedArray(RemoveFromArray(op_edge[pf_currentnode], pf_lastnode), ArrayElement() * vect_count + pf_destination);
+    pf_nextnode = FirstOf(SortedArray(RemoveFromArray(op_edge[pf_currentnode], pf_lastnode), RandomReal(0, 0.5) + IndexOfStringChar(StN_char_index, CharInString(op_distance_martix[RoundToInteger(TEMP1[CurrentArrayIndex()] / 128, Rounding.Down)], TEMP1[CurrentArrayIndex()] % 128))));
+}
+
+rule: "寻路 - 进入寻路模式，初始化各变量"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (IsAlive(EventPlayer()) == true)
+if (HasSpawned(EventPlayer()) == true)
+{
+    Wait(RandomReal(0, 0.15) + highserverload * 0.25, WaitBehavior.IgnoreCondition);
+    StartThrottleInDirection(EventPlayer(), DirectionTowards(EventPlayer(), op_vect[pf_nextnode]), 1, Relative.ToWorld, ThrottleBehavior.ReplaceExistingThrottle, ThrottleRev.DirectionAndMagnitude);
+    StartFacing(EventPlayer(), DirectionTowards(EventPlayer(), op_vect[pf_nextnode]), 200, Relative.ToWorld, FacingRev.DirectionAndTurnRate);
+    pf_currentnode = -3;
+    pf_lastnode = -2;
+    pf_update = -1;
+    pf_timepassed = TotalTimeElapsed() + 10;
+    pf_destination = -1;
+    if (pf_target == false)
+    {
+        pf_pathfinding = false;
+    }
+    else
+    {
+        pf_event_opt();
+        pf_target_opt();
+    }
+    WaitUntil(!pf_pathfinding, 99999);
+    StopThrottleInDirection(EventPlayer());
+    StopFacing(EventPlayer());
+    pf_lastnode = -2;
+    pf_destination = -1;
+}
+
+rule: "寻路 - 到达下一节点时更新变量"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (DistanceBetween(EventPlayer(), op_vect[pf_nextnode]) <= 1)
+{
+    Wait(0.04, WaitBehavior.AbortWhenFalse);
+    SkipIf(pf_currentnode < 0, 1);
+    pf_lastnode = pf_currentnode;
+    pf_currentnode = pf_nextnode;
+    pf_timepassed = TotalTimeElapsed() + 8;
+    if (pf_target)
+    {
+        pf_target_opt();
+        pf_selectnextnode();
+    }
+    else
+    {
+        pf_pathfinding = false;
+    }
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: "——————————————此部分可按需添加其他规则——————————————"
+{
+}
+
+rule: "寻路 - 到达目的地停止寻路"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (DistanceBetween(EventPlayer(), op_vect[pf_destination]) <= 1)
+if (pf_destination != -1)
+{
+    pf_update = 1;
+    pf_target_opt();
+    Wait(0.025, WaitBehavior.AbortWhenFalse);
+    pf_pathfinding = false;
+}
+
+rule: "寻路 - 太长时间未到下一节点则停止寻路"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (pf_timepassed < TotalTimeElapsed())
+{
+    Wait(0.5, WaitBehavior.AbortWhenFalse);
+    pf_pathfinding = false;
+}
+
+rule: "寻路 - 卡住时跳跃"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (SpeedOf(EventPlayer()) <= 3.5)
+{
+    Wait(3, WaitBehavior.AbortWhenFalse);
+    AbortIf(IsDead(EventPlayer()) || HasStatus(EventPlayer(), Status.Rooted) || HasStatus(EventPlayer(), Status.KnockedDown) || HasStatus(EventPlayer(), Status.Asleep) || HasStatus(EventPlayer(), Status.Frozen) || HasStatus(EventPlayer(), Status.Stunned));
+    PressButton(EventPlayer(), Button.Melee);
+    PressButton(EventPlayer(), Button.Jump);
+    LoopIfConditionIsTrue();
+}
+
+rule: "寻路 - 死亡时停止寻路"
+Event.OngoingPlayer
+if (pf_pathfinding == true)
+if (IsAlive(EventPlayer()) != true)
+{
+    pf_pathfinding = false;
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: "————————————————演示部分(不要复制)————————————————"
+{
+    DisableInspectorRecording();
+}

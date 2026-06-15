@@ -1,0 +1,1867 @@
+
+playervar define pf_pathfinding;
+playervar define pf_target;
+playervar define pf_target_optnode;
+playervar define pf_nextnode;
+playervar define pf_currentnode;
+playervar define pf_target_optnode_updatetime;
+playervar define pf_timepassed;
+playervar define temp1;
+playervar define pf_lastnode;
+playervar define pf_update;
+playervar define pf_destination;
+
+
+single struct AsyncOperation {
+    public Number time;
+    public () => void callback;
+}
+
+playervar AsyncOperation[] operations = [];
+playervar Number timeUntilNextOperation = 99999;
+
+void WaitAsync(in Player | Player[] target, in Number time, in () => void callback) {
+    ModifyVariable(target.timeUntilNextOperation, Operation.Min, TotalTimeElapsed() + time);
+    target.operations += {
+        time: TotalTimeElapsed() + time,
+        callback: callback
+    };
+}
+
+rule: 'Execute Next Async Operation'
+Event.OngoingPlayer
+if (TotalTimeElapsed() >= timeUntilNextOperation)
+{
+    Number opIndex = operations.Map((op, i) => i).Sort(i => operations[i].time).First;
+    operations[opIndex].callback();
+    operations.ModRemoveByIndex(opIndex);
+
+    timeUntilNextOperation = operations.Length ? operations.Sort(op => op.time).First.time : 99999;
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+
+import '地图文本菜单.del';
+import '技能表.del';
+import '仇恨值系统.del';
+rule: 'My Player Rule'
+if(NumberOfPlayers(Team.Team1)<NumberOfPlayers(Team.Team2))
+{
+    CreateDummyBot(Hero: Hero.Reinhardt,Team: Team.Team1,Slot: -1);
+    SetMoveSpeed(LastCreatedEntity(),80);
+}
+
+playervar Number Health;
+playervar Number Shields;
+playervar Number Mana;
+
+rule: '生命为0自动死亡'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Shuxings!=0)
+if(Health<=0)
+{
+    ClearStatus(EventPlayer(),Status.Unkillable);
+    Kill();
+}
+enum DamageType{
+    Physical,
+    Magical,
+    Real
+}
+
+class ShuxingBase{
+    public Number Abs;
+    public Number Pct;
+    public Number Base;
+
+    Number RealShuxing():
+        Abs+Base;
+
+    Number VirtualShuxing():
+        RealShuxing()*(1+Pct/100);
+
+    public constructor(in Number base=100){
+        Base = base;
+    }
+}
+class ShuxingSystem{
+    public ShuxingBase MaxShields;
+    public ShuxingBase MaxHealth;
+    public ShuxingBase MaxMana;
+    public ShuxingBase Attack;
+    public ShuxingBase Power;
+    public ShuxingBase CoolDown;
+    public ShuxingBase Speed;
+    public ShuxingBase HealModify;
+    public ShuxingBase Drain;
+    public ShuxingBase Physic_Armor;
+    public ShuxingBase Magic_Resist;
+    public ShuxingBase CriticalBonus;
+    public ShuxingBase CriticalRate;
+
+    public ShuxingBase HealthGeneration;
+    public ShuxingBase ManaGeneration;
+    public ShuxingBase ShieldsGeneration;
+    public ShuxingBase ShieldsRecover;
+
+    public constructor(
+    in Number attack = 5,
+    in Number power = 5,
+    in Number maxMana = 100,
+    in Number maxHealth = 100,
+    in Number maxShields = 50,
+    in Number coolDown = 0,
+    in Number speed = 100,
+    in Number healModify = 100,
+    in Number drain = 0,
+    in Number physicArmor = 30,
+    in Number magicResist = 30,
+    in Number criticalBonus = 1.5,
+    in Number criticalRate = 1,
+    in Number healthGeneration = 1,
+    in Number manaGeneration = 2
+) {
+    Attack = new ShuxingBase(attack);
+    Power = new ShuxingBase(power);
+    MaxMana = new ShuxingBase(maxMana);
+    MaxHealth = new ShuxingBase(maxHealth);
+    MaxShields = new ShuxingBase(maxShields);
+    CoolDown = new ShuxingBase(coolDown);
+    Speed = new ShuxingBase(speed);
+    HealModify = new ShuxingBase(healModify);
+    Drain = new ShuxingBase(drain);
+    Physic_Armor = new ShuxingBase(physicArmor);
+    Magic_Resist = new ShuxingBase(magicResist);
+    CriticalBonus = new ShuxingBase(criticalBonus);
+    CriticalRate = new ShuxingBase(criticalRate);
+    HealthGeneration = new ShuxingBase(healthGeneration);
+    ManaGeneration = new ShuxingBase(manaGeneration);
+}
+}
+// 暴击计算辅助方法
+Number CalculateCriticalBonus(in Player source) {
+    return RandomReal(0,1) < source.Shuxings.CriticalRate.VirtualShuxing() / 100 ? 1.5 + source.Shuxings.CriticalBonus.VirtualShuxing() / 100 : 1.0;
+}
+
+single struct DamageEvent {
+    public Number Amount;
+    public DamageType Type;
+    public Any Source;
+    public Boolean IsCritical;
+    public Number Timestamp;
+    public Boolean IsSustained;
+}
+// 扩展治疗类型枚举
+enum HealType {
+    HealthOnly,    // 仅治疗生命值
+    ShieldOnly,    // 仅恢复护盾
+    Both          // 同时治疗生命和护盾
+}
+
+single struct HealEvent {
+    public Number Amount;
+    public HealType Type;
+    public Any Source;
+    public Boolean IsCritical;
+    public Boolean IsSustained;
+    public Number Timestamp;
+}
+
+playervar HealEvent[] HealQueue = [];
+playervar DamageEvent[] DamageQueue = [];
+playervar Boolean isDamageTaken;
+playervar ShuxingSystem Shuxings;
+Color RealDamage_Color:
+    CustomColor(248, 248, 255, 255);
+
+    Number RealDamage_Color_R:
+        248;
+
+    Number RealDamage_Color_G:
+        248;
+
+    Number RealDamage_Color_B:
+        255;
+
+Color MagicDamage_Color:
+    CustomColor(65, 105, 255, 255);
+
+    Number MagicDamage_Color_R:
+        65;
+
+    Number MagicDamage_Color_G:
+        105;
+
+    Number MagicDamage_Color_B:
+        255;
+
+
+globalvar Number[][] DamageType_Colors_RGB! = [
+    [UnfinishedColor_Red_R,UnfinishedColor_Red_G,UnfinishedColor_Red_B],
+    [MagicDamage_Color_R,MagicDamage_Color_G,MagicDamage_Color_B],
+    [RealDamage_Color_R,RealDamage_Color_G,RealDamage_Color_B]
+];
+rule: '处理伤害队列'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(DamageQueue.Length>0)
+{
+    define DamageEvt! = DamageQueue[0];
+    
+    
+    //音效
+    Damage(EventPlayer(),DamageEvt.Source,1000);
+    PlayEffect(Type: PlayEffect.BadExplosion,Color: Color.Red,Position: EventPlayer(),Radius: 0.02);
+    // 计算暴击
+    Number critMultiplier = CalculateCriticalBonus(DamageEvt.Source);
+    Boolean isCrit = critMultiplier > 1.0 || DamageEvt.IsCritical;
+
+    // 应用暴击视觉反馈
+    if(isCrit) {
+    }
+
+    // 计算基础伤害
+    Number baseDamage = DamageEvt.Amount * critMultiplier;
+    
+    // 护甲减免计算
+    Number reduction = DamageEvt.Type == DamageType.Physical ? 
+        Shuxings.Physic_Armor.VirtualShuxing() : 
+        (DamageEvt.Type == DamageType.Magical ? Shuxings.Magic_Resist.VirtualShuxing() : 0);
+
+    reduction = reduction / (100 + reduction); // 百分比换算
+
+    // 最终伤害计算
+    Number finalDamage = baseDamage * (1 - reduction);
+    if(IsManaShieldActive){
+        if(CurrentElement==ElementState.Arcane){
+            Mana -= 0.5*finalDamage;
+        }else{
+            Mana -= 1*finalDamage;
+        }
+        finalDamage = 0;
+
+        if(CurrentElement==ElementState.Frozen){
+            if(RandomReal(0,1)>0.5){
+                SetStatus(Player: DamageEvt.Source,Assister: null,Status: Status.Frozen,0.5);
+            }
+        }
+    }
+    // 护盾优先吸收
+    Number remain = Max(0, finalDamage - Shields);
+    Shields = Max(0, Shields - finalDamage);
+    
+    // 生命值扣除
+    if(remain > 0) {
+        Health = Max(0, Health - remain);
+    }
+    define DamageColor_RGB! = DamageType_Colors_RGB[<Number>DamageEvt.Type];
+    //浮动文本
+    AddCombatText(amount: finalDamage,rgb: [DamageColor_RGB[0],DamageColor_RGB[1],DamageColor_RGB[2]],source: DamageEvt.Source,iscritical: isCrit,target: EventPlayer());
+
+    //机器人添加仇恨值逻辑
+    if(IsDummyBot()){
+        AddThreat(source: DamageEvt.Source,amount: finalDamage,type: ThreatType.Damage,target: [EventPlayer()]);
+    }
+    
+    
+    ModifyVariable(DamageQueue,Operation.RemoveFromArrayByIndex,0);
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+void HealEffectPlay()'sub对玩家播放治疗特效'{
+    PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: EventPlayer(),Radius: 1);
+    PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: EventPlayer(),Radius: 150,VisibleTo: EventPlayer());
+}
+playervar define IsHealingTime!;
+rule: '处理治疗队列'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HealQueue.Length>0)
+{
+    define HealEvt! = HealQueue[0];
+
+    if (HealEvt.IsSustained) {
+        if (RandomReal(0, 1) > 0.7) {
+            HealEffectPlay();  // 只有随机成功时才执行
+        }
+    } else {
+        HealEffectPlay();  // 非 Sustained 情况直接执行
+    }
+
+    // 更新施法者的IsHealingTime（如果施法者不是自己）
+    if (HealEvt.Source != EventPlayer()) {
+        HealEvt.Source.IsHealingTime = TotalTimeElapsed();
+    }
+    if (HealEvt.Source.isSwiftGrace){
+        SwiftGrace.SwiftGraceAction(HealEvt.Source);
+    }
+                
+
+    // 计算治疗暴击
+    Number critMultiplier = CalculateCriticalBonus(HealEvt.Source);
+    Boolean isCrit = critMultiplier > 1.0 || HealEvt.IsCritical;
+
+    Number baseHeal = HealEvt.Amount * (Shuxings.HealModify.VirtualShuxing()/100) * critMultiplier;
+
+    // 暴击视觉反馈
+    if(isCrit) {
+    }
+
+    //治疗视觉反馈
+    SetPlayerHealth(Amount: MaxHealth()-100);
+    Heal(Player: EventPlayer(),Amount: 1,Healer: null);
+
+    // 根据治疗类型分配
+    switch(HealEvt.Type) {
+        case HealType.HealthOnly:
+            Health = Min(Shuxings.MaxHealth.VirtualShuxing(), Health + baseHeal);
+            break;
+            
+        case HealType.ShieldOnly:
+            Shields = Min(Shuxings.MaxShields.VirtualShuxing(), Shields + baseHeal);
+            break;
+            
+        case HealType.Both:
+            Number remainHeal = baseHeal-(Shuxings.MaxHealth.VirtualShuxing() - Health);
+            Health = Min(Shuxings.MaxHealth.VirtualShuxing(), Health + baseHeal);
+            if(remainHeal>0){
+                Shields = Min(Shuxings.MaxShields.VirtualShuxing(), Shields + remainHeal);
+            }
+            
+            break;
+    }
+    AddCombatText(amount: baseHeal,rgb: [FinishedColor_Gold_R,FinishedColor_Gold_G,FinishedColor_Gold_B],source: HealEvt.Source,iscritical: isCrit,issustained: HealEvt.IsSustained,target: EventPlayer());
+
+    //机器人添加仇恨值逻辑
+    AddThreat(source: HealEvt.Source,amount: baseHeal,type: ThreatType.Healing,target: AllPlayers().Filter(t=>IsInLineOfSight(HealEvt.Source,t)&&IsDummyBot(t)));
+
+    ModifyVariable(HealQueue,Operation.RemoveFromArrayByIndex,0);
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+
+
+rule: '显示负载'
+{
+    CreateHudText(VisibleTo: AllPlayers(),Header: ServerLoad(),Subheader: ServerLoadAverage(),Text: ServerLoadPeak(),Location: Location.Right);
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    SetDamageDealt(Player: EventPlayer(),DamageDealtPercent: 1);
+    AddHealthPoolToPlayer(MaxHealth: 1000000);
+}
+
+rule: '房主传送'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(EventPlayer(),Button.Reload)&&!IsGameInProgress())
+{
+    Teleport(EventPlayer(),EyePosition()+10*FacingDirectionOf());    
+}
+Color ManaColor:
+    CustomColor(76, 130, 255, 255);
+rule: '玩家ui初始化'
+{
+    //生命值
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Value: 100*LocalPlayer().Health/LocalPlayer().Shuxings.MaxHealth.VirtualShuxing(),
+            Text: <'生命值 <0>/<1>                  <2>',LocalPlayer().Health,LocalPlayer().Shuxings.MaxHealth.VirtualShuxing(),<'护盾 <0>/<1>',LocalPlayer().Shields,LocalPlayer().Shuxings.MaxShields.VirtualShuxing()>>,
+            Position: MenuButtonPosition_Local(PosX: -3,PosY: -2.5),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: CustomColor(255, 0, 0, 255),
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+        Wait(1);
+        //护盾
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Value: 100*LocalPlayer().Shields/LocalPlayer().Shuxings.MaxShields.VirtualShuxing(),
+            Text: '',
+            Position: MenuButtonPosition_Local(PosX: -3,PosY: -2.5),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: CustomColor(255, 255, 255, 100),
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+        Wait(1);
+        //其他玩家生命
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>IsInLineOfSight(t,ZJZJ)&&DistanceBetween(t,ZJZJ)<=15&&!t.isInMenu&&ZJZJ!=0),
+            Value: 100*ZJZJ.Health/ZJZJ.Shuxings.MaxHealth.VirtualShuxing(),
+            Text: <'生命值 <0>/<1>                  <2>',ZJZJ.Health,ZJZJ.Shuxings.MaxHealth.VirtualShuxing(),<'护盾 <0>/<1>',ZJZJ.Shields,ZJZJ.Shuxings.MaxShields.VirtualShuxing()>>,
+            Position: MenuButtonPosition_Local(PosX: 0,PosY: 2),
+            Scale: 1.5,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: CustomColor(255, 0, 0, 255),
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+        Wait(1);
+    //其他玩家护盾
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>IsInLineOfSight(t,ZJZJ)&&DistanceBetween(t,ZJZJ)<=15&&!t.isInMenu&&ZJZJ!=0),
+            Value: 100*ZJZJ.Shields/ZJZJ.Shuxings.MaxShields.VirtualShuxing(),
+            Text: '',
+            Position: MenuButtonPosition_Local(PosX: 0,PosY: 2),
+            Scale: 1.5,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: CustomColor(255, 255, 255, 100),
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+    //魔法条
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Value: 100*LocalPlayer().Mana/LocalPlayer().Shuxings.MaxMana.VirtualShuxing(),
+            Text: <'法力值 <0>/<1>',LocalPlayer().Mana,LocalPlayer().Shuxings.MaxMana.VirtualShuxing()>,
+            Position: MenuButtonPosition_Local(PosX: -3,PosY: -2.8),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: ManaColor,
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+    //任务
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'[当前任务]:\n<0>\n\n<1>\n     <2>',LocalPlayer().task.Name,LocalPlayer().task.Des,LocalPlayer().task.Schedule>0?<'完成进度：<0>/<1>',LocalPlayer().task_Happening,LocalPlayer().task.Schedule>:''>,
+            Position: MenuButtonPosition_Local(3.2,0.7),
+            Scale: 2,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Orange
+        );
+    //其他玩家名字
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>IsInLineOfSight(t,ZJZJ)&&DistanceBetween(t,ZJZJ)<=15&&!t.isInMenu&&ZJZJ!=0),
+            Header: <'<0> <1>',HeroIconString(HeroOf(ZJZJ)),ZJZJ>,
+            Position: MenuButtonPosition_Local(-1.2,2.5),
+            Scale: 2.2,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.White
+        );
+    //指针
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'·'>,
+            Position: MenuButtonPosition_Local(0,0),
+            Scale: 4,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.White
+        );
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>ZJZJ!=0&&DistanceBetween(ZJZJ,LocalPlayer())<=LocalPlayer().Range&&IsInViewAngle(LocalPlayer(),ZJZJ,10)&&IsInLineOfSight(EyePosition(LocalPlayer()),ZJZJ)&&!t.isInMenu),
+            Header: <'(     )'>,
+            Position: MenuButtonPosition_Local(0,0),
+            Scale: 2.5,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.White
+        );
+    //经验条
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Value: 100*LocalPlayer().EXP/EXP_to_Level(LocalPlayer().level),
+            Text: '',
+            Position: MenuButtonPosition_Local(PosX: 0,PosY: -3.17),
+            Scale: 1.6,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: Color.Gray,
+            TextColor: Color.White,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'Exp <0>/<1>',LocalPlayer().EXP,EXP_to_Level(LocalPlayer().level)>,
+            Position: MenuButtonPosition_Local(0,-2.8),
+            Scale: 1.3,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.White
+        );
+
+    //职业显示
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: RoleDatas[LocalPlayer().CurrentRole].Icon,
+            Position: MenuButtonPosition_Local(-4.2,-2.2),
+            Scale: 2.5,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Yellow
+        );
+    //其他玩家职业显示
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>IsInLineOfSight(t,ZJZJ)&&DistanceBetween(t,ZJZJ)<=15&&!t.isInMenu&&ZJZJ!=0&&TeamOf(t)==Team.Team2&&!IsDummyBot(ZJZJ)),
+            Header: RoleDatas[ZJZJ.CurrentRole].Icon,
+            Position: MenuButtonPosition_Local(1.2,2.5),
+            Scale: 2.5,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Yellow
+        );
+    //进度条
+        CreateProgressBarInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>t.IsChanneling&&!t.isInMenu),
+            Value: LocalPlayer().ChannelProgress,
+            Text: <'正在引导 <0>%...',LocalPlayer().ChannelProgress>,
+            Position: MenuButtonPosition_Local(PosX: 0,PosY: -0.5),
+            Scale: 1,
+            Clipping: Clipping.DoNotClip,
+            ProgressBarColor: Color.Gray,
+            TextColor: Color.Yellow,
+            Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor,
+        );
+}
+rule: '仇恨值显示'
+{
+    CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>IsInLineOfSight(t,ZJZJ)&&DistanceBetween(t,ZJZJ)<=15&&!t.isInMenu&&ZJZJ!=0&&TeamOf(t)==Team.Team2&&IsDummyBot(ZJZJ)),
+            Header: 
+            <
+            '仇恨值—————\n<0>\n<1>\n<2>',
+            ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[0])]>0?<'<0><1> <2>',Sorted_Theat_Rank(ZJZJ)[0],'',ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[0])]>:'',
+            ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[1])]>0&&Sorted_Theat_Rank(ZJZJ).Length>1?<'<0><1> <2>',Sorted_Theat_Rank(ZJZJ)[1],'',ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[1])]>:'',
+            ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[2])]>0&&Sorted_Theat_Rank(ZJZJ).Length>2?<'<0><1> <2>',Sorted_Theat_Rank(ZJZJ)[2],'',ZJZJ.bot_threat_tables[SlotOf(Sorted_Theat_Rank(ZJZJ)[2])]>:''
+            >,
+            Position: MenuButtonPosition_Local(2,2.1),
+            Scale: 1.5,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Orange
+        );
+}
+Player ZJZJ:
+    UpdateEveryFrame(PlayerClosestToReticle(LocalPlayer(),Team.All));
+
+playervar Number Range = 15;
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    DisableHeroHud();
+    DisableNameplates(Player: EventPlayer(),ViewingPlayers: AllPlayers());
+    DisableGameModeHud();
+    DisableMusic();
+    SetStatus(EventPlayer(),Duration: 9999,Status: Status.Unkillable,Assister: null);
+}
+
+rule: '残血ui'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Health<0.3*Shuxings.MaxHealth.VirtualShuxing())
+{
+    SetPlayerHealth(Amount: 0.3*MaxHealth());
+}
+rule: '残血ui'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Health>=0.3*Shuxings.MaxHealth.VirtualShuxing())
+{
+    SetPlayerHealth(Amount: MaxHealth());
+}
+
+single struct Task {
+    public String Name;
+    public String Des;
+    public Number Schedule;
+}
+
+
+globalvar Task[] Tasks! = [
+];
+
+playervar Task task;
+playervar Number task_Happening!;
+playervar Number level;
+playervar Number EXP;
+Number EXP_to_Level(in Number level):
+    100 * (level^1.5) + 100;
+
+rule: '初始化任务'
+{
+    Tasks[0] = {Name:'第一个任务',Des:'帮房主测试，打一下大锤，试试不同职业的技能吧！',Schedule:5};
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    task = Tasks[0];
+}
+playervar Skill[] Skills;
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Ability1))
+{
+}
+globalvar Button[] Buttons! = [Button.Interact,Button.Ability1,Button.Ability2,Button.Ultimate];
+
+globalvar String[] Skill_Buttons! = ['F','S','E','Q'];
+rule: '技能图标初始化'
+{
+    for(define i! = 0;i<Skill_Buttons.Length;i++){
+        define X! = -1 + i*1;
+        //技能按键1
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'■'>,
+            Position: MenuBigPosition_Local(EvaluateOnce(X),-1.5),
+            Scale: 100,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: 
+                LocalPlayer().Skills[EvaluateOnce(i)].ManaCost > LocalPlayer().Mana?Color.SkyBlue:
+                LocalPlayer().Skills[EvaluateOnce(i)].CurrentCooldown>0 || HasStatus(LocalPlayer(),Status.Hacked)
+                ?
+                Color.Gray
+                :
+                    (IsButtonHeld(LocalPlayer(),Button:Buttons[EvaluateOnce(i)])||LocalPlayer().Skills[EvaluateOnce(i)].IsActive
+                    ?
+                    Color.Orange
+                    :
+                    LocalPlayer().IsChanneling?
+                    Color.Gray:Color.White)
+        );
+        
+        
+
+        //技能按键1-名字
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: <'<0>',LocalPlayer().Skills[EvaluateOnce(i)].Name>,
+            Position: MenuBigPosition_Local(EvaluateOnce(X),-1.7),
+            Scale: 2,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Yellow
+        );
+        //技能按键1
+        CreateInWorldText(
+            VisibleTo: AllPlayers().Filter(t=>!t.isInMenu),
+            Header: LocalPlayer().Skills[EvaluateOnce(i)].CurrentCooldown==0?Skill_Buttons[EvaluateOnce(i)]:LocalPlayer().Skills[EvaluateOnce(i)].CurrentCooldown,
+            Position: MenuBigPosition_Local(EvaluateOnce(X),-1.45),
+            Scale: 1.5,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: Color.Black
+        );
+    }
+}
+
+// 定义技能类型枚举
+enum SkillType {
+    Instant,     // 瞬时技能
+    Toggle,      // 开关技能
+    Channeled    // 引导技能
+}
+playervar Boolean IsToggling;
+rule: 'My Rule'
+{
+    CreateEffect(VisibleTo: AllPlayers().Filter(t=>t.IsToggling),Type: Effect.DecalSound,Position: EyePosition(LocalPlayer()),Radius: 200);
+    CreateEffect(VisibleTo: AllPlayers().Filter(t=>t.IsToggling),Type: Effect.DecalSound,Position: EyePosition(LocalPlayer()),Radius: 200);
+    CreateEffect(VisibleTo: AllPlayers().Filter(t=>t.IsToggling),Type: Effect.DecalSound,Position: EyePosition(LocalPlayer()),Radius: 200);
+}
+rule: '创建正在使用技能的音效'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    
+}
+playervar Skill[] ActiveToggleSkills = [];
+playervar Number ChannelProgress;
+playervar Boolean IsChanneling;
+Boolean ShouldForceInterrupt(in Player p = EventPlayer()):
+    HasStatus(p,Status.Stunned)||HasStatus(p,Status.Frozen)||HasStatus(p,Status.Hacked)||HasStatus(p,Status.KnockedDown);
+class Skill{
+    public String Name;
+    public String Des;
+    public Number ManaCost;
+    public Number Cooldown;
+    public Number CurrentCooldown;
+    public SkillType Type;
+    public Boolean IsActive;  // 用于Toggle类型
+    public Number ChannelTime;    // 引导技能所需时间(秒)
+
+    public constructor(){
+        Name = '测试';
+    }
+
+    public virtual Boolean CanTrigger(){
+        return true;
+    }
+    public void Trigger() 'sub触发技能'{
+        if(CurrentCooldown > 0 || Mana < ManaCost || !CanTrigger() || IsChanneling || HasStatus(Status: Status.Hacked)) return;
+        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.DoomfistRisingUppercutImpactSound,Color.Aqua,PositionOf(),150);
+        switch(Type) {
+            case SkillType.Instant:
+                InstantTrigger();
+                break;
+                
+            case SkillType.Toggle:
+                ToggleTrigger();
+                break;
+                
+            case SkillType.Channeled:
+                ChanneledTrigger();
+                break;
+        }
+    }
+    // 瞬时技能触发逻辑
+    public void InstantTrigger() {
+        Mana -= ManaCost;
+        CurrentCooldown = Cooldown;
+        Execute();
+    }
+    // 开关技能触发逻辑p
+    public void ToggleTrigger() {
+        if(IsActive) {
+            // 从激活列表移除
+            ActiveToggleSkills = ActiveToggleSkills.Filter(s => s != this);
+            IsActive = false;
+            IsToggling = false;
+            CurrentCooldown = Cooldown;
+
+            OnToggleEnd();
+        } else{
+            // 加入激活列表
+            ActiveToggleSkills += this;
+            IsToggling = true;
+            IsActive = true;
+            Mana -= ManaCost;
+            OnToggleStart();
+        }
+    }
+    // 引导技能触发逻辑
+    protected void ChanneledTrigger() {
+        IsActive = true;
+        //IsChanneling = true;
+        define TimeStamp! = TotalTimeElapsed()+3;
+        if(!IsButtonHeld(Button: Button.SecondaryFire)&&CurrentButton!=Button.PrimaryFire){
+            SmallMessage(VisibleTo: EventPlayer(),Header: '同时按住右键开始蓄力');
+        }
+        SetPrimaryFireEnabled(Enabled: false);
+        if(CurrentButton!=Button.PrimaryFire){
+            while(!IsButtonHeld(Button: Button.SecondaryFire)){
+            Wait(0.1);
+            if(TotalTimeElapsed()>TimeStamp){
+                IsActive = false;
+                Abort();
+            }
+            }
+        }
+        
+        if(StartChannelCondition()){
+        ChannelingSkill = this;
+        }
+        else{
+            SmallMessage(EventPlayer(),'引导取消');
+            IsActive = false;
+            SetPrimaryFireEnabled(Enabled: true);
+        }
+    }
+    // 开关技能更新循环
+    public void ToggleUpdateLoop()'sub开关技能更新循环' {
+        while(IsActive && IsAlive()) {
+            if(Mana < ManaCost) {  // 按比例检查法力
+                IsToggling = false;
+                IsActive = false;
+                break;
+            }
+            
+            Mana -= ManaCost;
+            OnToggleTick();
+            Wait(0.2);
+        }
+        
+        if(IsActive) {
+            IsActive = false;
+            IsToggling = false;
+            CurrentCooldown = Cooldown;
+
+        }
+        OnToggleEnd();
+    }
+
+     /* 可重写的技能效果方法 */
+    
+    // 瞬时技能效果
+    public virtual void Execute() {
+        SmallMessage(EventPlayer(), "瞬时技能效果");
+    }
+    
+    // 开关技能开启时
+    public virtual void OnToggleStart()'sub开关技能开启时' {
+        if(true){}
+    }
+    
+    // 开关技能每Tick
+    public virtual void OnToggleTick()'sub开关技能持续时' {
+        if(true){}
+    }
+    public virtual Boolean BreakToggleCondition(){
+        return false;
+    }
+    
+    // 开关技能关闭时
+    public virtual void OnToggleEnd()'sub开关技能关闭时' {
+        if(true){}
+    }
+    
+    // 引导技能开始时
+    public virtual void OnChannelStart()'sub引导技能开始时' {
+        if(true){}
+    }
+    
+    // 引导技能每Tick
+    public virtual void OnChannelTick()'sub引导技能持续时' {
+        if(true){}
+    }
+    
+    // 引导技能完成时
+    public virtual void OnChannelComplete()'sub引导技能完成时' {
+        SmallMessage(EventPlayer(), "引导完成!");
+    }
+    
+    // 引导技能中断时
+    public virtual void OnChannelInterrupted() {
+        SmallMessage(EventPlayer(), "引导中断");
+    }
+    // 引导技能中途停止时
+    public virtual void OnChannelAbort() {
+        SmallMessage(EventPlayer(), "引导停止");
+    }
+
+    public virtual Boolean StartChannelCondition(){
+        return true;
+    }
+    public virtual Boolean BreakChannelCondition(){
+        return false;
+    }
+}
+
+rule: '引导技能检测'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(ChannelingSkill != 0 && !IsChanneling)
+{
+    // 开始引导逻辑
+    IsChanneling = true;
+    ChannelProgress = 0;
+    Mana -= ChannelingSkill.ManaCost;
+    
+    // 调用技能的开始引导方法
+    ChannelingSkill.OnChannelStart();
+
+    {
+        ForceThrottle(Player: EventPlayer(),MaxForward: 0.4,MaxBackward: 0.4,MaxSideways: 0.4);
+        // 阶段1：蓄力阶段（按住按键累积进度）
+        while(IsChanneling && 
+            ((IsButtonHeld(Button: Button.SecondaryFire)&&CurrentButton!=Button.PrimaryFire)||(IsButtonHeld(Button: Button.PrimaryFire))&&CurrentButton==Button.PrimaryFire) && 
+            IsAlive() && 
+            ChannelProgress < 100) {
+            if(ShouldForceInterrupt()) {
+                ChannelingSkill.OnChannelInterrupted();
+                break;
+            }
+            if(ChannelingSkill.BreakChannelCondition()){
+                break;
+            }
+            PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.ReaperWraithFormSound,Position: EyePosition(),Radius: Max(50,2*ChannelProgress));
+            ChannelProgress = Min(100, ChannelProgress + (10/ChannelingSkill.ChannelTime));
+            ChannelingSkill.OnChannelTick();
+            Wait(0.1);
+        }
+        if(ChannelProgress < 100){
+            ChannelingSkill.OnChannelAbort();
+        }
+        // ===== 阶段2：蓄满后处理 =====
+        if(ChannelProgress >= 100 && IsChanneling) {
+            define releaseWindowEnd! = TotalTimeElapsed() + 2.0;
+            while(IsChanneling && 
+                  ((IsButtonHeld(Button: Button.SecondaryFire)&&CurrentButton!=Button.PrimaryFire)) && 
+                  TotalTimeElapsed() < releaseWindowEnd && 
+                  IsAlive()) {
+                
+                PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.ReaperWraithFormSound,Position: EyePosition(),Radius: Max(50,2*ChannelProgress));
+                ChannelingSkill.OnChannelTick();
+                if(ShouldForceInterrupt()) {
+                ChannelingSkill.OnChannelInterrupted();
+                break;
+                }
+                if(ChannelingSkill.BreakChannelCondition()){
+                break;
+                }
+                Wait(0.1);
+            }
+            
+            if(IsChanneling && 
+               ((!IsButtonHeld(Button: Button.SecondaryFire)&&CurrentButton!=Button.PrimaryFire)||CurrentButton==Button.PrimaryFire) && 
+               TotalTimeElapsed() < releaseWindowEnd) {
+                ChannelingSkill.OnChannelComplete(); // ✅ 成功释放
+                PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.RingExplosionSound,Position: EyePosition(),Radius: 175);
+            }
+        }
+    }
+    ChannelingSkill.CurrentCooldown = ChannelingSkill.Cooldown;
+    ChannelingSkill.IsActive = false;
+    StopForcingThrottle(EventPlayer());
+    SetPrimaryFireEnabled(Enabled: true);
+    IsChanneling = false;
+    ChannelProgress = 0;
+    ChannelingSkill = 0; // 清除当前引导技能
+}
+
+
+Player GetObject(in Number Range=15,in Player p = EventPlayer(), in Boolean isTeam1 = true):
+    FirstOf(AllPlayers().Filter(t=>(t==PlayerClosestToReticle(Player: p,Team: Team.Team1)||!isTeam1)&&(t==PlayerClosestToReticle(Player: p,Team: Team.Team2)||isTeam1)&&IsInViewAngle(p,t,10)&&DistanceBetween(p,t)<=Range&&t!=p));
+
+
+
+
+
+
+enum TriggerButton{
+    Interact,
+    Ability1,
+    Ability2,
+    Ultimate
+}
+playervar Skill ChannelingSkill;
+playervar Boolean isChannelWindowOpen;
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    
+}
+playervar Button CurrentButton;
+
+
+
+rule: '按键触发技能'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsTrueForAny(Buttons,IsButtonHeld(EventPlayer(),ArrayElement())))
+{
+    CurrentButton = FirstOf(Buttons.Filter(t=>IsButtonHeld(Button: t)&&t!=Button.PrimaryFire));
+    Skills[Buttons.IndexOf(CurrentButton)].Trigger();
+}
+
+playervar Skill PrimarySkill;
+
+void UpdateSkillsTick(Skill[] skills)'sub更新技能冷却1s'{
+    
+}
+
+// 统一技能触发规则
+rule: '每秒刷新技能'
+Event.OngoingPlayer
+Team.All
+Player.All
+//if(!IsDummyBot())
+if(IsAlive())
+if(Skills.Length>0)
+{
+    for(define i! =0;i<Skills.Length;i++){
+        if(Skills[i].CurrentCooldown > 0) {
+            Skills[i].CurrentCooldown = Max(0, Skills[i].CurrentCooldown - 1);  // 每帧减少
+        }
+        MinWait();
+    }
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+// 统一更新所有激活的开关技能
+rule: '并行更新开关技能'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(ActiveToggleSkills.Length > 0||false)
+{
+    // 并行处理所有激活技能
+        for(define i! = 0; i < ActiveToggleSkills.Length; i++) {
+        define skill! = ActiveToggleSkills[i];
+        
+        if(!IsAlive() || Mana < skill.ManaCost || skill.BreakToggleCondition()){
+            skill.IsActive = false;
+            IsToggling = false;
+            skill.CurrentCooldown = skill.Cooldown;
+            ActiveToggleSkills = ActiveToggleSkills.Filter(s => s != skill);
+            skill.OnToggleEnd();
+            continue;
+        }
+         // 执行每Tick逻辑
+        Mana -= skill.ManaCost;
+        skill.IsActive = true;
+        IsToggling = true;
+        skill.OnToggleTick();
+        MinWait();
+    }
+    
+    Wait(0.2);  // 每0.2秒更新一次
+    LoopIfConditionIsTrue();
+}
+
+playervar CombatTextData[] TextDatas = [];
+enum CombatTextType{
+    Instant,
+    Sustained
+}
+single struct CombatTextData {
+    public Number Amount;
+    public Number[] RGB;
+    public Boolean isCritical;
+    public Number TimeStamp;
+    public Vector Pos;
+    public Boolean IsSustained;
+}
+
+rule: '伤害浮动文本创建'
+{
+    for(define i! = 0; i<9;i++){
+        CreateInWorldText(
+        VisibleTo: LocalPlayer().TextDatas[EvaluateOnce(i)]!=0?LocalPlayer():null,
+        Header: <'<0><1>',LocalPlayer().TextDatas[EvaluateOnce(i)].Amount,LocalPlayer().TextDatas[EvaluateOnce(i)].isCritical?'!':''>,
+        Position: Vector(0,0.15*((TotalTimeElapsed()-LocalPlayer().TextDatas[EvaluateOnce(i)].TimeStamp)),0)+LocalPlayer().TextDatas[EvaluateOnce(i)].Pos,
+        Scale: 2,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: CustomColor(red: LocalPlayer().TextDatas[EvaluateOnce(i)].RGB[0],green: LocalPlayer().TextDatas[EvaluateOnce(i)].RGB[1],blue: LocalPlayer().TextDatas[EvaluateOnce(i)].RGB[2],
+        //持续伤害文本0.5s消散，否则1s消散
+        alpha: 255*(1-(LocalPlayer().TextDatas[EvaluateOnce(i)].IsSustained?(2*(TotalTimeElapsed()-LocalPlayer().TextDatas[EvaluateOnce(i)].TimeStamp)):(TotalTimeElapsed()-LocalPlayer().TextDatas[EvaluateOnce(i)].TimeStamp))))
+        );
+    }
+}
+playervar Number FloatTextIndex!;
+void AddCombatText(in Any amount,in Number[] rgb, in Player target, in Boolean iscritical=false, in Boolean issustained=false, in Player source){
+        source.FloatTextIndex++;
+        source.TextDatas[source.FloatTextIndex%9] = {
+        Amount: amount,
+        isCritical: iscritical,
+        IsSustained:iscritical,
+        RGB:rgb,
+        Pos: EyePosition(target)+WorldVectorOf(Localvector: Vector(RandomReal(Min: -1,1),RandomReal(Min: -0.5,1),RandomReal(Min: -1,1)),RelativePlayer: target,<LocalVector>Transformation.Rotation),
+        TimeStamp: TotalTimeElapsed()};
+}
+void AddDamageEvent(in Any amount, in Player target, in Boolean iscritical=false, in Boolean issustained=false, in Player source = EventPlayer(),in DamageType type){
+    target.DamageQueue[target.DamageQueue.Length] = {
+        Amount: amount,
+        IsCritical: iscritical,
+        IsSustained: issustained,
+        Source: source,
+        Type: type,
+        Timestamp: TotalTimeElapsed()
+    };
+    
+}
+
+void AddDHealEvent(in Any amount, in Player target, in Boolean iscritical=false, in Boolean issustained=false, in Player source,in HealType type){
+    target.HealQueue[target.HealQueue.Length] = {
+        Amount: amount,
+        IsCritical: iscritical,
+        IsSustained: issustained,
+        Source: source,
+        Type: type,
+        Timestamp: TotalTimeElapsed()
+    };
+}
+
+Color UnfinishedColor_Red:
+    CustomColor(178, 34, 34, 255);
+
+    Number UnfinishedColor_Red_R:
+        178;
+
+    Number UnfinishedColor_Red_G:
+        34;
+
+    Number UnfinishedColor_Red_B:
+        34;
+
+Color FinishedColor_Yellow:
+    CustomColor(62, 220, 94, 255);
+
+    Number FinishedColor_Gold_R:
+        62;
+
+    Number FinishedColor_Gold_G:
+        220;
+
+    Number FinishedColor_Gold_B:
+        94;
+
+
+
+
+globalvar Number[] DanDaoData! = [
+    //0号弹道，左键飞弹
+    0.5,
+    //1号弹道，奥术小飞弹
+    1,
+    //2号弹道, 奥术大飞弹
+    2,
+    //3号弹道，冰锥
+    3
+];
+
+// 角色静态数据 (使用 single struct)
+single struct CharacterData {
+    public String Name;          // 角色名称
+    public String Icon;            // 角色图标
+    public String Description;   // 角色描述
+    public ShuxingSystem Stats;  // 基础属性
+    public Skill[] Skills;       // 技能组
+}
+
+enum Role{
+    Fighter,
+    Magician,
+    Priest
+}
+playervar Role CurrentRole;
+globalvar ShuxingSystem FighterShuxings = new ShuxingSystem(
+                attack: 12,             // 基础攻击力高
+                power: 8,               // 法术强度低
+                maxMana: 100,           // 法力值上限中等
+                maxHealth: 250,         // 生命值高
+                maxShields: 50,         // 护盾值中等
+                coolDown: 0,            // 冷却缩减中等
+                speed: 100,             // 基础移动速度
+                healModify: 100,         
+                drain: 5,               // 5%吸血效果
+                physicArmor: 15,        // 物理护甲高
+                magicResist: 10,        // 魔法抗性中等
+                criticalBonus: 1.5,     // 暴击伤害加成
+                criticalRate: 20,       // 暴击几率高
+                healthGeneration: 5,   // 高生命恢复
+                manaGeneration: 2       // 法力恢复中等
+            );
+globalvar ShuxingSystem MagicianShuxings = new ShuxingSystem(
+                attack: 8,              // 基础攻击力较低
+                power: 15,              // 法术强度高
+                maxMana: 200,           // 法力值上限高
+                maxHealth: 150,         // 生命值较低
+                maxShields: 50,         // 护盾值较低
+                coolDown: 0,           // 冷却缩减
+                speed: 100,             // 基础移动速度
+                healModify: 100,         
+                drain: 0,               // 吸血效果
+                physicArmor: 5,         // 物理护甲低
+                magicResist: 20,        // 魔法抗性较高
+                criticalBonus: 1.5,     // 暴击伤害加成
+                criticalRate: 15,       // 暴击几率
+                healthGeneration: 1,    // 生命恢复
+                manaGeneration: 5       // 法力恢复高
+            );
+globalvar ShuxingSystem PriestShuxings = new ShuxingSystem(
+                attack: 5,              // 基础攻击力最低
+                power: 12,              // 法术强度中等
+                maxMana: 150,           // 法力值上限中等
+                maxHealth: 150,         // 生命值中等
+                maxShields: 50,         // 护盾值中等
+                coolDown: 15,           // 冷却缩减
+                speed: 100,             // 基础移动速度
+                healModify: 100,         // 治疗效率高
+                drain: 0,               // 吸血效果
+                physicArmor: 8,         // 物理护甲中等
+                magicResist: 15,        // 魔法抗性中等
+                criticalBonus: 1.8,     // 暴击伤害加成
+                criticalRate: 10,       // 暴击几率
+                healthGeneration: 2,    // 生命恢复
+                manaGeneration: 3       // 法力恢复中等
+            );
+rule: '每名玩家重生时打开角色面板 选择结束后进行初始化'
+Event.OngoingPlayer
+Team.Team2
+Player.All
+if(HasSpawned())
+{
+    OpenMenu(EventPlayer(),MenuActive.RoleMenu);
+    WaitUntil(!isInMenu,9999);
+    switch(CurrentRole){
+        case Role.Fighter:
+        {
+            Skills = [new PowerStrike(),new Frenzy(),new Slash(),new JumpSkill()];
+            // 初始化属性系统
+            Shuxings = FighterShuxings;
+            break;
+        }
+        case Role.Magician:
+        {
+            Skills = [new ArcaneMissiles(),new Flash(),new ManaShield(),new ElementSwitch()];
+            PrimarySkill = new Missle();
+
+            // 初始化属性系统
+            Shuxings = MagicianShuxings;
+            break;
+        }
+        case Role.Priest:
+        {
+            Skills = [new RainDrop(), new ElectricClaw(), new SwiftGrace(), new ThunderStorm()];
+            PrimarySkill = new Pray();
+
+            // 初始化属性系统
+            Shuxings = PriestShuxings;
+            break;
+        }
+    }
+    Health = Shuxings.MaxHealth.VirtualShuxing();
+    Shields = Shuxings.MaxShields.VirtualShuxing();
+    Mana = Shuxings.MaxMana.VirtualShuxing();
+
+    SetAbility1Enabled(Enabled: false);
+    SetAbility2Enabled(Enabled: false);
+    SetUltimateAbilityEnabled(Enabled: false);
+}
+rule: '战士左键'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(EventAbility() == Button.PrimaryFire || EventAbility() == Button.Melee)
+if(CurrentRole == Role.Fighter)
+{
+    AddDamageEvent(amount: Shuxings.Attack.VirtualShuxing(),target: Victim(),iscritical: false,issustained: false,source: EventPlayer(),type: DamageType.Physical);
+    if(isFrenzy){
+        SetStatus(Player: Victim(),Assister: null,Status: Status.Stunned,1);
+    }
+}
+rule: '法师,牧师左键触发技能'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!isInMenu)
+if(!IsDummyBot())
+if(IsButtonHeld(Button: Button.PrimaryFire))
+{
+    if(CurrentRole == Role.Magician){
+        WaitUntil(IsFiringPrimary(),0.1);
+        if(!IsChanneling){
+            CurrentButton = Button.PrimaryFire;
+        }
+
+        PrimarySkill.Trigger();
+        Wait(0.1);
+        LoopIfConditionIsTrue();
+    }
+    else if(CurrentRole == Role.Priest){
+        if(!IsChanneling){
+            CurrentButton = Button.PrimaryFire;
+        }
+        PrimarySkill.Trigger();
+    }
+    
+}
+class SteelWill : Skill {
+    public constructor() {
+        Name = "钢铁意志";
+        Des = "开启时大幅提升防御力\n减少受到的伤害";
+        ManaCost = 2;
+        Cooldown = 12;
+        Type = SkillType.Toggle;
+    }
+
+    public override void OnToggleStart() {
+        // 增加50%物理和魔法抗性
+        Shuxings.Physic_Armor.Pct += 50;
+        Shuxings.Magic_Resist.Pct += 50;
+        PlayEffect(Type: PlayEffect.BrigitteRepairPackImpactSound, Position: PositionOf());
+        PlayEffect(Type: PlayEffect.WreckingBallPiledriverImpactEffect, Position: PositionOf(), Radius: 200);
+        SmallMessage(Header: '钢铁意志已生效');
+    }
+
+    public override void OnToggleEnd() {
+        // 移除加成
+        Shuxings.Physic_Armor.Pct -= 50;
+        Shuxings.Magic_Resist.Pct -= 50;
+        PlayEffect(Type: PlayEffect.DebuffImpactSound, Position: PositionOf(), Radius: 200);
+        SmallMessage(Header: '钢铁意志已失效');
+    }
+}
+
+class Whirlwind : Skill {
+    public constructor() {
+        Name = "旋风斩";
+        Des = "快速旋转对周围敌人造成多次伤害";
+        ManaCost = 40;
+        Cooldown = 20;
+        Type = SkillType.Channeled;
+        ChannelTime = 2;
+    }
+
+    protected override void OnChannelStart() {
+        // 开始旋转特效
+        CreateEffect(Type: Effect.EchoCloningEffect, Position: PositionOf(), Radius: 3);
+        PlayEffect(Type: PlayEffect.ReinhardtFireStrikeTargetImpactSound, Position: PositionOf(), Radius: 200);
+        StartFacing(Player: EventPlayer(),Direction: CrossProduct(Up(),FacingDirectionOf()),TurnRate: 500);
+    }
+
+    protected override void OnChannelTick() {
+        // 每0.2秒检测并伤害周围敌人
+        if(ChannelProgress%10<2)
+        foreach(Player p in PlayersWithinRadius(PositionOf(), 3, Team.Team1, RadiusLOS.SurfacesAndEnemyBarriers)) {
+            p.DamageQueue[p.DamageQueue.Length] = {
+                Amount: 15,
+                IsCritical: false,
+                Source: EventPlayer(),
+                Timestamp: TotalTimeElapsed(),
+                Type: DamageType.Physical,
+                IsSustained: false
+            };
+        }
+    }
+
+    protected override void OnChannelComplete() {
+        // 最终强力一击
+        foreach(Player p in PlayersWithinRadius(PositionOf(), 3, Team.Team1, RadiusLOS.SurfacesAndEnemyBarriers)) {
+            p.DamageQueue[p.DamageQueue.Length] = {
+                Amount: 30,
+                IsCritical: true,
+                Source: EventPlayer(),
+                Timestamp: TotalTimeElapsed(),
+                Type: DamageType.Physical,
+                IsSustained: false
+            };
+            SetStatus(p,null,Status.KnockedDown,1);
+        }
+        StopFacing();
+        PlayEffect(Type: PlayEffect.ExplosionSound, Position: PositionOf(), Radius: 200);
+    }
+}
+
+// 自动恢复系统
+rule: "自动恢复系统 - 生命值"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+{   
+    Number healthRegen = Shuxings.HealthGeneration.VirtualShuxing() * 5; // 每0.1秒恢复
+    Number shieldRegen = Shuxings.ShieldsGeneration.VirtualShuxing() * 5; // 每0.1秒恢复
+    // 生命值恢复
+        Health = Min(Shuxings.MaxHealth.VirtualShuxing(), Health + healthRegen);
+    // 护盾恢复
+    
+    Shields = Min(Shuxings.MaxShields.VirtualShuxing(), Shields + shieldRegen);
+    if(Shuxings.MaxHealth.VirtualShuxing()<=Health){
+        Shields = Min(Shuxings.MaxShields.VirtualShuxing(), Shields + healthRegen);
+    }
+
+    // 法力值恢复
+    Number manaRegen = Shuxings.ManaGeneration.VirtualShuxing() * 5; // 每0.1秒恢复
+    Mana = Min(Shuxings.MaxMana.VirtualShuxing(), Mana + manaRegen);
+    
+    Wait(5);
+    LoopIfConditionIsTrue();
+}
+
+enum DamageID{
+
+}
+rule: '奥术小飞弹触发'
+Event.OnDamageTaken
+Team.Team1
+Player.All
+if(EventDamage()==1)
+{
+    AddDamageEvent(amount: 10,target: EventPlayer(),iscritical: false,issustained: false,source: Attacker(),type: DamageType.Magical);
+}
+rule: '奥术飞弹大飞弹触发'
+Event.OnDamageTaken
+Team.Team1
+Player.All
+if(EventDamage()==2)
+{
+    AddDamageEvent(amount: 25,target: EventPlayer(),iscritical: false,issustained: false,source: Attacker(),type: DamageType.Magical);
+    if(Attacker().CurrentElement==ElementState.Fire){
+        define Time! = 0;
+        SetStatus(Assister: null,Status: Status.Burning,Duration: 2);
+        while(Time<2){
+            AddDamageEvent(amount: 2,target: EventPlayer(),source: Attacker(),issustained: true,type: DamageType.Magical);
+            Time+=0.5;
+            Wait(0.5);
+        }
+    }
+    if(Attacker().CurrentElement==ElementState.Frozen){
+        SetStatus(Assister: null,Status: Status.Frozen,Duration: 1);
+    }
+    
+}
+
+playervar define Extra_Val_Array!;
+
+
+
+single struct RoleData {
+    public Role RoleID;
+    public String Name;
+    public String RoleDes;
+    public String Des;
+    public String Icon;
+}
+playervar Number RoleIndex!;
+globalvar RoleData[] RoleDatas! = [
+    {
+        RoleID : Role.Fighter,
+        Name : "战士",
+        Des : 
+              "[豪火术]：引导后点燃面前敌人，造成燃烧伤害\n\n" +
+              '[爪击]：向前挥击，对面前的敌人造成范围伤害\n\n' +
+              "[狂化]：开启4秒，提升50%速度、攻击和护甲，期间无法杀死，结束后虚脱3秒，无法使用技能\n\n" +
+              "[腾跃]：跃向空中，落地时对8米内友军造成50点物理伤害，适合快速切入战场",
+        Icon : AbilityIconString(Hero: Hero.Torbjorn,Button.Melee),
+        RoleDes: "坚韧的近战斗士，擅长冲锋陷阵，以强大的防御和爆发力压制敌人"
+    },
+    {
+        RoleID : Role.Magician,
+        Name : "法师",
+        Des : 
+              "[奥术飞弹]：引导1秒，发射多枚飞弹\n奥术形态会发射额外飞弹，火焰或冰霜形态附加燃烧或冻结效果\n\n" +
+              "[闪现]：瞬移至10米前方\n火焰或冰霜形态在路径上造成魔法伤害并附加燃烧或冻结效果，奥术形态法力消耗减半\n\n" +
+              "[魔法盾]：开启时用法力抵消伤害\n火焰形态对周围敌人造成持续燃烧伤害,冰霜形态概率冻结攻击者,奥术形态法力消耗为1/3\n\n" +
+              "[元素轮转]：开启后选择切换元素形态（火焰、冰霜、奥术、空），增强其他技能效果，需谨慎管理法力",
+        Icon : IconString(Icon: Icon.Spiral),
+        RoleDes: "掌控元素的魔法大师，擅长远程输出和灵活位移，法力是其核心资源"
+    },
+    {
+        RoleID : Role.Priest,
+        Name : "牧师",
+        Des : 
+              "[造水术]：引导水球移动，关闭时生成治疗雨区，持续为范围内友军造成治疗\n\n" +
+              "[电爪]：对3米内最近敌人为中心，触发范围爆炸，造成魔法伤害与控制\n\n" +
+              "[迅捷恩泽]：开启时为自身和接下来治疗的友军增加移动速度，最近1秒内治疗过则免除法力消耗\n\n" +
+              "[雷霆风暴]：在面前释放雷电路径，对路径上的敌人造成巨额魔法伤害并击倒2秒",
+        Icon : AbilityIconString(Hero: Hero.Brigitte,Button.Ability1),
+        RoleDes: "掌控水电元素的辅助大师，擅长治疗与控制，\n兼具范围输出能力，但没有普攻输出手段！！！！"
+    }
+];
+
+rule: '选人菜单初始化'
+{
+    // 主菜单按钮
+    new MenuButton(
+        header: <'确定你的职业'>,
+        posX: 0,
+        posY: 1.7,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: true,
+        ofmenuActives: [MenuActive.RoleMenu]
+    );
+
+    new MenuButton(
+        header: <'<1><0><2>',RoleDatas[0].Name,LocalPlayer().RoleIndex==0?IconString(Icon.ArrowRight):'',RoleDatas[0].Icon>,
+        posX: -2,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Visible: LocalPlayer().RoleIndex==0),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RoleMenu],
+        hover: RoleDatas[0].RoleDes
+    ).SetOnClick(()=>{EventPlayer().RoleIndex=0;        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.Soldier76SprintStartSound,Position: CameraEye,Radius: 200);});
+    new MenuButton(
+        header: <'<1><0><2>',RoleDatas[1].Name,LocalPlayer().RoleIndex==1?IconString(Icon.ArrowRight):'',RoleDatas[1].Icon>,
+        posX: 0,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Visible: LocalPlayer().RoleIndex==1),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RoleMenu],
+        hover: RoleDatas[1].RoleDes
+    ).SetOnClick(()=>{EventPlayer().RoleIndex=1;        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.Soldier76SprintStartSound,Position: CameraEye,Radius: 200);});
+    new MenuButton(
+        header: <'<1><0><2>',RoleDatas[2].Name,LocalPlayer().RoleIndex==2?IconString(Icon.ArrowRight):'',RoleDatas[2].Icon>,
+        posX: 2,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Visible: LocalPlayer().RoleIndex==2),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RoleMenu],
+        hover: RoleDatas[2].RoleDes
+    ).SetOnClick(()=>{EventPlayer().RoleIndex=2;        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.Soldier76SprintStartSound,Position: CameraEye,Radius: 200);});
+
+        new MenuButton(
+        header: <'<0>',RoleDatas[LocalPlayer().RoleIndex].Des>,
+        posX: 0,
+        posY: -1.5,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        scale: ButtonScale.Medium,
+        ofmenuActives: [MenuActive.RoleMenu]
+    );
+    new MenuButton(
+        header: <'<0>确认选择',IconString(Icon.Happy)>,
+        posX: 0,
+        posY: -2.5,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.RoleMenu]
+    ).SetOnClick(()=>{
+        CurrentRole = RoleDatas[RoleIndex].RoleID;
+
+        CloseMenu();
+        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.BuffImpactSound,Position: EventPlayer(),Radius: 150);
+    });
+}
+
+
+
+rule: '机器人攻击造成伤害测试'
+Event.OnDamageDealt
+Team.Team1
+Player.All
+if(IsDummyBot())
+if(EventAbility()==Button.PrimaryFire)
+{
+    //Victim().DamageQueue[Victim().DamageQueue.Length] = {Amount:10,IsCritical:false,IsSustained:false,Source:EventPlayer(),Timestamp:TotalTimeElapsed(),Type:DamageType.Physical};
+    AddDamageEvent(amount: 10,target: Victim(),type: DamageType.Physical);
+    SetMoveSpeed(MoveSpeedPercent: 20);
+    Wait(1);
+    SetMoveSpeed(MoveSpeedPercent: 80);
+}
+
+rule: '机器人复活重置生命值'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    Health = 200;
+}
+
+enum BotType{
+    Zombie,
+    Bastion
+}
+playervar BotType bot_Aitype;
+playervar Player[] bot_targetArray;
+playervar Player bot_target;
+playervar Number bot_Range;
+void GenerateZombie(in Vector SpawnPos){
+    CreateDummyBot(Hero: Hero.Reinhardt,Team: Team.Team1,Slot: -1,Position: SpawnPos);
+    LastCreatedEntity().bot_Aitype = BotType.Zombie;
+}
+playervar Number Timer;
+rule: '所有机器人获取目标'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+{
+    bot_targetArray = AllPlayers(Team.Team2).Filter(t=>IsInLineOfSight(t,EventPlayer())&&DistanceBetween(t,EventPlayer())<=15&&!t.isInMenu);
+    bot_target = bot_targetArray.Sort(t=>(-1+0.5*(DistanceBetween(t,EventPlayer())>5))*bot_threat_tables[SlotOf(t)]).First;
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+rule: '机器人寻路管理-无垢巨人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(BotType.Zombie==bot_Aitype)
+if(IsDummyBot() && IsAlive())
+if(bot_target!=null)
+{
+    StartFacing(Player: EventPlayer(),Direction: DirectionTowards(EventPlayer(),EventPlayer().bot_target),TurnRate: 300);
+    if(bot_target != null&&AbsoluteValue(YOf(PositionOf(bot_target))-YOf(PositionOf(EventPlayer())))<=3&&IsInLineOfSight(PositionOf(EventPlayer()),bot_target,BarrierLOS.NoBarriersBlock    )){
+                    pf_pathfinding = false;
+                    StartThrottleInDirection(Direction: DirectionTowards(EventPlayer(),bot_target),Magnitude: 1,Behavior: ThrottleBehavior.ReplaceExistingThrottle);
+    }
+    else if(Timer>=2){
+                Timer = 0;
+                pf_pathfinding = 1;
+                pf_target = AllLivingPlayers(Team.Team2).Random();
+    }
+    Timer+=0.2;
+    Wait(0.2);
+    LoopIfConditionIsTrue();
+}
+
+playervar Number AreaID = 1;
+
+rule: 'My Player Rule'
+
+{
+    GenerateZombie(SpawnPos: Vector(0,0,0));
+    GenerateZombie(SpawnPos: Vector(0,0,0));
+    GenerateZombie(SpawnPos: Vector(0,0,0));
+    GenerateZombie(SpawnPos: Vector(0,0,0));
+    GenerateZombie(SpawnPos: Vector(0,0,0));
+}
+rule: '僵尸初始化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(IsAlive())
+if(bot_Aitype == BotType.Zombie)
+{
+    Shuxings = FighterShuxings;
+    Health = Shuxings.MaxHealth.VirtualShuxing();
+}
+
+rule: '僵尸攻击指令'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(bot_Aitype == BotType.Zombie)
+if(DistanceBetween(EventPlayer(),bot_target)<=4)
+if(!IsFiringPrimary())
+{
+    PressButton(Button: Button.PrimaryFire);
+   
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '复活的时候初始化三维'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+if(Shuxings.MaxHealth.VirtualShuxing()>0)
+{
+    Health = Shuxings.MaxHealth.VirtualShuxing();
+    Mana = Shuxings.MaxMana.VirtualShuxing();
+    Shields = Shuxings.MaxShields.VirtualShuxing();
+
+    DisableNameplates(Player: EventPlayer(),ViewingPlayers: AllPlayers());
+}
+
+rule: 'HUD遮盖防掉帧'
+{
+    for(define Counter = 0;Counter<11;Counter++){
+    CreateHudText(Text: '    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　\n 
+    ',Location: Location.Top,Header: '');
+    }
+}
+
+rule: 'My Rule'
+{
+    DisableInspectorRecording();
+}
+
+rule: 'My Player Rule'
+Event.OnElimination
+Team.All
+Player.All
+{
+    EXP+=RandomInteger(20,40);
+    if(EXP>EXP_to_Level(level)){
+        PlayEffect(Type: PlayEffect.GoodPickupEffect,Color: Color.Orange,Position: EventPlayer());
+        PlayEffect(VisibleTo: EventPlayer(),Position: EventPlayer(),Type: PlayEffect.BuffImpactSound,Radius: 200);
+        BigMessage(EventPlayer(),'升级了！！');
+        level++;
+        EXP = 0;
+    }
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: '牧师的左键是：对准队友长按，引导治疗',VisibleTo: AllPlayers().Filter(t=>t.CurrentRole == Role.Priest));
+}
+
+
+globalvar Player Boss;
+
+rule: 'My Player Rule'
+{
+    CreateDummyBot(Hero: Hero.Bastion,Team: Team.Team1,Slot: -1,Position: Vector(123,9.7,-27.5));
+    Boss = LastCreatedEntity();
+    Boss.bot_Aitype = BotType.Bastion;
+}
+
+void BastionActionLoop(){
+    bot_FacingUpdate();
+    StartThrottleInDirection(Direction: DirectionTowards(EventPlayer(),bot_target),Magnitude: 1,Behavior: ThrottleBehavior.ReplaceExistingThrottle);
+    while(bot_targetArray.Length>0){
+        Wait(0.5);
+        if(DistanceBetween(EventPlayer(),bot_target)<=3){
+            StartHoldingButton(Button: Button.Melee);
+        }else{
+            StopHoldingButton(Button: Button.Melee);
+        }
+        
+        if((DistanceBetween(EventPlayer(),bot_target)<=20&&DistanceBetween(EventPlayer(),bot_target)>7)||bot_target.Health<bot_target.Shuxings.MaxHealth.VirtualShuxing()){
+            //PressButton(Button: Button.SecondaryFire);
+            Skills[0].Trigger();
+        }
+    }
+}
+Number bot_ballistic_velocity:
+    -0.003;
+Number bot_aming_accuracy:
+    0;
+rule: '机器人行为管理-堡垒'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(BotType.Bastion==bot_Aitype)
+if(IsDummyBot() && IsAlive())
+if(bot_target!=null)
+{
+    SetMoveSpeed(MoveSpeedPercent: 60);
+    BastionActionLoop();
+    Wait(1,WaitBehavior.RestartWhenTrue);
+
+}
+
+void bot_FacingUpdate()'sub更新朝向'{
+    StartFacing(EventPlayer(),
+    DirectionTowards(
+        EyePosition(),
+            EyePosition(bot_target)+Down()*DistanceBetween(EventPlayer(),bot_target)*0.01+VelocityOf(bot_target)*(DistanceBetween(EventPlayer(),bot_target)*bot_ballistic_velocity+0.2)
+            +
+            DirectionFromAngles(
+                HorizontalFacingAngleOf()
+                    +RandomReal(
+                        DistanceBetween(EventPlayer(),bot_target)*AbsoluteValue(bot_aming_accuracy)*-1,
+                        DistanceBetween(EventPlayer(),bot_target)*AbsoluteValue(bot_aming_accuracy)
+                        ),
+                VerticalFacingAngleOf()
+                    +RandomReal(
+                        DistanceBetween(EventPlayer(),bot_target)*AbsoluteValue(bot_aming_accuracy)*0.25*-1,
+                        DistanceBetween(EventPlayer(),bot_target)*AbsoluteValue(bot_aming_accuracy)*0.25
+                    )
+            ) * 1
+    ),
+    1000,
+    Relative.ToWorld,
+    FacingRev.DirectionAndTurnRate
+    );
+}
+playervar Number ImpulseCount;
+playervar Player[] Targets;
+class BastionStorm : Skill {
+    public constructor() {
+        Name = "炮弹风暴";
+        Des = "疯了一样向目标随机发射弹道";
+        Cooldown = 5;
+        ManaCost = -1;
+        Type = SkillType.Instant;
+    }
+
+    public override void Execute() {
+        Storming();
+    }
+
+    public void Storming()''{
+        Targets = AllLivingPlayers(Team.Team2).Filter(t=>DistanceBetween(t,EventPlayer())<=20);
+        while(Targets.Length>0){
+            CreateHomingProjectile(ProjectileType: ProjectileType.BastionA36TacticalGrenade,Speed: 15,Lifetime: 8,Player: EventPlayer(),Direction: 0.2*Up()+AccurateFacing(Targets[0]),AffectedTeam: Team.Team2,Amount: 400,AmountScalar: 1,ExplosionRadius: 3,Impulse: 10,HomingTarget: Targets[0],HomingStrength: 0.75);
+            Targets.ModRemoveByIndex(0);
+        }
+        SetStatus(EventPlayer(),null,Status.Stunned,3);
+    }
+}
+
+Vector AccurateFacing(in Player target){
+    return DirectionTowards(
+        EyePosition(),
+            EyePosition(target)+Down()*DistanceBetween(EventPlayer(),target)*0.01+VelocityOf(target)*(DistanceBetween(EventPlayer(),target)*bot_ballistic_velocity+0.2)
+            +
+            DirectionFromAngles(
+                HorizontalFacingAngleOf()
+                    +RandomReal(
+                        DistanceBetween(EventPlayer(),target)*AbsoluteValue(bot_aming_accuracy)*-1,
+                        DistanceBetween(EventPlayer(),target)*AbsoluteValue(bot_aming_accuracy)
+                        ),
+                VerticalFacingAngleOf()
+                    +RandomReal(
+                        DistanceBetween(EventPlayer(),target)*AbsoluteValue(bot_aming_accuracy)*0.25*-1,
+                        DistanceBetween(EventPlayer(),target)*AbsoluteValue(bot_aming_accuracy)*0.25
+                    )
+            ));
+}
+
+rule: 'Boss堡垒初始化技能表'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(bot_Aitype==BotType.Bastion)
+{
+    Skills = [new BastionStorm()];
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: Boss.Skills[0].CurrentCooldown);
+    CreateHudText(Header: Boss.Skills[0].ManaCost<Boss.Mana);
+}
+
+rule: 'Boss堡垒近战'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(EventAbility()==Button.Melee)
+if(Attacker().bot_Aitype==BotType.Bastion)
+{
+    AddDamageEvent(amount:30,target: Victim(),iscritical: false,issustained: false,source: Attacker(),type: DamageType.Physical);
+    AllPlayers().Filter(t=>t!=Victim()).ImpulseCount = 0;
+    if(!HasStatus(Victim(),Status.KnockedDown)){
+        Victim().ImpulseCount+=1;
+        if(Victim().ImpulseCount>=5){
+            SetStatus(Victim(),null,Status.KnockedDown,3);
+            Victim().ImpulseCount = 0;
+            AddDamageEvent(amount:100,target: Victim(),iscritical: false,issustained: false,source: Attacker(),type: DamageType.Real);
+        }
+    }
+    Wait(5,WaitBehavior.RestartWhenTrue);
+    Victim().ImpulseCount=0;
+}
+
+rule: 'My Rule'
+{
+    CreateEffect(VisibleTo: AllPlayers(Team.Team2).IsTrueForAny(t=>t.ImpulseCount>0)?AllPlayers():null,Type: Effect.Ring,Color: Color.Red,Position: AllPlayers().Filter(t=>t.ImpulseCount>0).First,Radius: 5);
+    CreateEffect(VisibleTo: AllPlayers(Team.Team2).IsTrueForAny(t=>t.ImpulseCount>0)?AllPlayers():null,Type: Effect.Ring,Color: Color.Red,Position: AllPlayers().Filter(t=>t.ImpulseCount>0).First,Radius: AllPlayers().Filter(t=>t.ImpulseCount>0).First.ImpulseCount,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.Team1
+Player.All
+if(IsDummyBot())
+if(bot_Aitype == BotType.Bastion)
+{
+    Shuxings = FighterShuxings;
+}
+
+rule: '奥术小飞弹触发'
+Event.OnDamageTaken
+Team.Team2
+Player.All
+if(EventDamage()==4)
+{
+    AddDamageEvent(amount: 60,target: EventPlayer(),iscritical: false,issustained: false,source: Attacker(),type: DamageType.Magical);
+}

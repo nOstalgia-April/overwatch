@@ -1,0 +1,25 @@
+import '品质.del';
+single struct EnhanceStone {
+    public QUALITY Quality;
+}
+globalvar String[] EnhanceStoneName = [
+    "普通", "稀有", "史诗", "传说"
+];
+globalvar EnhanceStone[] EnhanceStone_Pool = [
+    { Quality: QUALITY.Average },
+    { Quality: QUALITY.Rare },
+    { Quality: QUALITY.Epic }
+];
+globalvar String[] EnhanceStoneDesc = [
+    "一块普通强化石，可以将物品强化至3级",
+     "一块稀有强化石，可以将物品强化至6级",
+      "一块史诗强化石，可以将物品强化至9级",
+       "一块传说强化石，可以将物品强化至12级"
+];
+playervar Number[][] enhanceStones = [];
+String GetESName(EnhanceStone stone){
+    return EnhanceStoneName[stone.Quality];
+}
+String GetESDes(EnhanceStone stone){
+    return EnhanceStoneDesc[stone.Quality];
+}

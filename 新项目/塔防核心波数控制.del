@@ -1,0 +1,1265 @@
+﻿import '塔防寻路.del';
+import '塔防怪物.del';
+
+globalvar CORE Core;
+globalvar Number CoreHurtingIntervalTimeStamp;
+class CORE {
+    public Vector Pos;
+    public Number Health;
+    public Number Box;
+    public constructor() {
+        Pos = CorePos;
+        Health = 2000;
+        Box = 2;
+
+        InitCoreEffect();
+        InitCoreUI();
+    }
+
+    private void InitCoreEffect(){
+        CreateIcon(
+            Position: Pos,
+            Icon: Icon.Flag,
+            IconColor: Color.Green,
+            ShowWhenOffscreen: false
+        );
+        CreateInWorldText(
+            Header: Health,
+            Position: Pos,
+            Scale: 4,
+        );
+        CreateEffect(
+            Type: Effect.Ring,
+            Color: Color.Green,
+            Position: Pos,
+            Radius: Box
+        );
+    }
+    private void InitCoreUI(){
+        CreateHudText(
+            Header: Health,
+            Location: Location.Top,
+            HeaderColor: Color.Aqua
+        );
+    }
+
+    public void HurtCore(in Number value){
+        Health -= value;
+        OnHurt();
+        Defeat();
+    }
+
+    public void Defeat()'游戏失败检测'{
+        if(Health<=0){
+            DeclareTeamVictory(Team.Team1);
+        }
+    }
+
+    public void OnHurt()'核心受到攻击'{
+        PlayEffect(
+            Type: PlayEffect.BadExplosion,
+            Color: Color.Red,
+            Position: CorePos,
+            Radius: Core.Box,
+        );
+        PlayEffect(
+            Type: PlayEffect.DebuffImpactSound,
+            Position: CorePos,
+            Radius: 150,
+        );
+        if(CoreHurtingIntervalTimeStamp+4<TotalTimeElapsed()){
+            BigMessage(Header: <'<0>核心正在被攻击<0>',IconString(Icon.Warning)>);
+            CoreHurtingIntervalTimeStamp = TotalTimeElapsed();
+        }
+    }
+}
+
+rule: '初始化核心'
+if(TD_ready)
+{
+    Core = new CORE();
+}
+
+    // Wave/Phase/Squad 配置结构
+single struct SquadConfig {
+    public EnemyType Archetype;
+    public Number Count;
+    public Number Interval;
+    public Number RouteId;
+}
+
+single struct WavePhase {
+    public Number StartTime;
+    public SquadConfig[] Squads;
+}
+
+single struct WaveConfig {
+    public Number Id;
+    public Number StartDelay;
+    public WavePhase[] Phases;
+    public Number Intermission;
+}
+
+single struct SpawnRequest {
+    public SquadConfig Config;
+    public Number SpawnedCount;
+    public Boolean IsComplete;
+    public Number NextSpawnTime;
+}
+
+single struct WaveState {
+    public Number CurrentWaveIndex;
+    public Number CurrentPhaseIndex;
+    public Number WaveStartTime;
+    public Boolean IsActive;
+    public Boolean InIntermission;
+    public Number IntermissionEndTime;
+    public Number ActiveSquads;
+    public Boolean IsPaused;
+    public Boolean WaveCompleted;
+}
+
+globalvar SpawnRequest[] ActiveSpawnRequests = [];
+globalvar WaveConfig[] WaveConfigs = [];
+globalvar WaveState DirectorState;
+
+void WaveDirector_ResetState() {
+    DirectorState.CurrentWaveIndex = -1;
+    DirectorState.CurrentPhaseIndex = 0;
+    DirectorState.WaveStartTime = 0;
+    DirectorState.IsActive = false;
+    DirectorState.InIntermission = false;
+    DirectorState.IntermissionEndTime = 0;
+    DirectorState.ActiveSquads = 0;
+    DirectorState.IsPaused = false;
+    DirectorState.WaveCompleted = false;
+}
+
+Number Spawner_AddRequest(in SquadConfig config) {
+    define req! = {
+        Config: config,
+        SpawnedCount: 0,
+        IsComplete: false,
+        NextSpawnTime: TotalTimeElapsed()
+    };
+    ActiveSpawnRequests += req;
+    return ActiveSpawnRequests.Length - 1;
+}
+
+void Spawner_UpdateRequests() {
+    if(ActiveSpawnRequests.Length==0)return;
+    define now! = TotalTimeElapsed();
+    define idx! = 0;
+    while(idx < ActiveSpawnRequests.Length)
+    {
+        define req! = ActiveSpawnRequests[idx];
+        if(!req.IsComplete && now >= req.NextSpawnTime && NumberOfPlayers(Team.Team1)<24)
+        {
+            req = Spawner_SpawnImmediate(req, idx);
+        }
+        ActiveSpawnRequests[idx] = req;
+        idx += 1;
+        MinWait();
+    }
+}
+
+SpawnRequest Spawner_SpawnImmediate(SpawnRequest req, in Number index) {
+    define spawnPoint = TowerPF_GetSpawnPos(req.Config.RouteId);
+    Spawner_SpawnEnemy(req.Config.Archetype, spawnPoint);
+    req.SpawnedCount += 1;
+    if(req.SpawnedCount >= req.Config.Count)
+    {
+        req.IsComplete = true;
+        Spawner_OnSquadComplete(index);
+    }
+    else
+    {
+        req.NextSpawnTime = TotalTimeElapsed() + req.Config.Interval;
+    }
+    return req;
+}
+
+Player Spawner_SpawnEnemy(in EnemyType archetype, in Vector spawnPoint) {
+    switch(archetype) {
+        case EnemyType.Boomer:
+            return Spawner_SpawnBoomer(spawnPoint);
+        case EnemyType.Archer:
+            return Spawner_SpawnArcher(spawnPoint);
+        case EnemyType.Winston:
+            return Spawner_SpawnWinston(spawnPoint);
+        case EnemyType.Shielder:
+            return Spawner_SpawnShielder(spawnPoint);
+        case EnemyType.Mom:
+            return Spawner_SpawnMom(spawnPoint);
+        case EnemyType.Shaman:
+            return Spawner_SpawnShaman(spawnPoint);
+        case EnemyType.Pharah:
+            return Spawner_SpawnPharah(spawnPoint);
+        default:
+            return null;
+    }
+}
+
+Player Spawner_SpawnBoomer(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Junkrat,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Boomer;
+    return bot;
+}
+Player Spawner_SpawnArcher(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Zarya,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Archer;
+    return bot;
+}
+Player Spawner_SpawnWinston(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Winston,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Winston;
+    return bot;
+}
+
+Player Spawner_SpawnShielder(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Reinhardt,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Shielder;
+    return bot;
+}
+
+Player Spawner_SpawnMom(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.WreckingBall,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Mom;
+    return bot;
+}
+
+Player Spawner_SpawnShaman(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Baptiste,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Shaman;
+    return bot;
+}
+
+Player Spawner_SpawnPharah(in Vector spawnPoint) {
+    define bot! = CreateDummyBot(
+        Hero: Hero.Pharah,
+        Team: Team.Team1,
+        Slot: -1,
+        Position: spawnPoint
+    );
+    bot.BotType = EnemyType.Pharah;
+    return bot;
+}
+
+
+
+void Spawner_OnSquadComplete(Number requestIndex) {
+    if(requestIndex < ActiveSpawnRequests.Length){
+        define req! = ActiveSpawnRequests[requestIndex];
+    }
+    WaveDirector_OnSquadComplete();
+}
+
+rule: "Spawner Tick"
+Event.OngoingGlobal
+if(TD_ready)
+{
+    Spawner_UpdateRequests();
+    Wait(0.2, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: "WaveDirector Bootstrap"
+Event.OngoingGlobal
+if(TD_ready)
+{
+    WaveDirector_InitConfigs();
+    WaveDirector_ResetState();
+}
+
+// =========================
+// WaveDirector
+// =========================
+
+void WaveDirector_InitConfigs() {
+    if(WaveConfigs.Length > 0) return;
+
+    define route0! = 0;
+    define route1! = 1;
+    define route2! = 2;
+    define route3! = 3;
+    define defaultInterval! = 0.7;
+    define waveSet1! = WaveDirector_BuildWaveGroup1(route0, route1, route2, route3, defaultInterval);
+    define waveSet2! = WaveDirector_BuildWaveGroup2(route0, route1, route2, route3, defaultInterval);
+    define waveSet3! = WaveDirector_BuildWaveGroup3(route0, route1, route2, route3, defaultInterval);
+    WaveConfigs = waveSet1 + waveSet2 + waveSet3;
+}
+
+WaveConfig[] WaveDirector_BuildWaveGroup1(
+    Number route0!,
+    Number route1!,
+    Number route2!,
+    Number route3!,
+    Number defaultInterval!
+)''{
+        // Wave 1: introduce both paths separately, staggered push finishes with synced assault
+        define wave1PhaseA1! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0)
+        ]);
+        define wave1PhaseA2! = WaveDirector_CreatePhase(1, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0)
+        ]);
+        define wave1PhaseB1! = WaveDirector_CreatePhase(10, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        define wave1PhaseB2! = WaveDirector_CreatePhase(11, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        define wave1PhaseC1! = WaveDirector_CreatePhase(20, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0)
+        ]);
+        define wave1PhaseC2! = WaveDirector_CreatePhase(21, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0)
+        ]);
+        define wave1PhaseC3! = WaveDirector_CreatePhase(22, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        define wave1PhaseC4! = WaveDirector_CreatePhase(23, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        WaveConfig wave1! = {
+            Id: 1,
+            StartDelay: 2,
+            Phases: [
+                wave1PhaseA1,
+                wave1PhaseA2,
+                wave1PhaseB1,
+                wave1PhaseB2,
+                wave1PhaseC1,
+                wave1PhaseC2,
+                wave1PhaseC3,
+                wave1PhaseC4
+            ],
+            Intermission: 18
+        };
+
+        // Wave 2: mixed pressure then staggered boomer reinforcements
+        define wave2PhaseA1! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0),
+            WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 0)
+        ]);
+        define wave2PhaseA2! = WaveDirector_CreatePhase(1, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        define wave2PhaseB! = WaveDirector_CreatePhase(10, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1),
+            WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 1)
+        ]);
+        define wave2PhaseC1! = WaveDirector_CreatePhase(22, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+        ]);
+        define wave2PhaseC2! = WaveDirector_CreatePhase(23, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+        ]);
+        define wave2PhaseC3! = WaveDirector_CreatePhase(24, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+        ]);
+        define wave2PhaseC4! = WaveDirector_CreatePhase(25, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+        ]);
+        WaveConfig wave2! = {
+            Id: 2,
+            StartDelay: 3,
+            Phases: [
+                wave2PhaseA1,
+                wave2PhaseA2,
+                wave2PhaseB,
+                wave2PhaseC1,
+                wave2PhaseC2,
+                wave2PhaseC3,
+                wave2PhaseC4
+            ],
+            Intermission: 18
+        };
+
+        // Wave 3: ranged distraction, staggered boomer column, elite reinforcement
+        define wave3PhaseA! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 0),
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+        ]);
+        define wave3PhaseB1! = WaveDirector_CreatePhase(10, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+        ]);
+        define wave3PhaseB2! = WaveDirector_CreatePhase(11, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+        ]);
+        define wave3PhaseB3! = WaveDirector_CreatePhase(12, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+        ]);
+        define wave3PhaseB4! = WaveDirector_CreatePhase(13, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+        ]);
+        define wave3PhaseC! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+        ]);
+        WaveConfig wave3! = {
+            Id: 3,
+            StartDelay: 3,
+            Phases: [
+                wave3PhaseA,
+                wave3PhaseB1,
+                wave3PhaseB2,
+                wave3PhaseB3,
+                wave3PhaseB4,
+                wave3PhaseC
+            ],
+            Intermission: 20
+        };
+
+        // Wave 4: synchronized mixed push, staggered heavy finale
+        define wave4PhaseA1! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0),
+            WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 0)
+        ]);
+        define wave4PhaseA2! = WaveDirector_CreatePhase(1, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1),
+            WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 1),
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1)
+        ]);
+        define wave4PhaseB1! = WaveDirector_CreatePhase(12, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 0)
+        ]);
+        define wave4PhaseB2! = WaveDirector_CreatePhase(13, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 1),
+            WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 1)
+        ]);
+        define wave4PhaseC1! = WaveDirector_CreatePhase(25, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 8, defaultInterval, 0)
+        ]);
+        define wave4PhaseC2! = WaveDirector_CreatePhase(26, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 8, defaultInterval, 1)
+        ]);
+        WaveConfig wave4! = {
+            Id: 4,
+            StartDelay: 3,
+            Phases: [
+                wave4PhaseA1,
+                wave4PhaseA2,
+                wave4PhaseB1,
+                wave4PhaseB2,
+                wave4PhaseC1,
+                wave4PhaseC2
+            ],
+            Intermission: 25
+        };
+
+        // Wave 5: Winston harassment with staggered escort pressure
+        define wave5PhaseA! = WaveDirector_CreatePhase(0, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0),
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+        ]);
+        define wave5PhaseB! = WaveDirector_CreatePhase(1, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1),
+            WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 1)
+        ]);
+        define wave5PhaseC! = WaveDirector_CreatePhase(8, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+        ]);
+        define wave5PhaseD! = WaveDirector_CreatePhase(9, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1),
+            WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 1)
+        ]);
+        define wave5PhaseE! = WaveDirector_CreatePhase(15, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 0)
+        ]);
+        define wave5PhaseF! = WaveDirector_CreatePhase(16, [
+            WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 1)
+        ]);
+        define wave5PhaseG! = WaveDirector_CreatePhase(22, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0),
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 0)
+        ]);
+        define wave5PhaseH! = WaveDirector_CreatePhase(23, [
+            WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1),
+            WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 1)
+        ]);
+        WaveConfig wave5! = {
+            Id: 5,
+            StartDelay: 4,
+            Phases: [
+                wave5PhaseA,
+                wave5PhaseB,
+                wave5PhaseC,
+                wave5PhaseD,
+                wave5PhaseE,
+                wave5PhaseF,
+                wave5PhaseG,
+                wave5PhaseH
+            ],
+            Intermission: 30
+        };
+
+        return [wave1, wave2, wave3, wave4, wave5];
+    }
+
+WaveConfig[] WaveDirector_BuildWaveGroup2(
+    Number route0!,
+    Number route1!,
+    Number route2!,
+    Number route3!,
+    Number defaultInterval!
+)''{
+    // Wave 6: flanking attacks through route2/3 with staggered boomer pressure
+    define wave6PhaseA! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 2)
+    ]);
+    define wave6PhaseB! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2)
+    ]);
+    define wave6PhaseC! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2)
+    ]);
+    define wave6PhaseD! = WaveDirector_CreatePhase(8, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave6PhaseE! = WaveDirector_CreatePhase(9, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 3)
+    ]);
+    define wave6PhaseF! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 3)
+    ]);
+    define wave6PhaseG! = WaveDirector_CreatePhase(18, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 2)
+    ]);
+    define wave6PhaseH! = WaveDirector_CreatePhase(19, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 3)
+    ]);
+    define wave6PhaseI! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 3)
+    ]);
+    WaveConfig wave6! = {
+        Id: 6,
+        StartDelay: 4,
+        Phases: [
+            wave6PhaseA,
+            wave6PhaseB,
+            wave6PhaseC,
+            wave6PhaseD,
+            wave6PhaseE,
+            wave6PhaseF,
+            wave6PhaseG,
+            wave6PhaseH,
+            wave6PhaseI
+        ],
+        Intermission: 28
+    };
+
+    // Wave 7: twin-route ambush emphasizing Winston harassment
+    define wave7PhaseA! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 2)
+    ]);
+    define wave7PhaseB! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 3, defaultInterval, 3)
+    ]);
+    define wave7PhaseC! = WaveDirector_CreatePhase(8, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 2)
+    ]);
+    define wave7PhaseD! = WaveDirector_CreatePhase(9, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    define wave7PhaseE! = WaveDirector_CreatePhase(16, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 2)
+    ]);
+    define wave7PhaseF! = WaveDirector_CreatePhase(17, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 3)
+    ]);
+    define wave7PhaseG! = WaveDirector_CreatePhase(24, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2)
+    ]);
+    define wave7PhaseH! = WaveDirector_CreatePhase(25, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    WaveConfig wave7! = {
+        Id: 7,
+        StartDelay: 4,
+        Phases: [
+            wave7PhaseA,
+            wave7PhaseB,
+            wave7PhaseC,
+            wave7PhaseD,
+            wave7PhaseE,
+            wave7PhaseF,
+            wave7PhaseG,
+            wave7PhaseH
+        ],
+        Intermission: 35
+    };
+
+    // Wave 8: shielded flanks with Mom pressure on routes 2 and 3
+    define wave8PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave8PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave8PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 2)
+    ]);
+    define wave8PhaseB0! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 2, 3)
+    ]);
+    define wave8PhaseB1! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave8PhaseB2! = WaveDirector_CreatePhase(12, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    define wave8PhaseC0! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave8PhaseC1! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave8PhaseC2! = WaveDirector_CreatePhase(22, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 2, 2)
+    ]);
+    define wave8PhaseC3! = WaveDirector_CreatePhase(23, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 2)
+    ]);
+    WaveConfig wave8! = {
+        Id: 8,
+        StartDelay: 4,
+        Phases: [
+            wave8PhaseA0,
+            wave8PhaseA1,
+            wave8PhaseA2,
+            wave8PhaseB0,
+            wave8PhaseB1,
+            wave8PhaseB2,
+            wave8PhaseC0,
+            wave8PhaseC1,
+            wave8PhaseC2,
+            wave8PhaseC3
+        ],
+        Intermission: 28
+    };
+
+    // Wave 9: dual-lane assaults with shielded escorts and Mom reinforcements
+    define wave9PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave9PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave9PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 0)
+    ]);
+    define wave9PhaseB0! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave9PhaseB1! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave9PhaseB2! = WaveDirector_CreatePhase(12, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    define wave9PhaseC0! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave9PhaseC1! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave9PhaseC2! = WaveDirector_CreatePhase(22, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 2)
+    ]);
+    define wave9PhaseD0! = WaveDirector_CreatePhase(28, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave9PhaseD1! = WaveDirector_CreatePhase(29, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave9PhaseD2! = WaveDirector_CreatePhase(30, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 7, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 7, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 3)
+    ]);
+    WaveConfig wave9! = {
+        Id: 9,
+        StartDelay: 4,
+        Phases: [
+            wave9PhaseA0,
+            wave9PhaseA1,
+            wave9PhaseA2,
+            wave9PhaseB0,
+            wave9PhaseB1,
+            wave9PhaseB2,
+            wave9PhaseC0,
+            wave9PhaseC1,
+            wave9PhaseC2,
+            wave9PhaseD0,
+            wave9PhaseD1,
+            wave9PhaseD2
+        ],
+        Intermission: 32
+    };
+
+    // Wave 10: all-route siege combining harassers, shielders, and moms
+    define wave10PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1)
+    ]);
+    define wave10PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave10PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 1)
+    ]);
+    define wave10PhaseB0! = WaveDirector_CreatePhase(8, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave10PhaseB1! = WaveDirector_CreatePhase(9, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave10PhaseB2! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    define wave10PhaseC0! = WaveDirector_CreatePhase(16, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave10PhaseC1! = WaveDirector_CreatePhase(17, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave10PhaseC2! = WaveDirector_CreatePhase(18, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 0)
+    ]);
+    define wave10PhaseD0! = WaveDirector_CreatePhase(24, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave10PhaseD1! = WaveDirector_CreatePhase(25, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave10PhaseD2! = WaveDirector_CreatePhase(26, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 7, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 2)
+    ]);
+    define wave10PhaseE0! = WaveDirector_CreatePhase(32, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave10PhaseE1! = WaveDirector_CreatePhase(33, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave10PhaseE2! = WaveDirector_CreatePhase(34, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 8, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 8, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 3)
+    ]);
+    WaveConfig wave10! = {
+        Id: 10,
+        StartDelay: 5,
+        Phases: [
+            wave10PhaseA0,
+            wave10PhaseA1,
+            wave10PhaseA2,
+            wave10PhaseB0,
+            wave10PhaseB1,
+            wave10PhaseB2,
+            wave10PhaseC0,
+            wave10PhaseC1,
+            wave10PhaseC2,
+            wave10PhaseD0,
+            wave10PhaseD1,
+            wave10PhaseD2,
+            wave10PhaseE0,
+            wave10PhaseE1,
+            wave10PhaseE2
+        ],
+        Intermission: 40
+    };
+
+    return [wave6, wave7, wave8, wave9, wave10];
+}
+
+WaveConfig[] WaveDirector_BuildWaveGroup3(
+    Number route0!,
+    Number route1!,
+    Number route2!,
+    Number route3!,
+    Number defaultInterval!
+)''{
+    // Wave 11: triple-path push with shaman support and aerial harassment
+    define wave11PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1)
+    ]);
+    define wave11PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave11PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 1)
+    ]);
+    define wave11PhaseA3! = WaveDirector_CreatePhase(3, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 1)
+    ]);
+    define wave11PhaseB0! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 2, 3)
+    ]);
+    define wave11PhaseB1! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave11PhaseB2! = WaveDirector_CreatePhase(12, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 3)
+    ]);
+    define wave11PhaseC0! = WaveDirector_CreatePhase(18, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave11PhaseC1! = WaveDirector_CreatePhase(19, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave11PhaseC2! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 0)
+    ]);
+    define wave11PhaseC3! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Pharah, 1, defaultInterval, 0)
+    ]);
+    define wave11PhaseD0! = WaveDirector_CreatePhase(28, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave11PhaseD1! = WaveDirector_CreatePhase(29, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 2)
+    ]);
+    WaveConfig wave11! = {
+        Id: 11,
+        StartDelay: 4,
+        Phases: [
+            wave11PhaseA0,
+            wave11PhaseA1,
+            wave11PhaseA2,
+            wave11PhaseA3,
+            wave11PhaseB0,
+            wave11PhaseB1,
+            wave11PhaseB2,
+            wave11PhaseC0,
+            wave11PhaseC1,
+            wave11PhaseC2,
+            wave11PhaseC3,
+            wave11PhaseD0,
+            wave11PhaseD1
+        ],
+        Intermission: 30
+    };
+
+    // Wave 12: rotating pincer introducing dual-lane moms and pharah fire support
+    define wave12PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave12PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave12PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 2)
+    ]);
+    define wave12PhaseA3! = WaveDirector_CreatePhase(3, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 2)
+    ]);
+    define wave12PhaseB0! = WaveDirector_CreatePhase(8, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave12PhaseB1! = WaveDirector_CreatePhase(9, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave12PhaseB2! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 2, 3)
+    ]);
+    define wave12PhaseB3! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 3)
+    ]);
+    define wave12PhaseC0! = WaveDirector_CreatePhase(18, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1)
+    ]);
+    define wave12PhaseC1! = WaveDirector_CreatePhase(19, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave12PhaseC2! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 1)
+    ]);
+    define wave12PhaseC3! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1)
+    ]);
+    define wave12PhaseD0! = WaveDirector_CreatePhase(28, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave12PhaseD1! = WaveDirector_CreatePhase(29, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave12PhaseD2! = WaveDirector_CreatePhase(30, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 3, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 0)
+    ]);
+    WaveConfig wave12! = {
+        Id: 12,
+        StartDelay: 4,
+        Phases: [
+            wave12PhaseA0,
+            wave12PhaseA1,
+            wave12PhaseA2,
+            wave12PhaseA3,
+            wave12PhaseB0,
+            wave12PhaseB1,
+            wave12PhaseB2,
+            wave12PhaseB3,
+            wave12PhaseC0,
+            wave12PhaseC1,
+            wave12PhaseC2,
+            wave12PhaseC3,
+            wave12PhaseD0,
+            wave12PhaseD1,
+            wave12PhaseD2
+        ],
+        Intermission: 32
+    };
+
+    // Wave 13: relentless siege layering moms and pharah escorts
+    define wave13PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave13PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave13PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 0)
+    ]);
+    define wave13PhaseA3! = WaveDirector_CreatePhase(3, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 0)
+    ]);
+    define wave13PhaseB0! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave13PhaseB1! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave13PhaseB2! = WaveDirector_CreatePhase(12, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 3, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 1, defaultInterval, 2)
+    ]);
+    define wave13PhaseB3! = WaveDirector_CreatePhase(14, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 2)
+    ]);
+    define wave13PhaseC0! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave13PhaseC1! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave13PhaseC2! = WaveDirector_CreatePhase(22, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 3)
+    ]);
+    define wave13PhaseD0! = WaveDirector_CreatePhase(28, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 1)
+    ]);
+    define wave13PhaseD1! = WaveDirector_CreatePhase(29, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave13PhaseD2! = WaveDirector_CreatePhase(30, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 1)
+    ]);
+    WaveConfig wave13! = {
+        Id: 13,
+        StartDelay: 5,
+        Phases: [
+            wave13PhaseA0,
+            wave13PhaseA1,
+            wave13PhaseA2,
+            wave13PhaseA3,
+            wave13PhaseB0,
+            wave13PhaseB1,
+            wave13PhaseB2,
+            wave13PhaseB3,
+            wave13PhaseC0,
+            wave13PhaseC1,
+            wave13PhaseC2,
+            wave13PhaseD0,
+            wave13PhaseD1,
+            wave13PhaseD2
+        ],
+        Intermission: 35
+    };
+
+    // Wave 14: grand assault hitting every route with shielder-first columns
+    define wave14PhaseA0! = WaveDirector_CreatePhase(0, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 0)
+    ]);
+    define wave14PhaseA1! = WaveDirector_CreatePhase(1, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0)
+    ]);
+    define wave14PhaseA2! = WaveDirector_CreatePhase(2, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 4, defaultInterval, 0)
+    ]);
+    define wave14PhaseB0! = WaveDirector_CreatePhase(8, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 1)
+    ]);
+    define wave14PhaseB1! = WaveDirector_CreatePhase(9, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave14PhaseB2! = WaveDirector_CreatePhase(10, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 1)
+    ]);
+    define wave14PhaseB3! = WaveDirector_CreatePhase(11, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 5, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 1)
+    ]);
+    define wave14PhaseC0! = WaveDirector_CreatePhase(18, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 2)
+    ]);
+    define wave14PhaseC1! = WaveDirector_CreatePhase(19, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 2)
+    ]);
+    define wave14PhaseC2! = WaveDirector_CreatePhase(20, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 2)
+    ]);
+    define wave14PhaseC3! = WaveDirector_CreatePhase(21, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 2),
+        WaveDirector_CreateSquad(EnemyType.Archer, 2, defaultInterval, 2)
+    ]);
+    define wave14PhaseD0! = WaveDirector_CreatePhase(28, [
+        WaveDirector_CreateSquad(EnemyType.Winston, 1, 0, 3)
+    ]);
+    define wave14PhaseD1! = WaveDirector_CreatePhase(29, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 3)
+    ]);
+    define wave14PhaseD2! = WaveDirector_CreatePhase(30, [
+        WaveDirector_CreateSquad(EnemyType.Pharah, 3, defaultInterval, 3),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 6, defaultInterval, 3)
+    ]);
+    define wave14PhaseD3! = WaveDirector_CreatePhase(31, [
+        WaveDirector_CreateSquad(EnemyType.Shaman, 1, 0.5, 3)
+    ]);
+    define wave14PhaseD4! = WaveDirector_CreatePhase(32, [
+        WaveDirector_CreateSquad(EnemyType.Mom, 1, 3, 3)
+    ]);
+    define wave14PhaseE0! = WaveDirector_CreatePhase(38, [
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 0),
+        WaveDirector_CreateSquad(EnemyType.Shielder, 1, 0, 1)
+    ]);
+    define wave14PhaseE1! = WaveDirector_CreatePhase(39, [
+        WaveDirector_CreateSquad(EnemyType.Boomer, 7, defaultInterval, 0),
+        WaveDirector_CreateSquad(EnemyType.Boomer, 7, defaultInterval, 1),
+        WaveDirector_CreateSquad(EnemyType.Pharah, 2, defaultInterval, 1)
+    ]);
+    WaveConfig wave14! = {
+        Id: 14,
+        StartDelay: 5,
+        Phases: [
+            wave14PhaseA0,
+            wave14PhaseA1,
+            wave14PhaseA2,
+            wave14PhaseB0,
+            wave14PhaseB1,
+            wave14PhaseB2,
+            wave14PhaseB3,
+            wave14PhaseC0,
+            wave14PhaseC1,
+            wave14PhaseC2,
+            wave14PhaseC3,
+            wave14PhaseD0,
+            wave14PhaseD1,
+            wave14PhaseD2,
+            wave14PhaseD3,
+            wave14PhaseD4,
+            wave14PhaseE0,
+            wave14PhaseE1
+        ],
+        Intermission: 40
+    };
+
+    return [wave11, wave12, wave13, wave14];
+}
+
+
+SquadConfig WaveDirector_CreateSquad(
+    in EnemyType enemyType,
+    in Number count,
+    in Number interval,
+    in Number routeId = -1
+) {
+    return {
+        Archetype: enemyType,
+        Count: count,
+        Interval: interval,
+        RouteId: routeId
+    };
+}
+
+WavePhase WaveDirector_CreatePhase(Number startTime, SquadConfig[] squads)'��������' {
+    return {
+        StartTime: startTime,
+        Squads: squads
+    };
+}
+void WaveDirector_StartWave(Number waveIndex)'开始波次' {
+    if(WaveConfigs.Length == 0) return;
+    if(waveIndex >= WaveConfigs.Length) {
+        DirectorState.IsActive = false;
+        return;
+    }
+    define wave! = WaveConfigs[waveIndex];
+    DirectorState.CurrentWaveIndex = waveIndex;
+    DirectorState.CurrentPhaseIndex = 0;
+    DirectorState.ActiveSquads = 0;
+    DirectorState.InIntermission = false;
+    DirectorState.IsActive = true;
+    DirectorState.IsPaused = false;
+    DirectorState.WaveCompleted = false;
+    DirectorState.WaveStartTime = TotalTimeElapsed() + wave.StartDelay;
+}
+
+void WaveDirector_Update() {
+    if(WaveConfigs.Length == 0) return;
+    if(!DirectorState.IsActive) return;
+    if(DirectorState.IsPaused) return;
+
+    define now! = TotalTimeElapsed();
+
+    if(DirectorState.InIntermission) {
+        if(now >= DirectorState.IntermissionEndTime) {
+            WaveDirector_StartWave(DirectorState.CurrentWaveIndex + 1);
+        }
+        return;
+    }
+
+    define wave! = WaveConfigs[DirectorState.CurrentWaveIndex];
+    if(now < DirectorState.WaveStartTime) return;
+
+    define elapsed! = now - DirectorState.WaveStartTime;
+
+    if(DirectorState.CurrentPhaseIndex < wave.Phases.Length) {
+        define phase! = wave.Phases[DirectorState.CurrentPhaseIndex];
+        if(elapsed >= phase.StartTime) {
+            WaveDirector_DispatchPhase(phase);
+            DirectorState.CurrentPhaseIndex += 1;
+        }
+        return;
+    }
+
+    if(DirectorState.ActiveSquads <= 0) {
+        DirectorState.WaveCompleted = true;
+    }
+}
+
+void WaveDirector_DispatchPhase(in WavePhase phase) {
+    foreach(SquadConfig squad in phase.Squads) {
+        if(squad.Count <= 0) continue;
+        Spawner_AddRequest(squad);
+        DirectorState.ActiveSquads += 1;
+    }
+}
+
+void WaveDirector_BeginIntermission(in Number duration) {
+    if(duration <= 0) {
+        DirectorState.IsActive = false;
+        DirectorState.InIntermission = false;
+        return;
+    }
+    DirectorState.InIntermission = true;
+    DirectorState.IntermissionEndTime = TotalTimeElapsed() + duration;
+}
+
+void WaveDirector_OnSquadComplete() {
+    if(DirectorState.ActiveSquads > 0) {
+        DirectorState.ActiveSquads -= 1;
+    }
+}
+
+rule: "WaveDirector Tick"
+Event.OngoingGlobal
+if(TD_ready)
+{
+    WaveDirector_Update();
+    Wait(1, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+
+rule: "WaveDirector Debug Start"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(EventPlayer() == HostPlayer())
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+if(DirectorState.CurrentWaveIndex==-1)
+{
+    Wait(2,WaitBehavior.AbortWhenFalse);
+    //WaveDirector_InitConfigs();
+    WaveDirector_StartWave(0);
+}
+
+rule: '波数释放完毕，则队伍一死完了之后进入休息回合'
+if(DirectorState.WaveCompleted == true)
+if(NumberOfPlayers(Team.Team1) == 0)
+{
+    BigMessage(Header: '本关结束！进入休息阶段~');
+    WaveDirector_BeginIntermission(WaveConfigs[DirectorState.CurrentWaveIndex].Intermission);
+}
+
+rule: '休息时间告示牌'
+{
+    CreateHudText(
+        Header: '休息时间：'+(DirectorState.IntermissionEndTime-TotalTimeElapsed()).Round(),
+        VisibleTo: DirectorState.InIntermission?AllPlayers():null,
+        Location: Location.Top,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+    );
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: '当前关: '+DirectorState.CurrentWaveIndex
+    );
+}

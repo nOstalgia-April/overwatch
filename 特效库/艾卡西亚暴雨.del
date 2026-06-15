@@ -1,0 +1,45 @@
+void CastMissles(){
+    define Enemys = AllLivingPlayers(OppositeTeamOf(TeamOf())).Filter(t=>IsInViewAngle(EventPlayer(),t,60));
+    if(Enemys.Length==0)return;
+
+    define count = 8;
+
+    define fwd : FacingDirectionOf();
+
+    define spreadX = RandomReal(0.6,1);
+    define spreadY = RandomReal(0.6,1);
+
+    define signed;
+    for(define i=0;i<count;i++){
+        define target = Enemys[i%Enemys.Length];
+        
+        define sx = spreadX+RandomReal(-0.1,0.1);
+        define sy = spreadY+RandomReal(-0.1,0.1);
+
+        if(i==0) signed = 0;
+        else signed = (i % 2 == 1) ? ((i+1)/2) : (-(i/2)); // 生成序列 0, +1, -1, +2, -2...
+        Number norm = (count==1) ? 0 : signed / ((count-1)/2.0).Ceil(); // 归一到 [-1,1]
+        
+        define ox = norm * sx;
+        define oy = (1 - (norm).Abs()) * sy; // 同上，可按需要调整，比如固定为某值或加一点随机
+
+        define dir = Normalize(fwd+Right()*ox+Up()*oy);
+
+        CreateHomingProjectile(
+            ProjectileType: ProjectileType.PharahRocket,
+            Speed: 10,
+            HomingTarget: target,
+            HomingStrength: 1,
+            Direction: dir
+        );
+    }
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld())
+{
+    CastMissles();
+}

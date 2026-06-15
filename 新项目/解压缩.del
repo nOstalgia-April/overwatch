@@ -1,0 +1,119 @@
+globalvar String Dictionary = "0123456789~!@#$%^&*_+[];',./{}:|<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ=`¡¢£¤¥¦§©ª¬®¯°±²³µ¿ØĀāĂăĄąĆćĈĉĊċČčĎďĐđĒē";
+globalvar String[] _Input = [
+    "【1∞9】∞【0∞8∞¢】∞【3∞¢】∞【2∞4】∞【3∞5】∞【4∞6∞@】∞【5∞7】∞【6∞8∞#】∞【1∞7∞9∞_】∞【0∞8∞~∞!∞_】∞【9∞!∞_∞[】∞【9∞~∞@】∞【5∞!】∞【7∞$∞^∞k】∞【#∞%】∞【$∞^∞*∞+】",
+    "【#∞%∞&∞*】∞【^∞j∞n∞o】∞【%∞^∞}】∞【8∞9∞~∞+】∞【%∞_∞a∞e】∞【~∞]∞;】∞【[∞'】∞【[∞'∞a】∞【]∞;∞,∞.】∞【'∞/】∞【'∞/】∞【,∞.∞{∞b】∞【/∞?∞q】∞【*∞:】∞【}∞|】∞【:∞<】",
+    "【|∞>】∞【<∞?】∞【{∞>∞w】∞【+∞;∞b∞e】∞【/∞a∞e∞p】∞【d∞f∞p∞B】∞【c∞L∞M】∞【+∞a∞b∞f∞h∞i】∞【c∞e∞g∞p】∞【f∞h∞i∞j】∞【e∞g∞i】∞【e∞g∞h】∞【&∞g∞o∞G】∞【#∞l】",
+    "【k∞m】∞【l∞n】∞【&∞m∞o∞W∞X】∞【&∞j∞n∞X∞=】∞【b∞c∞f】∞【{∞r】∞【q∞s∞v】∞【r∞t】∞【s∞u∞x∞P】∞【t∞v∞w】∞【r∞u∞w】∞【?∞u∞v】∞【t∞y】∞【x∞z】∞【y∞A∞M】∞【z∞B∞C】",
+    "【c∞A】∞【A∞D∞E】∞【C∞S∞T】∞【C∞F】∞【E∞G】∞【j∞F∞H】∞【G∞I】∞【H∞J∞K】∞【K∞I】∞【I∞J∞¡】∞【d∞N∞O∞Q∞¡】∞【d∞z】∞【L∞O∞Q∞R】∞【L∞N∞`】∞【t∞Q】∞【L∞N∞P】∞【N∞S】",
+    "【D∞R∞`】∞【D∞U∞Z】∞【T∞V】∞【U∞W∞Y】∞【n∞V∞X】∞【n∞o∞W∞Y】∞【V∞X∞Z】∞【T∞Y∞=】∞【o∞Z∞`】∞【O∞S∞=∞¡】∞【K∞L∞`】∞【1∞2】"
+]
+;String NEGATIVE_SIGN : '​​Ω';
+String FLOAT_SIGN : '∑';
+String DIVIDE_SIGN : '∞';
+String VECTOR_SEPARATOR : '∫';
+String Left_BRACE : '【';
+String RIGHT_BRACE : '】';
+
+Any[] Decompress(String[] compressed_datas!)'' {
+    Any[] output! = [];
+    foreach(String compressed_data! in compressed_datas) {
+        String[] items! = split_with_braces(compressed_data);
+        foreach(String item! in items) {
+            output[output.Length] = Decompress_Item(item);
+            MinWait();
+        }
+        //MinWait();
+    }
+    return output;
+}
+
+recursive Any Decompress_Item(String item!)'' {
+    // 先检查是否是完整的嵌套列表（以[开头和]结尾）
+    if(item.CharAt(0) == Left_BRACE && item.CharAt(item.Length-1) == RIGHT_BRACE) {
+        Any[] nested! = [];
+        String inner! = item.Slice(1, item.Length-2);
+        String[] sub_items! = split_with_braces(inner);
+        foreach(String sub_item! in sub_items) {
+            nested[nested.Length] = Decompress_Item(sub_item);
+        }
+        return nested;
+    }
+    // 如果不是嵌套列表，再检查其他类型
+    switch(item.CharAt(0)) {
+        case 's':
+            return item.Slice(1, 999); // 返回字符串部分
+        case 'v':
+            String[] parts! = item.Slice(1, item.Length-1).Split(VECTOR_SEPARATOR);
+            Number x! = GetNumber(parts[0]);
+            Number y! = GetNumber(parts[1]);
+            Number z! = GetNumber(parts[2]);
+            return Vector(x, y, z);
+        default:
+            return GetNumber(item); // 返回数字部分
+    }
+}
+
+
+Number GetNumber(String input)'' {
+    Boolean is_negative! = input.Contains(NEGATIVE_SIGN);
+    Boolean is_float! = input.Contains(FLOAT_SIGN);
+    // 解析绝对值
+    input = input.Replace(NEGATIVE_SIGN, "").Replace(FLOAT_SIGN, "").Replace(" ", "");
+    Number num! = 0;
+    for (Number i! = 0; i < input.Length; i++) {
+        String char! = input.CharAt(i);
+        num = num * 128 + Dictionary.IndexOf(char);
+    }
+    
+    // 应用符号和浮点处理
+    if (is_float) num /= 1000.0;
+    if (is_negative) num = -num;
+    
+    return num;
+}
+
+String[] split_with_braces(String input)'' {
+    String[] result! = [];
+    String current! = "";
+    Number brace_level! = 0;
+    for (Number i! = 0; i < input.Length; i++) {
+        String char = input.CharAt(i);
+        if (char == Left_BRACE) {
+            brace_level++;
+            current = current + char;
+        } else if (char == RIGHT_BRACE) {
+            brace_level--;
+            current = current + char;
+        } else if (char == DIVIDE_SIGN && brace_level == 0) {
+            result[result.Length] = current;
+            current = "";
+        } else {
+            current = current + char;
+        }
+    }
+    if (current != "") {
+        result += current;
+    }
+    return result;
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(false)
+if(IsButtonHeld(EventPlayer(),Button.Reload))
+{
+    Teleport(EventPlayer(),EyePosition()+10*FacingDirectionOf());
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: ServerLoad(),
+        Subheader: ServerLoadPeak(),
+        Text: ServerLoadAverage(),
+        Location: Location.Right,
+        HeaderColor: Color.Orange
+    );
+}

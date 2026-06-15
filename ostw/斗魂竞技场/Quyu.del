@@ -1,0 +1,5214 @@
+﻿import '海克斯.del';
+rule: 'My Rule'
+{
+    DisableInspectorRecording();
+}
+
+globalvar Boolean UsePointSystem = WorkshopSettingToggle(Category: '游戏模式',Name: '加分制而非扣血制',false,0);
+
+rule: 'My Rule'
+{
+    if(CurrentMap()==Map.Hollywood_Halloween){
+        Areas_static = [
+    // A点匦（0号?
+    {
+        Center: Vector(8.09, 6.92, -47.46),      // A炸??
+        Radius: 45,
+        SpawnPosition1: Vector(5.54, 11.01, -63.89),  // A点重生点1
+        SpawnPosition2: Vector(11.04, 10.75, -34.75)  // A点重生点2
+    },
+    // B点匦（1号?
+    {
+        Center: Vector(-11.51, 6.33, -99.40),     // B炸??
+        Radius: 45,
+        SpawnPosition1: Vector(-19.22, 9.75, -109.64), // B点重生点1
+        SpawnPosition2: Vector(-44.87, 9.75, -108.00)   // B点重生点2
+    },
+    // C点匦（2号?
+    {
+        Center: Vector(-8.95, 1.66, 56.89),     // C炸??
+        Radius: 36,
+        SpawnPosition1: Vector(-19.87, 5.01, 38.35), // C点重生点1
+        SpawnPosition2: Vector(7.37, 6.00, 44.48)  // C点重生点2
+    }
+];
+
+// 狫静点
+Hall = Vector(-12.13, 2.00, 89.84);
+Hall_Screen = Vector(-12.14, 2.00, 76.34);
+    }
+    if(CurrentMap()==Map.Horizon_Lunar_Colony){
+        Areas_static = [
+    // A点匦（0号?
+    {
+        Center: Vector(4.79, 6.00, -91.73),      // A炸??
+        Radius: 40,
+        SpawnPosition1: Vector(0.41, 5.01, -104.01),  // A点重生点1
+        SpawnPosition2: Vector(12.83, 7.00, -82.18)  // A点重生点2
+    },
+    // B点匦（1号?
+    {
+        Center: Vector(94.75, 11.44, -55.71),     // B炸??
+        Radius: 40,
+        SpawnPosition1: Vector(82.36, 6.49, -38.78), // B点重生点1
+        SpawnPosition2: Vector(92.20, 12.77, -72.33)   // B点重生点2
+    },
+    // C点匦（2号?
+    {
+        Center: Vector(51.82, 5.99, -68.83),     // C炸??
+        Radius: 36,
+        SpawnPosition1: Vector(66.17, 14.00, -65.88), // C点重生点1
+        SpawnPosition2: Vector(42.60, 14.00, -67.83)  // C点重生点2
+    }
+];
+
+// 狫静点
+Hall = Vector(-21.92, 8.26, 7.11);
+Hall_Screen = Vector(-30.06, 14.94, 14.91);
+    }
+    if(CurrentMap()==Map.Temple_of_Anubis){
+        Areas_static = [
+    // A点匦（0号?
+    {
+        Center: Vector(-34.50, 1.34, 34.61),      // A炸??
+        Radius: 45,
+        SpawnPosition1: Vector(-43.77, 9.51, 21.50),  // A点重生点1
+        SpawnPosition2: Vector(-22.62, 4.51, 38.69)  // A点重生点2
+    },
+    // B点匦（1号?
+    {
+        Center: Vector(-8.14, 4.62, 102.67),     // B炸??
+        Radius: 45,
+        SpawnPosition1: Vector(-20.46, 3.89, 109.84), // B点重生点1
+        SpawnPosition2: Vector(4.46, 0.70, 94.07)   // B点重生点2
+    },
+    // C点匦（2号?
+    {
+        Center: Vector(0.40, 1.89, -3.30),     // C炸??
+        Radius: 36,
+        SpawnPosition1: Vector(-16.12, -0.69, -4.90), // C点重生点1
+        SpawnPosition2: Vector(3.81, 1.13, 13.10)  // C点重生点2
+    }
+];
+
+// 狫静点
+Hall = Vector(12.81, 0.77, -38.32);
+Hall_Screen = Vector(3.65, 2.90, -20.93);
+    }
+        if(CurrentMap()==Map.Havana){
+        Areas_static = [
+            // A点匦（0号?
+            {
+                Center: Vector(-24.31, 6.00, -74.51),  // A炸心坐标（笸丼）
+                Radius: 36,
+                SpawnPosition1: Vector(-18.72, 11.16, -51.08),  // A点重生点1（二个值?
+                SpawnPosition2: Vector(-21.21, 6.00, -89.84)     // A点重生点2（三个值?
+            },
+            // B点匦（1号?
+            {
+                Center: Vector(27.50, 6.00, -75.43),  // B炸心坐标（笸丼）
+                Radius: 36,
+                SpawnPosition1: Vector(37.24, 10.00, -94.79),  // B点重生点1（二个值?
+                SpawnPosition2: Vector(26.32, 12.00, -61.36)   // B点重生点2（三个值?
+            },
+            // C点匦（2号?
+            {
+                Center: Vector(15.25, 6.00, -4.28),  // C炸心坐标（笸丼）
+                Radius: 36,
+                SpawnPosition1: Vector(-8.04, 5.95, -13.57),  // C点重生点1（二个值?
+                SpawnPosition2: Vector(42.44, 8.00, 10.44)    // C点重生点2（三个值?
+            }
+        ];
+
+        // 狫静点
+        Hall = Vector(-103.82, 4.00, -74.86);
+        Hall_Screen = Vector(-94.84, 4.96, -65.21);
+    }
+        if(CurrentMap()==Map.Route_66){
+        Areas_static = [
+    // A点匦（0号?
+    {
+        Center: Vector(-26.93, 8.67, -30.79),      // A??
+        Radius: 30,
+        SpawnPosition1: Vector (-37.89, 8.44, -17.60),  // A??
+        SpawnPosition2: Vector(-15.06, 8.54, -42.63)
+     // A??
+    },
+    // B点匦（1号?
+    {
+        Center: Vector(50.20, 0.23, 40.15),     // B??
+        Radius: 30,
+        SpawnPosition1: Vector(52.44, 6.52, 45.30), // B??
+        SpawnPosition2: Vector(45.85, 3.93, 28.84)   // B??
+    },
+    // C点匦（2号?
+    {
+        Center: Vector(-87.65, 6.50, -2.44),     // C??
+        Radius: 30,
+        SpawnPosition1: Vector(-108.87, 9.96, -7.81), // C??
+        SpawnPosition2: Vector(-93.70, 8.50, 7.87)  // C??
+    }
+];
+
+// 狫静点
+Hall = Vector(37.56, 2.35, 81.31);
+Hall_Screen = Vector(41.08, 2.35, 70.76);
+    }
+    if(CurrentMap()==Map.Eichenwalde_Halloween){
+        Areas_static = [
+    // B点匦（0号?
+    {
+        Center: Vector(12.36, 6.00, -57.26),      // B??
+        Radius: 30,
+        SpawnPosition1: Vector(24.48, 11.00, -71.81),  // B??
+        SpawnPosition2: Vector(7.32, 5.20, -53.01)     // B??
+    },
+    // A点匦（1号?
+    {
+        Center: Vector(82.48, 12.68, -86.75),     // A??
+        Radius: 30,
+        SpawnPosition1: Vector(92.95, 12.72, -102.38), // A??
+        SpawnPosition2: Vector(71.74, 12.66, -71.37)   // A??
+    },
+    // C点匦（2号?
+    {
+        Center: Vector(133.02, 9.93, -46.37),     // C??
+        Radius: 30,
+        SpawnPosition1:  Vector(137.86, 12.01, -41.79), // C??
+        SpawnPosition2: Vector(131.70, 11.72, -61.81)  // C??
+    }
+];
+
+// 狫静点
+Hall = Vector(-15.38, 1.00, 19.75);
+Hall_Screen = Vector(-13.18, 2.19, 1.79);
+    }
+    if(CurrentMap()==Map.Blizzard_World){
+    Areas_static = [
+    //B??0??
+    {
+        Center: Vector(-104.203, -0.317, 124.969),
+        Radius: 30,
+        SpawnPosition1: Vector(-130.646, 1.922, 137.958),
+        SpawnPosition2: Vector(-91.875, -0.225, 118.939)
+    },
+    //A??1??
+    {
+        Center: Vector(-49.955, 7.064, 93.126),
+        Radius: 30,
+        SpawnPosition1: Vector(-69.605, 6.797, 73.839),
+        SpawnPosition2: Vector(-32.089, 6.988, 98.553)  
+    },
+    //-A??2??
+    {
+        Center: Vector(2.451, 2.925, 61.935),
+        Radius: 30,
+        SpawnPosition1: Vector(-11.972, 7.244, 49.635),
+        SpawnPosition2: Vector(25.661, 7.181, 68.250)
+    }
+];
+    Hall = Vector(2.528, -3.775, -42.305);
+    Hall_Screen = Vector(1.063, -2.765, -28.959);
+    }
+    if(CurrentMap()==Map.Hanamura){
+    Areas_static = [
+    //B??0??
+    {
+        Center: Vector(-6.296, 0.526, -80.110),
+        Radius: 30,
+        SpawnPosition1: Vector(-2.953, 5.499, -100.072),
+        SpawnPosition2: Vector(-23.260, 2.400, -65.228)
+    },
+    //A??1??
+    {
+        Center: Vector(7.182, 1.445, 1.125),
+        Radius: 30,
+        SpawnPosition1: Vector(-1.678, 2.400, 3.865),
+        SpawnPosition2: Vector(11.287, 5.400, 22.268)   
+    },
+    //-A??2??
+    {
+        Center: Vector(50.728, 0.450, -2.574),
+        Radius: 30,
+        SpawnPosition1: Vector(48.268, 7.400, -2.205),
+        SpawnPosition2: Vector(53.657, 0.399, -4.751)
+    }
+];
+    Hall = Vector(-40.232, 1.759, -108.056);
+    Hall_Screen =Vector(-32.696, 3.500, -100.766);
+    }
+
+if (CurrentMap() == Map.Kings_Row) {
+
+Areas_static = [
+
+// B??0??
+
+{
+
+Center: Vector(-60.866, 1.087, -31.380),
+
+Radius: 30,
+
+SpawnPosition1: Vector(-69.183, 1.648, -43.762),
+
+SpawnPosition2: Vector(-69.966, 1.253, -4.493)
+
+},
+
+// A??1??
+
+{
+
+Center: Vector(-126.609, 0.152, 5.707),
+
+Radius: 30,
+
+SpawnPosition1: Vector(-111.633, 0.853, 21.083),
+
+SpawnPosition2: Vector(-140.672, 0.526, 1.169)
+
+},
+
+// -A??2??
+
+{
+
+Center: Vector(-2.092, 1.324, -16.922),
+
+Radius: 40,
+
+SpawnPosition1: Vector(12.556, 7.458, -3.532),
+
+SpawnPosition2: Vector(17.637, 4.451, -29.350)
+
+}
+
+];
+
+Hall = Vector(-111.148, -2.951, -53.314);
+
+Hall_Screen = Vector(-100.688, -1.928, -48.964);
+
+}
+if (CurrentMap() == Map.Oasis_City_Center) {
+
+Areas_static = [
+    //炽1 0??
+    {
+        Center: Vector(120.97, 1.00, 225.12),
+        Radius: 30,
+        SpawnPosition1: Vector(139.55, 2.88, 220.26),
+        SpawnPosition2: Vector(115.64, 3.51, 244.77)
+    },
+    //炽2 1??
+    {
+        Center: Vector(161.72, 11.53, 265.57),
+        Radius: 30,
+        SpawnPosition1: Vector(169.74, 4.00, 260.71),
+        SpawnPosition2: Vector(157.52, 4.00, 275.07)
+    },
+    //炽3 2??
+    {
+        Center: Vector(65.89, 30.50, 322.91),
+        Radius: 30,
+        SpawnPosition1: Vector(87.13, 30.50, 322.46),
+        SpawnPosition2: Vector(78.72, 30.50, 300.37)
+    }
+];
+
+Hall = Vector(66.48, 1.00, 322.73);
+Hall_Screen = Vector(84.79, 1.85, 310.73);}
+
+if (CurrentMap() == Map.Dorado) {
+
+Areas_static = [
+    //炽1 0??
+    {
+        Center: Vector(101.33, 11.01, 9.17)
+,
+        Radius: 55,
+        SpawnPosition1: Vector(79.20, 20.00, 23.65),
+        SpawnPosition2: Vector(136.59, 11.00, -14.23)
+
+    },
+    //炽2 1??
+    {
+        Center: Vector(26.98, 11.00, -26.45)
+,
+        Radius: 55,
+        SpawnPosition1: Vector (6.46, 2.98, 6.56)
+,
+        SpawnPosition2: Vector(49.65, 7.00, -22.23)
+
+    },
+    //炽3 2??
+    {
+        Center: Vector(171.98, 19.00, 47.97)
+,
+        Radius: 55,
+        SpawnPosition1: Vector(148.98, 14.01, 49.42)
+,
+        SpawnPosition2: Vector(201.61, 15.00, 52.98)
+
+    }
+];
+
+Hall = Vector(243.14, 15.01, 52.25)
+;
+Hall_Screen = Vector(231.34, 16.66, 55.25)
+;}
+
+if (CurrentMap() == Map.Petra) {
+
+Areas_static = [
+    //炽1 0??
+    {
+        Center: Vector(2.74, -9.92, 8.82),
+        Radius: 30,
+        SpawnPosition1: Vector(2.46, -1.02, 20.15),
+        SpawnPosition2: Vector(-8.72, -0.99, 0.97)
+    },
+    //炽2 1??
+    {
+        Center: Vector(-3.64, -11.35, 52.45)
+,
+        Radius: 30,
+        SpawnPosition1: Vector(1.69, -13.25, 44.92)
+,
+        SpawnPosition2: Vector (-18.30, -6.35, 46.90)
+
+    },
+    //炽3 2??
+    {
+        Center: Vector (-29.76, -7.02, 0.18)
+,
+        Radius: 30,
+        SpawnPosition1: Vector (-29.59, -5.00, 16.16)
+,
+        SpawnPosition2: Vector  (-19.94, 0.00, 1.71)
+
+    }
+];
+
+Hall = Vector (40.78, 19.05, 20.03)
+;
+Hall_Screen = Vector (23.38, 26.30, 4.55)
+;}
+
+if (CurrentMap() == Map.Paris) {
+
+Areas_static = [
+    //炽1 0??
+    {
+        Center: Vector(-10.87, 14.00, -42.19)
+,
+        Radius: 30,
+        SpawnPosition1: Vector(3.38, 11.40, -36.28)
+,
+        SpawnPosition2: Vector(-14.67, 10.03, -54.86)
+
+    },
+    //炽2 1??
+    {
+        Center: Vector (-54.28, 12.03, 10.48)
+
+,
+        Radius: 30,
+        SpawnPosition1: Vector(-48.39, 15.99, 31.53)
+
+,
+        SpawnPosition2: Vector  (-56.38, 14.62, -3.45)
+
+
+    },
+    //炽3 2??
+    {
+        Center: Vector (-91.43, 12.00, -75.37)
+
+,
+        Radius: 35,
+        SpawnPosition1: Vector  (-73.98, 15.00, -87.84)
+
+,
+        SpawnPosition2: Vector  (-101.14, 12.00, -59.99)
+
+    }
+];
+
+Hall = Vector (24.42, 11.00, -74.61)
+;
+Hall_Screen = Vector  (29.78, 14.57, -85.40)
+
+;}
+}
+
+
+
+
+
+
+
+enum ShuxingType {
+Attack,
+CoolDown,
+Speed,
+HealBoost,
+Health,
+Reduction,
+Drain,
+Armor,
+Shields
+}
+globalvar Number[][] AverageForgeRanges = [
+[12, 22],  // Attack
+[10, 20],  // CoolDown 例范?
+[6, 12],   // Speed 例
+[10, 18],   // HealBoost 例
+[100, 180],  //Health
+[10,20]  //Reduction
+// gerageForgetype顺t配
+];
+globalvar String[] ShuxingNames = [
+'造成伤害',
+'技能急速',
+'移动速度',
+'造成治疗',
+'生命值',
+'伤害抵抗',
+'吸血',
+'护甲',
+'护盾'
+];
+globalvar ShuxingForge[] RareForgePool = [
+new ShuxingForge(Quality.rare, ShuxingType.Drain, 20),  // 固?20 Abs Drain
+new ShuxingForge(Quality.rare, ShuxingType.Shields, 200),  // 固?00 Abs 护?
+new ShuxingForge(Quality.rare, ShuxingType.Armor, 250),  // 固?50 Abs 护?
+new ShuxingForge(Quality.rare, ShuxingType.Attack, 40), // 固?0 Attack ^伤,
+new ShuxingForge(Quality.rare, ShuxingType.CoolDown, 35), // 固?5 CoolDown 能?
+new ShuxingForge(Quality.rare, ShuxingType.HealBoost, 40), // 固?0 HealBoost ^治疗,
+new ShuxingForge(Quality.rare, ShuxingType.Speed, 35), // 固?5 Speed ??
+new ShuxingForge(Quality.rare, ShuxingType.Reduction, 35) // 固?0 Reduction 伤,
+];
+
+class ShuxingForge{
+    public Quality quality;
+    public ShuxingType type;
+    public Number absBonus;
+
+    public constructor(in Quality _quality = Quality.average,in ShuxingType _type,in Number _absBonus){
+    quality = _quality;
+    type = _type;
+    absBonus = _absBonus;
+    }
+
+    public String GetName() {
+        return ShuxingNames[<Number>type];
+    }
+
+    public String GetDes() {
+        return <'++<0>\n\r<1>', absBonus,quality==Quality.average?<'范围(<0> ~ <1>)',AverageForgeRanges[type][0],AverageForgeRanges[type][1]>:''>;
+        
+    }
+
+}
+    ShuxingForge GenerateAverageForge() 'sub生成average forge' {
+        Number typeIndex! = RandomInteger(0, AverageForgeRanges.Length - 1);
+        ShuxingType selectedType! = <ShuxingType>typeIndex;
+        Number[] range! = AverageForgeRanges[typeIndex];
+        Number absValue! = RandomInteger(range[0], range[1]);
+        return new ShuxingForge(Quality.average, selectedType, absValue);
+    }
+
+globalvar ShuxingForge[] Forge_Pool = [];
+playervar ShuxingForge[] Forges = [];
+playervar ShuxingForge[] forgeReward;
+playervar Number forgeReward_index;
+
+single struct AsyncOperation {
+    public Number time;
+    public () => void callback;
+}
+
+playervar AsyncOperation[] operations = [];
+playervar Number timeUntilNextOperation = 99999;
+
+void WaitAsync(in Player | Player[] target, in Number time, in () => void callback) {
+    ModifyVariable(target.timeUntilNextOperation, Operation.Min, TotalTimeElapsed() + time);
+    target.operations += {
+        time: TotalTimeElapsed() + time,
+        callback: callback
+    };
+}
+
+rule: 'Execute Next Async Operation'
+Event.OngoingPlayer
+if (TotalTimeElapsed() >= timeUntilNextOperation)
+{
+    Number opIndex = operations.Map((op, i) => i).Sort(i => operations[i].time).First;
+    operations[opIndex].callback();
+    operations.ModRemoveByIndex(opIndex);
+
+    timeUntilNextOperation = operations.Length ? operations.Sort(op => op.time).First.time : 99999;
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+
+
+rule: '房主传送'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HostPlayer()==EventPlayer()&&IsButtonHeld(EventPlayer(),Button.Reload)&&!IsGameInProgress())
+{
+    Teleport(EventPlayer(),EyePosition()+10*FacingDirectionOf());    
+}
+
+rule: '关闭各'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsGameInProgress())
+{
+    DisableAnnouncer();
+    DisableCompletion();
+    DisableGameModeInworldUI();
+    DisableMusic();
+    DisableScoring();
+    EnableSpectate();
+}
+
+rule: '忿游戏'
+if(IsAssemblingHeroes())
+{
+    SetMatchTime(10);
+}
+
+playervar Area Player_Area;//归属区域
+//区域结?
+single struct Area{
+    public Vector Center;
+    public Number Radius;
+    public Vector SpawnPosition1;
+    public Vector SpawnPosition2;
+}
+
+globalvar Area[] Areas_static;
+
+globalvar Number PhaseTime;
+globalvar Number[] FireRingsRadius = [];
+
+Color AreaColor: Color.Blue;
+//区域效果创?
+void CreateAreas(){
+    for(define i=0;i<Areas_static.Length;i++){
+        CreateEffect(
+        VisibleTo: (CurrentGamePhase==GamePhase.Combat) && (LocalPlayer().Player_Area==EvaluateOnce(Areas_static[i])) || (IsDead(LocalPlayer()))?LocalPlayer():null,
+        Type: Effect.Sphere,
+        Color: AreaColor,
+        Position: Areas_static[EvaluateOnce(i)].Center,
+        Radius: FireRingsRadius[EvaluateOnce(i)],
+        Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+        MinWait();
+    }
+}
+
+rule: '区域初始化'
+{
+    CreateAreas();
+}
+
+
+globalvar PlayTeam[] Teams;  // 队伍敒R
+globalvar Number MaxTeams = 4;  // 大队伍?(V???
+playervar Number TeamID = -1;//-1表示月??
+playervar Player TeamMate;
+playervar Boolean isKnockOut;
+
+globalvar Color[] Color_Pool = [Color.Aqua,Color.Green,Color.Purple,Color.Yellow,Color.Violet,Color.Turquoise,Color.Red];
+
+void ResetTeamColorPool()
+{
+    Color_Pool = [Color.Aqua, Color.Green, Color.Purple, Color.Yellow, Color.Violet, Color.Turquoise, Color.Red];
+}
+
+Color AcquireTeamColor()
+{
+    if (Color_Pool.Length == 0)
+    {
+        ResetTeamColorPool();
+    }
+    Color nextColor! = Color_Pool[0];
+    Color_Pool.ModRemoveByIndex(0);
+    return nextColor;
+}
+rule: '队友头像显示'
+{
+    CreateInWorldText(VisibleTo: EntityExists(LocalPlayer().TeamMate)&&!IsDead(LocalPlayer())?LocalPlayer():null,
+    Header: <'<0> <1><2>',IconString(Icon.Happy),HeroIconString(HeroOf(LocalPlayer().TeamMate)),LocalPlayer().TeamMate>,
+    Position: MenuButtonPosition_Local(-3.2,-1.3),
+    Scale: 2,
+    Clipping: Clipping.DoNotClip,
+    TextColor: GetTeamofPlayer(LocalPlayer()).TeamColor);
+
+    MinWait();
+}
+globalvar Number TeamHealth = WorkshopSettingInteger(Category: '自定义(谨慎更改)',Name: '队伍生命值（扣血制）',Default: 100,Min: 30,Max: 300);
+playervar Boolean isInvisible;
+//区??
+class PlayTeam {
+    public Player[] Members;  // 队伍 (???
+    public Number ID;     // 队伍ID
+    public Number Health;  // 分数（可?
+    public Color TeamColor;
+    public PlayTeam Opponent;
+    public Number ByeCount = 0; // 新：录轮空??
+
+    public constructor(Player[] members, Number id) {
+        Health = UsePointSystem?0:TeamHealth;
+
+        Teams += this;
+        Members = members;
+        ID = id;
+        TeamColor = AcquireTeamColor();
+        // 为每丈罏??
+
+        foreach (Player p! in Members) {
+            p.isKnockOut = false;
+
+            p.TeamMate = FirstOf(Members.Filter(t=>t!=p));
+            p.TeamID = id;
+            InitializeEffectText(p);
+        }
+    }
+
+    public void AddMember(Player p!)'添加队员'{
+        this.Members += p;
+        p.isKnockOut = false;
+        p.TeamMate = FirstOf(FilteredArray(Members, ArrayElement() != p));
+        p.TeamMate.TeamMate = p;
+        p.TeamID = this.ID;
+
+        AloneOff(p.TeamMate);
+
+        InitializeEffectText(p);
+        MinWait();
+    }
+
+    public void InitializeEffectText(Player p!) '初始化特效'{
+        CreateInWorldText(Header: <'队伍 <0>',EvaluateOnce(p).TeamID>,Position: EvaluateOnce(p),Scale: 2,Clipping: Clipping.ClipAgainstSurfaces,TextColor: EvaluateOnce(TeamColor),VisibleTo: (!EvaluateOnce(p).isInvisible&&IsAlive(EvaluateOnce(p)))?AllPlayers().Filter(t=>!t.FPSMode):null);
+        CreateEffect(Type: Effect.Ring,Color: TeamColor,Position: (EvaluateOnce(p)),Radius: 1,VisibleTo: !IsDead(EvaluateOnce(p))?[EvaluateOnce(p),EvaluateOnce(p).TeamMate]:null);
+
+        StartDamageModification(EvaluateOnce(p),EvaluateOnce(p).TeamMate,0,DamageModificationRev.ReceiversDamagersAndDamagePercent);
+        MinWait();
+
+        CreateIcon(VisibleTo: EntityExists(EvaluateOnce(p).TeamMate)?EvaluateOnce(p):null,EvaluateOnce(p).TeamMate,Icon.Happy,IconRev.VisibleToPositionAndColor,EvaluateOnce(TeamColor),true);
+        CreateEffect(VisibleTo: !EvaluateOnce(p).isKnockOut?AllPlayers().Filter(t=>IsDead(EvaluateOnce(p))):null,Type: Effect.Ring,Color: EvaluateOnce(TeamColor), Position: PositionOf(EvaluateOnce(p)),Radius: 5,Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+
+        CreateProgressBarInWorldText(VisibleTo: !EvaluateOnce(p).isKnockOut?AllPlayers().Filter(t=>IsDead(EvaluateOnce(p))&&DistanceBetween(EvaluateOnce(p),t)<=5&&IsAlive(t)):null,Value: EvaluateOnce(p).RevivePercent,Text: <'<0>复活进',HeroIconString(HeroOf(EvaluateOnce(p)))>,Position: MenuButtonPosition_Local(0,-1.5),Scale: 1,Clipping: Clipping.DoNotClip,TextColor: Color.Orange,ProgressBarColor: GradientColor([54,133,2],[255,79,35],EvaluateOnce(p).RevivePercent/100),Reevaluation: ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
+
+        CreateInWorldText(VisibleTo: IsDead(EvaluateOnce(p))&&EvaluateOnce(p).Revivable&&!EvaluateOnce(p).isKnockOut?AllPlayers():null,Header: <'<2>-<0>: <1>%',HeroIconString(HeroOf(EvaluateOnce(p))),EvaluateOnce(p).RevivePercent,AbilityIconString(Hero.Mercy,Button.Ability2)>,Position: PositionOf(EvaluateOnce(p))+Vector(0,1,0),Scale: 2,Clipping: Clipping.ClipAgainstSurfaces,Spectators: Spectators.VisibleAlways);
+
+        CreateProgressBarInWorldText(
+            VisibleTo: !IsDead(EvaluateOnce(p))?AllPlayers().Filter(t=>IsDead(t)):null,
+            Value: 100*NormalizedHealth(EvaluateOnce(p)),
+            Text: '',
+            Position: EvaluateOnce(p),
+            Scale: 0.7,
+            Clipping: Clipping.ClipAgainstSurfaces,
+            ProgressBarColor: GradientColor([255,0,0],[0,255,0],1-(NormalizedHealth(EvaluateOnce(p)))),
+            NonteamSpectators: Spectators.VisibleAlways,
+        );
+        MinWait();
+    }
+
+}
+
+Boolean TeamDivisionCondition:
+    IsGameInProgress();
+
+rule: '当前分队逻辑'
+{
+    CreateHudText(Subheader: <'当前分队逻辑:<0>',UseAloneTeamUpto4?'优先创建队伍数量':'经典二人小队'>,SortOrder: -999,SubheaderColor: Color.Turquoise);
+}
+globalvar Boolean UseAloneTeamUpto4 = WorkshopSettingToggle('体验','在不满四人的时候单人成队',true,1);
+globalvar Boolean UseAloneStartTeam = WorkshopSettingToggle('体验','分队时可以创建独狼队伍',true,0);
+void DivisionSetup()'sub分队逻辑'{
+    Player[] candidates! = <Player[]>RandomizedArray(AllLivingPlayers(Team.All));
+    Teams = [];
+    ResetTeamColorPool();
+
+    if(CountOf(candidates)==0){
+        return;
+    }
+
+    if(UseAloneTeamUpto4 && CountOf(candidates) <= 4){
+        Number soloIndex! = 0;
+        foreach(Player lone! in candidates){
+            new PlayTeam([lone], soloIndex);
+            AloneSet(lone);
+            soloIndex++;
+            MinWait();
+        }
+        BigMessage(AllPlayers(), '队伍已分好! 与你的队友打打招呼吧！');
+        MinWait();
+        return;
+    }
+
+    Number teamIndex! = 0;
+    Number cursor! = 0;
+    while(cursor + 1 < CountOf(candidates)){
+        Player[] members = [candidates[cursor], candidates[cursor + 1]];
+        new PlayTeam(members, teamIndex);
+        cursor += 2;
+        teamIndex++;
+        MinWait();
+    }
+
+    if(cursor < CountOf(candidates)){
+        Player leftover! = candidates[cursor];
+        if(UseAloneStartTeam){
+            new PlayTeam([leftover], teamIndex);
+            AloneSet(leftover);
+            MinWait();
+        }else{
+            SmallMessage(leftover, '因为人数原因，你被淘汰了');
+            leftover.isKnockOut = true;
+            WaitQueue += leftover;
+        }
+    }
+
+    BigMessage(AllPlayers(), '队伍已分好! 与你的队友打打招呼吧！');
+    MinWait();
+}
+
+globalvar PlayTeam byeTeam;
+globalvar Number PrepareTime = WorkshopSettingInteger(Category: '流程设置',Name: '回合准备时间',Default: 40,Min: 15,Max: 90,SortOrder: 0);
+single struct CombatPhaseConfig{
+    public Number PrepareDuration;
+    public Number CombatDuration;
+    public Number ShrinkInterval;
+    public Number ShrinkAmount;
+    public Number BaseFireDamage;
+    public Number FireDamagePerTick;
+}
+
+globalvar CombatPhaseConfig CurrentCombatConfig;
+globalvar Number FireRingTickCount = 0;
+
+CombatPhaseConfig ResolveCombatPhaseConfig(){
+    CombatPhaseConfig config;
+    config.PrepareDuration = CurrentStage > 0 ? PrepareTime : 15;
+    config.CombatDuration = (CurrentRound == 1 && CurrentStage == 1) ? 20 : 40;
+    config.ShrinkInterval = 5;
+    config.ShrinkAmount = 3;
+    config.BaseFireDamage = 50;
+    config.FireDamagePerTick = 20;
+    return config;
+}
+
+void UpdateCombatConfigForCurrentRound(){
+    CurrentCombatConfig = ResolveCombatPhaseConfig();
+}
+
+void FireRing_InitializeCombatPhase(){
+    UpdateCombatConfigForCurrentRound();
+    FireRingTickCount = 0;
+    FireRingsRadius = Areas_static.Map(Area => Area.Radius);
+    SetMatchTime(CurrentCombatConfig.CombatDuration);
+}
+
+void FireRing_ApplyShrink(){
+    FireRingTickCount++;
+    if(CurrentCombatConfig.ShrinkAmount <= 0){
+        return;
+    }
+    for(Number i! = 0; i < FireRingsRadius.Length; i++){
+        if(FireRingsRadius[i] > 0){
+            FireRingsRadius[i] = Max(0, FireRingsRadius[i] - CurrentCombatConfig.ShrinkAmount);
+        }
+    }
+}
+
+Number FireRing_CurrentDamage(){
+    return CurrentCombatConfig.BaseFireDamage + FireRingTickCount * CurrentCombatConfig.FireDamagePerTick;
+}
+
+
+globalvar PlayTeam[] MatchUps;  // 存储当前回合对战组合
+globalvar Number[] MatchHistory = [0, 0, 0, 0, 0, 0];  // 记录6种组合的历史次数
+
+// 获取组合索引
+Number GetMatchIndex(in Number teamA, in Number teamB) {
+    Number minId! = Min(teamA, teamB);
+    Number maxId! = Max(teamA, teamB);
+    return minId == 0 ? maxId - 1 :
+           minId == 1 ? maxId + 1 :
+           minId == 2 ? 5 :
+           -1;  // 无效队伍ID，返回-1
+}
+
+// 更新历史记录
+void UpdateHistory(in Number teamA, in Number teamB) {
+    Number index! = GetMatchIndex(teamA, teamB);
+    if (index >= 0) {
+        MatchHistory[index]++;
+    }
+}
+
+// 选择对战组合
+PlayTeam[][] SelectMatches(PlayTeam[] activeTeams) {
+    Any[][] candidates! = [];
+    Number candidateCount! = 0;
+
+    // 生成所有可能组合及其历史次数
+    for (Number i! = 0; i < CountOf(activeTeams); i++) {
+        for (Number j! = i + 1; j < CountOf(activeTeams); j++) {
+            Number a! = activeTeams[i].ID;
+            Number b! = activeTeams[j].ID;
+            Number history! = MatchHistory[GetMatchIndex(a, b)];
+            candidates[candidateCount] = [activeTeams[i], activeTeams[j], history];
+            candidateCount++;
+        }
+    }
+
+    // 按历史次数升序排序
+    candidates = candidates.Sort(t=>t[2]);
+
+    // 贪心选择
+    PlayTeam[][] selected! = [];
+    Number selectedCount! = 0;
+    Number[] matchedTeams! = [];
+
+    for (Number i = 0; i < candidateCount; i++) {
+        PlayTeam teamA! = candidates[i][0];
+        PlayTeam teamB! = candidates[i][1];
+        if (!ArrayContains(matchedTeams, teamA.ID) && !ArrayContains(matchedTeams, teamB.ID)) {
+            selected[selectedCount] = [teamA, teamB];
+            matchedTeams[CountOf(matchedTeams)] = teamA.ID;
+            matchedTeams[CountOf(matchedTeams)] = teamB.ID;
+            selectedCount++;
+        }
+    }
+    return selected;
+}
+
+void StartPrepare_() 'sub开始准备'{
+    byeTeam = null;  // 重置byeTeam
+
+    SetStatus(AllPlayers(),null,Status.PhasedOut,9999);
+    
+    SetObjectiveDescription(
+        Header: <
+        '\r\r\r\r\r\r\r[阶段 <0>-<1>]\r\r\r\r\r\r\r                      获胜模式:<2>'
+        ,CurrentStage
+        ,CurrentRound
+        ,UsePointSystem?'加分制(首个到达100分的队伍获胜)':'扣血制(存活到最后的队伍获胜)'>
+        );
+    MatchUps = [];  // 清空
+    MinWait();
+    // 获取当前活跃队伍（扣血制过滤已淘汰）
+
+    PlayTeam[] activeTeams! = !UsePointSystem ? Teams.Filter(t=>t.Health>0) : Teams;
+    // 如果队伍数量为奇数，选择一个轮空队伍
+    if (CountOf(activeTeams) % 2 == 1) {
+        // 找到轮空次数最少的队伍
+        byeTeam = FirstOf(activeTeams.Sort((t => t.ByeCount)));
+    
+        byeTeam.ByeCount++;
+        
+        // 从活跃队伍中移除轮空队伍
+        activeTeams = activeTeams.Filter(t=>t!=byeTeam);
+        BigMessage(byeTeam.Members[0], 'Lucky！本回合轮空！将自动进入观战');
+    }
+    Wait(0.1);
+    // 随机匹配其余队伍
+    PlayTeam[] shuffledTeams = <PlayTeam[]>RandomizedArray(activeTeams);
+
+    if(CountOf(shuffledTeams)==2){
+        MatchUps[0] = [shuffledTeams[0],shuffledTeams[1]];
+        SmallMessage(shuffledTeams[0].Members, <'对手: 队伍 <0>', shuffledTeams[0].ID>);
+        SmallMessage(shuffledTeams[1].Members, <'对手: 队伍 <0>', shuffledTeams[0].ID>);
+    }
+    else{
+        while(CountOf(MatchUps)<CountOf(shuffledTeams)/2){
+        Wait(0.1);
+
+        PlayTeam team1! = shuffledTeams.Random();
+        PlayTeam[] availableTeams = shuffledTeams.Filter(t=>team1.Opponent!=t&&t!=team1);
+        PlayTeam team2! = availableTeams.Random();
+        Wait(0.1);
+            MatchUps[MatchUps.Length] = [team1, team2];
+            SmallMessage(team1.Members, <'对手: 队伍 <0>', team2.ID>);
+            SmallMessage(team2.Members, <'对手: 队伍 <0>', team1.ID>);
+
+        PlayTeam team3! = shuffledTeams.Filter(t=>t!=team1&&t!=team2)[0];
+        PlayTeam team4! = shuffledTeams.Filter(t=>t!=team1&&t!=team2)[1];
+        
+            MatchUps[MatchUps.Length] = [team3, team4];
+            SmallMessage(team3.Members, <'对手: 队伍 <0>', team3.ID>);
+            SmallMessage(team4.Members, <'对手: 队伍 <0>', team4.ID>);
+        }
+    }
+}
+
+enum RewardStepType {
+    Hex,
+    ForgeAverage,
+    ForgeRare
+}
+
+globalvar Quality[] AddupRoundQuaility = [];
+RewardStepType CurrentRewardStep(in Player p):
+    p.rewardFlow[p.rewardFlowIndex];
+
+void PrepareCurrentRewardStepData(Player p!)'sub准备当前奖励步骤数据'{
+    if(p.rewardFlowIndex >= p.rewardFlow.Length){
+        return;
+    }
+    switch(CurrentRewardStep(p)){
+        case RewardStepType.Hex:
+            if(p.roundReward_index >= p.roundReward.Length){
+                p.roundReward_index = 0;
+            }
+            break;
+        case RewardStepType.ForgeAverage:
+            if(p.forgeReward.Length <= 0){
+                GenerateForgeRewards(p, false);
+            }
+            if(p.forgeReward_index >= p.forgeReward.Length){
+                p.forgeReward_index = 0;
+            }
+            break;
+        case RewardStepType.ForgeRare:
+            if(p.forgeReward.Length <= 0){
+                GenerateForgeRewards(p, true);
+            }
+            if(p.forgeReward_index >= p.forgeReward.Length){
+                p.forgeReward_index = 0;
+            }
+            break;
+    }
+}
+
+void OpenCurrentRewardMenu(Player p!)'sub打开当前奖励步骤菜单'{
+    if(p.rewardFlowIndex >= p.rewardFlow.Length){
+        return;
+    }
+    PrepareCurrentRewardStepData(p);
+    switch(CurrentRewardStep(p)){
+        case RewardStepType.Hex:
+            OpenMenu(p: p, name: MenuActive.HexMenu);
+            break;
+        case RewardStepType.ForgeAverage:
+        case RewardStepType.ForgeRare:
+            OpenMenu(p: p, name: MenuActive.ForgeMenu);
+            break;
+    }
+}
+
+rule: '打开菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID!=-1)
+if(OpenMenuAction)
+{
+    OpenMenuAction = false;
+    if(rewardFlowIndex < rewardFlow.Length){
+        OpenCurrentRewardMenu(EventPlayer());
+    }
+}
+void OpenMenuAll() 'sub打开该回合菜单'{
+    define RestPlayers = AllPlayers().Filter(t => !t.isKnockOut);
+    foreach (Player p! in RestPlayers){
+        Wait(0.2);
+        if(p.Hexes.Length<6){
+            if (CurrentRound == 7) {
+                OpenMenu(p: p, name: MenuActive.HexMenu);
+            }
+            else{
+                if ([3, 6].Contains(CurrentRound)) {
+                    OpenMenu(p: p, name: MenuActive.ForgeMenu);
+                }
+                else{
+                    if (CurrentRound == 2) {
+                        OpenMenu(p: p, name: MenuActive.HexMenu);
+                    }
+                    else{
+                        if (CurrentRound == 4) {
+                            OpenMenu(p: p, name: MenuActive.HexMenu);
+
+                        }
+                        else{
+                            if (CurrentRound == 5) {
+                            OpenMenu(p: p, name: MenuActive.HexMenu);
+                        }
+                        }
+                    }
+                    
+                }
+
+            }
+
+        }
+        else {
+            OpenMenu(p: p, name: MenuActive.ForgeMenu);
+        }
+    } 
+}
+void ApplyRoundRewards() 'sub决定回合奖励'{
+    define RestPlayers = AllPlayers().Filter(t => !t.isKnockOut);
+    PlayTeam[] compensTeams! = [];
+    if(CurrentRound >= 2){
+        PlayTeam[] activeTeams! = [];
+        foreach(PlayTeam team! in Teams){
+            if(team != null && team.Health > 0){
+                Player[] validMembers! = team.Members.Filter(p=>EntityExists(p) && !p.isKnockOut);
+                if(validMembers.Length > 0){
+                    activeTeams += team;
+                }
+            }
+        }
+        if(activeTeams.Length > 0){
+            Number lowestHealth! = activeTeams.Sort(t=>t.Health).First.Health;
+            compensTeams = activeTeams.Filter(t=>t.Health == lowestHealth);
+            foreach(PlayTeam team! in compensTeams){
+                Player[] teamMembers! = team.Members.Filter(p=>EntityExists(p) && !p.isKnockOut);
+                if(teamMembers.Length > 0){
+                    BigMessage(teamMembers, '队伍生命值倒数\n获得额外锻体回合！');
+                }
+            }
+        }
+    }
+
+    foreach (Player p! in RestPlayers){
+        p.roundReward = [];
+        p.forgeReward = [];
+        p.roundReward_index = 0;
+        p.forgeReward_index = 0;
+        p.rewardFlow = [];
+        p.rewardFlowIndex = 0;
+
+        if(p.Hexes.Length<6){
+            switch(CurrentRound){
+                case 7:
+                p.roundReward = RollHexOffersByQualities(p, [HexQuality.epic], 3);
+                p.rewardFlow += RewardStepType.Hex;
+                break;
+                case 3:
+                case 6:
+                p.RefreshCount++;
+                p.rewardFlow += RewardStepType.ForgeAverage;
+                break;
+                case 2:
+                p.roundReward = RollHexOffersByQualities(p, [HexQuality.average, HexQuality.rare, HexQuality.epic], 3);
+                p.rewardFlow += RewardStepType.Hex;
+                break;
+                case 4:
+                p.roundReward = RollHexOffersByQualities(p, [HexQuality.average], 3);
+                p.rewardFlow += RewardStepType.Hex;
+                break;
+                case 5:
+                p.roundReward = RollHexOffersByQualities(p, [HexQuality.rare], 3);
+                p.rewardFlow += RewardStepType.Hex;
+                break;
+            }
+        }
+        else{
+            p.rewardFlow += RewardStepType.ForgeAverage;
+        }
+
+        PlayTeam playerTeam! = GetTeamofPlayer(p);
+        if(CurrentRound >= 2 && playerTeam != 0 && compensTeams.Contains(playerTeam)){
+            p.rewardFlow += RewardStepType.ForgeAverage;
+        }
+
+    } 
+}
+
+
+globalvar Number CurrentStage = 1;
+// 创建理队伍列??
+    globalvar PlayTeam[] ProcessedTeams = [];
+globalvar String[] ResetableHexNames = [];
+globalvar (() => void)[] ResetFunctions = [];
+globalvar Player ResetPlayer;
+// 注册函数例，每东覇罚海克於在初或则中注?
+void RegisterReset(in String hexName, in () => void resetFunc){
+ResetableHexNames += hexName;
+ResetFunctions += resetFunc;
+}
+// 例注册（在规刞甼根据海克於
+rule: '注册海克斯初始化'
+{
+    RegisterReset('坚决',()=>{
+        ResetPlayer.IsUsed_Jianjue = false;
+    });
+    // 复仇：重罘友亡状态标忼每回合开允重新活?
+    RegisterReset('复仇',()=>{
+    if(ResetPlayer.TeammateDead_Fuchou){
+    ResetPlayer.shuxing.Attack.Abs -= 50;
+    ResetPlayer.shuxing.Drain.Abs -= 30; 
+    RevShuxing();
+    ResetPlayer.TeammateDead_Fuchou = false;
+    }
+    
+    });
+    RegisterReset('热身动作',()=>{
+        ResetPlayer.shuxing.Attack.Pct -= ResetPlayer.Count_Reshendongzuo;
+        RevShuxing(ResetPlayer);
+        ResetPlayer.Count_Reshendongzuo = 0;
+    });
+    RegisterReset('刺客斗篷',()=>{
+        CikedoupengRemove();
+    });
+    Wait(0.03);
+}
+
+void ResetHexEffects()'sub重置海克斯效果'{
+    foreach(Player p! in AllPlayers()){
+        ResetPlayer = p;
+        foreach(String hexName! in ResetableHexNames){
+        Number index! = ResetableHexNames.IndexOf(hexName);
+        ResetFunctions[index].Invoke();
+        Wait(0.03);
+    }
+    Wait(0.03);
+    }
+    Wait(0.03);
+}
+
+    void StartCombat() {
+        
+        FireRing_InitializeCombatPhase();
+        SetStatus(AllPlayers().Filter(t=>HeroOf(t)==Hero.Tracer),null, Status.Hacked,4);
+        ClearStatus(AllPlayers(),Status.PhasedOut);
+
+        AllPlayers().Revivable = true;
+
+        Kill(byeTeam.Members);
+
+        BigMessage(AllPlayers(), <'阶段 <0>-<1> 战斗开始!', CurrentStage, CurrentRound>);
+        Area[] shuffledAreas = <Area[]>RandomizedArray(Areas_static);
+
+        for (Number i! = 0; i < CountOf(MatchUps); i++) {
+            
+            PlayTeam team1! = MatchUps[i][0];
+            PlayTeam team2! = MatchUps[i][1];
+
+            team1.Opponent = team2;
+            team2.Opponent = team1;
+            Area targetArea = shuffledAreas[i];
+            foreach (Player p! in team1.Members) {
+                p.Player_Area = targetArea;
+                Teleport(p, targetArea.SpawnPosition1);
+                SetStatus(p, null, Status.Invincible, 2);
+            }
+            foreach (Player p! in team2.Members) {
+                p.Player_Area = targetArea;
+                Teleport(p, targetArea.SpawnPosition2);
+                SetStatus(p, null, Status.Invincible, 2);
+            }
+        }
+    }
+
+enum GamePhase {
+    Preparation,  // 准备阶段
+    Combat,       // 战斗阶段
+    Ended         // 游戏结束
+}
+
+globalvar Number CurrentRound;
+globalvar GamePhase CurrentGamePhase;
+
+// 主流程
+rule: 'Start Game Flow'
+Event.OngoingGlobal
+if (IsGameInProgress()) {
+    ChaseVariableAtRate(PhaseTime,0,1,reevaluation: RateChaseReevaluation.DestinationAndRate);
+    DivisionSetup();
+    async! GameFlow();
+    Wait(99999999);
+}
+
+rule: '燃烧墙'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(EventPlayer().Player_Area != 0 && IsAlive() && CurrentGamePhase==GamePhase.Combat)
+if(IsAlive())
+{
+    Number areaIndex! = Areas_static.Map(a => a.Center).IndexOf(EventPlayer().Player_Area.Center);
+
+    if(areaIndex != -1 && DistanceBetween(EventPlayer(), EventPlayer().Player_Area.Center) > FireRingsRadius[areaIndex]){
+        SetStatus(EventPlayer(),null,Status.Burning,1);
+        Damage(EventPlayer(),null,FireRing_CurrentDamage());
+    }
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: '缩圈规则'
+Event.OngoingGlobal
+if (CurrentGamePhase == GamePhase.Combat && MatchTime() <= 1)
+{
+    Wait(0.5,WaitBehavior.AbortWhenFalse);
+    if(FireRingTickCount==0){
+        BigMessage(Header: '火圈开始收缩...');
+    }
+
+    FireRing_ApplyShrink();
+    SetMatchTime(CurrentCombatConfig.ShrinkInterval);
+}
+
+// 回合淘汰扣血
+Number deductHealth:
+    (CurrentRound <= 4 && CurrentStage == 1) ? 15 : Min(15+10*(CurrentStage-1)+5*RoundToInteger(CurrentRound/4,Rounding.Nearest),30);
+
+void AloneSet(Player p!)'sub单人成队加成'{
+    BigMessage(p,'有玩家中途离开了你的队伍！已获得离队buff');
+    p.shuxing.Attack.Abs += 20;
+    p.shuxing.Attack.Pct += 15;
+    p.shuxing.Reduction.Pct += 20;
+    p.shuxing.Drain.Abs += 15;
+    p.shuxing.Armor.Abs += 100;
+    RevShuxing(p);
+}
+// 新规：单人成队队友加入时取消加成
+void AloneOff(Player p!)'sub单人成队取消加成'{
+    BigMessage(p,'有玩家中途加入了你的队伍！离队buff已取消');
+    p.shuxing.Attack.Abs -= 20;
+    p.shuxing.Drain.Abs -= 15;
+    p.shuxing.Armor.Abs -= 100;
+    p.shuxing.Attack.Pct -= 15;
+    p.shuxing.Reduction.Pct -= 20;
+    RevShuxing(p);
+}
+
+rule: 'BuffHUD'
+{
+    CreateHudText(VisibleTo: CountOf(GetTeamofPlayer(LocalPlayer()).Members)==1?LocalPlayer():null,Header: '队友离队Buff',Text: '获得属性提升',Location: Location.Left);
+}
+
+enum ConditionType{
+    IsAlive,
+    KnockOut,
+    InArea
+}
+
+Boolean isTrueForTeam(Player p!,ConditionType condition!)'队伍条件'{
+    switch(condition){
+        case ConditionType.IsAlive:
+            return IsAlive(p)&&IsAlive(p.TeamMate);
+        case ConditionType.KnockOut:
+            return p.isKnockOut && p.TeamMate.isKnockOut;
+    }
+}
+
+// 获取获胜队伍（回合内）
+PlayTeam GetWinningTeam(in PlayTeam team1, in PlayTeam team2) {
+    if(!ArrayContains(Teams, team1) && !ArrayContains(Teams, team2)) return null;
+    if(!ArrayContains(Teams, team1)) return team2;
+    if(!ArrayContains(Teams, team2)) return team1;
+
+    Boolean team1Defeated! = team1.Members.All(t=>!IsAlive(t) || !HasSpawned(t));
+    Boolean team2Defeated! = team2.Members.All(t=>!IsAlive(t) || !HasSpawned(t));
+
+    if (team1Defeated && !team2Defeated) {
+        return team2;
+    } else if (team2Defeated && !team1Defeated) {
+        return team1;
+    }
+    return null; // 平局：两队都失败或都未失败
+}
+Number WinPoint:
+    CurrentRound < 4 && CurrentStage == 1 ? 10 : Min(25,10+5*RoundToInteger((CurrentRound+7*(CurrentStage-1))/4,Rounding.Nearest));
+Number LosePoint:
+    10;
+// 回合结束处理
+void HandleRoundEnd(in PlayTeam winner, in PlayTeam loser) {
+    if (UsePointSystem) {
+        // 加分制逻辑
+        winner.Health += WinPoint;
+        loser.Health = Max(0, loser.Health - LosePoint);
+        
+        BigMessage(winner.Members, <"胜利! +<0>分 (总分: <1>)", WinPoint, winner.Health>);
+        BigMessage(loser.Members, <"失败! -<0>分 (总分: <1>)", LosePoint, loser.Health>);
+        
+        // 检查胜利条件
+        if (winner.Health >= 100) {
+            CurrentGamePhase = GamePhase.Ended;
+            BigMessage(AllPlayers(), <"队伍 <0> 达到100分获胜!", winner.ID>);
+            DeclarePlayerVictory(winner.Members[0]);
+        }
+    }
+    else{
+            // 扣除失败队伍生命
+        loser.Health -= deductHealth;
+        
+        // 如果队伍生命<=0，整局淘汰
+        if (loser.Health <= 0) {
+            foreach (Player p! in loser.Members) {
+                p.isKnockOut = true;
+                Kill(p); // 立即淘汰玩家
+                Wait(0.03);
+            }
+            BigMessage(loser.Members, "你的队伍被淘汰了！");
+            // 从Teams移除淘汰队伍
+            ModifyVariable(Teams, Operation.RemoveFromArrayByValue, loser); 
+        }
+        PlayEffect(VisibleTo: winner.Members,Type: PlayEffect.WreckingBallMinefieldExplosionSound,Position: PositionOf(FirstOf(winner.Members)),Radius: 150);
+        PlayEffect(VisibleTo: winner.Members,Type: PlayEffect.WreckingBallMinefieldExplosionSound,Position: PositionOf(FirstOf(winner.Members)),Radius: 150);
+        // 发送回合结果
+        BigMessage(winner.Members, <"你的队伍赢得了本回合的胜利！">);
+        BigMessage(loser.Members, <"你的队伍本回合遗憾告败!\n剩余生命: <0>", loser.Health>);
+    }
+    
+    
+    Wait(3);
+    // 如果还有其他比赛，获胜队伍进入观战
+    if (CountOf(MatchUps) > 1) {
+        foreach (Player p! in winner.Members) {
+            Wait(0.03);
+            Kill(p);
+            BigMessage(p, "由于其他比赛仍在进行，你已进入观战");
+        }
+    }
+}
+globalvar Boolean DetectEnd_Running = false;
+void DetectEnd()'sub检测回合结束'{
+    if(DetectEnd_Running)return;
+    if(CurrentGamePhase != GamePhase.Combat)return;
+    DetectEnd_Running = true;
+
+    for (Number i! = 0; i < CountOf(MatchUps); i++) {
+        PlayTeam team1! = MatchUps[i][0];
+        PlayTeam team2! = MatchUps[i][1];
+        PlayTeam winner! = GetWinningTeam(team1, team2);
+        if (winner != null) {
+            PlayTeam loser = (winner == team1) ? team2 : team1;
+            HandleRoundEnd(winner, loser);
+            
+            // 从MatchUps移除这场比赛
+            ModifyVariable(MatchUps, Operation.RemoveFromArrayByIndex, i);
+            i--; // 因为数组长度已减少
+        }
+        Wait(0.025);
+    }
+
+    if (CountOf(MatchUps) == 0 && CurrentGamePhase==GamePhase.Combat) {
+        Wait(0.025);
+        if (UsePointSystem) {
+            Wait(0.025);
+            // 加分制下检查是否有队伍达到100分
+            PlayTeam[] teamsWith100 = Teams.Filter(t => t.Health >= 100);
+            if (CountOf(teamsWith100) > 0) {
+                CurrentGamePhase = GamePhase.Ended;
+                PlayTeam winner = FirstOf(teamsWith100);
+                BigMessage(AllPlayers(), <"队伍 <0> 获得了100分，胜利!!", winner.ID>);
+                DeclarePlayerVictory(winner.Members[0]);
+            } else {
+                Wait(0.025);
+                async! GameFlow();
+            }
+        } else {
+            // 检查游戏是否结束（只剩1队或无队）
+            PlayTeam[] activeTeams! = Teams.Filter(t=>t.Health>0);  // 使用activeTeams判断
+            if (CountOf(activeTeams) <= 1) {
+                Wait(0.025);
+                CurrentGamePhase = GamePhase.Ended;
+                if (CountOf(activeTeams) == 1) {
+                    BigMessage(AllPlayers(), <"队伍 <0> 吃鸡!!", activeTeams[0].ID>);
+                    DeclarePlayerVictory(activeTeams[0].Members[0]);
+                    // 为获胜队伍宣告胜利
+                } else {
+                    BigMessage(AllPlayers(), "比赛以平局结束，无胜者！");
+                }
+            } else {
+                Wait(0.025);
+                async! GameFlow();
+            }
+        }
+
+    }
+    
+        if(IsTrueForAll(AllPlayers(),IsDead(ArrayElement()))){
+                        BigMessage(AllPlayers(), "似乎有人触发了回合内平局...");
+            Wait(0.025);
+            async! GameFlow();
+
+        }
+    DetectEnd_Running = false;
+}
+// 检测对位组合的胜负
+rule: 'DetectEnd - 玩家死亡'
+Event.OnDeath
+Team.All
+Player.All
+if(CurrentGamePhase == GamePhase.Combat)
+if(CurrentStage > 0)
+{
+    Wait(0.03,WaitBehavior.AbortWhenFalse);
+    DetectEnd();
+}
+playervar Boolean OpenMenuAction = false;
+playervar RewardStepType[] rewardFlow;
+playervar Number rewardFlowIndex;
+void GameFlow()'sub游戏主流程'{
+    
+    if(!CurrentStage==0){
+                        // 先处理等待队列
+    WaitQueue = WaitQueue.Filter(t=>EntityExists(t)&&CurrentStage<3);
+    Teams = Teams.Filter(t=>t!=null);
+    if(WaitQueue.Length>0){
+        SetSlowMotion(10);
+        JoinDetect();
+        SetSlowMotion(100);
+    }
+    }
+    define RestPlayers! = AllPlayers().Filter(t=>!t.isKnockOut);
+    Resurrect(RestPlayers);
+    MinWait();
+    // 进入下回合
+    if(CurrentRound >= 7){
+        CurrentStage++;
+        CurrentRound=1;
+    }
+    Resurrect(RestPlayers);
+    Teleport(RestPlayers,Hall);
+    CurrentRound++;
+    UpdateCombatConfigForCurrentRound();
+    CurrentGamePhase = GamePhase.Preparation;
+    SetMatchTime(CurrentCombatConfig.PrepareDuration);
+    SetSlowMotion(10);
+    StartPrepare_();
+    SetSlowMotion(100);
+    Wait(2);
+    SetSlowMotion(10);
+    ApplyRoundRewards();
+    SetSlowMotion(100);
+    Wait(3);
+    SetSlowMotion(10);  
+    RestPlayers.OpenMenuAction = true;
+    Player[] NowPlayers = AllPlayers().Filter(t=>t.TeamID!=-1);
+    Wait(0.1);
+    SetSlowMotion(100);
+    WaitUntil(MatchTime()==0||NowPlayers.IsTrueForAll(t=>!t.isKnockOut&&!t.isInMenu),60);
+    BigMessage(Header: '正在前往战场...');
+    Wait(3);
+    foreach(Player p! in RestPlayers.Filter(t=>t.isInMenu)){
+        AutoSelectReward(p);
+        MinWait();
+        Wait(0.03);
+    }
+    ResetHexEffects();  // 重置海克斯效果
+    StartCombat();
+    CurrentGamePhase = GamePhase.Combat;
+}
+
+rule: ''
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isInMenu)
+if(IsButtonHeld(Button: Button.Melee)||IsButtonHeld(Button: Button.PrimaryFire)&&(AbsoluteValue(CURSOR_X)>4||AbsoluteValue(CURSOR_Y)>2.5))
+{
+    SetFacing(Direction: AnchorFacing);
+}
+
+globalvar Vector Hall ;
+
+PlayTeam GetTeamofPlayer(in Player p! = EventPlayer()){
+    return FirstOf(Teams.Filter(t => t.ID == p.TeamID));
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+   
+    SetPlayerScore(EventPlayer(),!isKnockOut?GetTeamofPlayer().Health:0);
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+Number CombatTime : 60;     // 战斗阶段
+
+
+playervar String ShowText_RuleMenu = '';
+globalvar String WanfaText! = <'本模式为肉鸽2人小队死斗
+每回合随机抽取两个队伍进行战斗
+即准备阶段，战斗阶段
+
+准备阶段：能够获取海克斯强化,能够获得属性锻造器
+战斗回合：两队战斗,有毒圈机制'>;
+rule: 'My Rule'
+{
+    define ListDesText = <'中途加入的玩家会马上加入战局
+    你只需要等待一分钟
+    就可以以独狼队伍或与他人组建新的队伍加入到战局
+    请不要立即退出，因为满员的房间最好玩
+    相信我，玩了一把，你就会爱不释手！'>;
+    // 主菜单按??
+    new MenuButton(
+        header: <'[欢迎来到斗魂竞技场！]'>,
+        posX: 0,
+        posY: 1.7,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: CustomColor(255, 233, 215, 255),Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.RuleMenu]
+    );
+
+    new MenuButton(
+        header: <'<0>怎么玩的',AbilityIconString(Hero.Zarya,Button.Ability1)>,
+        posX: 2.5,
+        posY: 1,
+        ShowColor: InteratableColor_Local(Default: Color.LimeGreen,Hover: Color.Yellow),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RuleMenu]
+    ).SetOnClick(()=>{ShowText_RuleMenu = WanfaText;        });
+
+    new MenuButton(
+        header: <'<0>致谢名单',AbilityIconString(Hero.Kiriko,Button.Ability2)>,
+        posX: 0,
+        posY: 1,
+        ShowColor: InteratableColor_Local(Default: Color.Orange,Hover: Color.Yellow),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RuleMenu]
+    ).SetOnClick(()=>{ShowText_RuleMenu = '感谢所有帮助我的人，感谢你的游玩';        });
+
+    new MenuButton(
+        header: <'<0>中途加入',AbilityIconString(Hero.Echo,Button.Ultimate)>,
+        posX: -2.5,
+        posY: 1,
+        ShowColor: InteratableColor_Local(Default: Color.Violet,Hover: Color.Yellow),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.RuleMenu]
+    ).SetOnClick(()=>{ShowText_RuleMenu = ListDesText;        });
+
+    new MenuButton(
+        header: LocalPlayer().ShowText_RuleMenu,
+        posX: 0,
+        posY: -1,
+        ShowColor: Color.White,
+        scale: ButtonScale.Small,
+        interactable: false,
+        ofmenuActives: [MenuActive.RuleMenu]
+    );
+
+    new MenuButton(
+        header: <'[在下个准备回合加入战局]'>,
+        posX: 0,
+        posY: -2.2,
+        ShowColor: InteratableColor_Local(Default: Color.White,Hover: Color.Yellow),
+        scale: ButtonScale.Medium,
+        interactable: true,
+        ofmenuActives: [MenuActive.RuleMenu]
+    ).SetOnClick(()=>{CloseMenu();});
+}
+
+rule: 'Hex玩家初始化'
+Event.OnPlayerJoin
+Team.All
+Player.All
+{
+    Hexes = [];
+    HexCurrentCooldowns = [];
+    roundReward = [];
+    forgeReward = [];
+    roundReward_index = 0;
+    forgeReward_index = 0;
+    rewardFlow = [];
+    rewardFlowIndex = 0;
+}
+
+rule: '中途加入被淘汰'
+Event.OnPlayerJoin
+Team.All
+Player.All
+if(IsGameInProgress() == true && IsAlive() && !isKnockOut)
+{
+    isKnockOut = true;
+    
+    OpenMenu(EventPlayer(),MenuActive.RuleMenu);
+    BigMessage(EventPlayer(),'已加入等待队列\n将在一分钟后加入比赛');
+    Wait(1);
+    SetStatus(EventPlayer(),null,Status.PhasedOut,240);
+    WaitQueue += EventPlayer();
+    while(DistanceBetween(EventPlayer(),Hall)>0.5){
+        Teleport(EventPlayer(),Hall);
+        Wait(0.1);
+    }
+
+}
+
+rule: '淘汰的'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isKnockOut && HasSpawned() && !IsDead() && !isInMenu)
+{
+    Kill(EventPlayer());
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+void Buff(){
+    shuxing.Health.Abs += Max(250,550-MaxHealth());
+    if(AllTankHeroes().Contains(HeroOf(EventPlayer()))){
+        shuxing.Attack.Abs += 20;
+        shuxing.Speed.Abs -= 10;
+        shuxing.CoolDown.Abs -= 15;
+        RevShuxing();
+    }
+    if(AllSupportHeroes().Contains(HeroOf(EventPlayer()))){
+        shuxing.CoolDown.Abs += 25;
+        shuxing.HealBoost.Abs -= 20;
+        shuxing.Health.Abs += 0.5*MaxHealth();
+        RevShuxing();
+    }
+    if(AllDamageHeroes().Contains(HeroOf(EventPlayer()))){
+        shuxing.Health.Abs += 0.2*MaxHealth();
+        shuxing.Attack.Abs += 10;
+        RevShuxing();
+    }
+    Wait(0.03);
+}
+
+rule: '平Z敎开屾置buff'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned()&&IsGameInProgress())
+{
+    Buff();
+    Wait(9999999999999);
+}
+
+playervar Number RevivePercent;
+playervar Boolean Revivable;
+
+rule: '重置重生进度条'
+Event.OnDeath
+Team.All
+Player.All
+{
+    RevivePercent = 0;
+}
+
+rule: '救人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDead(TeamMate)&&CurrentGamePhase==GamePhase.Combat&&DistanceBetween(EventPlayer(),TeamMate)<=5&&TeamMate.Revivable&&IsAlive())
+if(byeTeam!=GetTeamofPlayer(EventPlayer()))
+{
+    PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: TeamMate,Radius: 150);
+    while(DistanceBetween(EventPlayer(),TeamMate)<=5&&TeamMate.RevivePercent<100&&IsAlive()&&TeamMate.Revivable){
+        PlayEffect(VisibleTo: EventPlayer(),Position: PositionOf(TeamMate),Radius: 125,Type: PlayEffect.BrigitteWhipShotHealAreaSound);
+        TeamMate.RevivePercent += 3.5;
+        Wait(0.25);
+    }
+    if(TeamMate.RevivePercent >=100){
+        TeamMate.Revivable = false;
+        Resurrect(TeamMate);
+        SetStatus(TeamMate,null,Status.Invincible,1);
+    }
+    Wait(0.25);
+    LoopIfConditionIsTrue();
+}
+globalvar PlayTeam leftTeam;
+rule: '队伍内中途离开'
+Event.OnPlayerLeave
+Team.All
+Player.All  
+{   
+    leftTeam = FirstOf(Teams.Filter(t=>t.Members.Contains(EventPlayer())));
+        // 更新队伍成?
+        leftTeam.Members = leftTeam.Members.Filter(p => EntityExists(p));
+        
+        if(CountOf(leftTeam.Members) == 1) {
+            AloneSet(leftTeam.Members[0]);
+            BigMessage(leftTeam.Members[0], "你的队友离开了，不过别怕!");
+            leftTeam.Members.ModRemoveByValue(EventPlayer());
+        }
+        else if(CountOf(leftTeam.Members) == 0) {
+          Teams.ModRemoveByValue(leftTeam);
+        }
+
+        if(CurrentGamePhase == GamePhase.Combat && CurrentStage > 0){
+            DetectEnd();
+        }
+}
+single struct MenuButton_Data {
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public Number ID;
+    public String Name = '';
+}
+
+// 菜单按钮??
+class MenuButton {
+    public String HoverLabel;
+    public MenuButton_Data Data;
+    public ()=>void OnClick;
+    public constructor(
+        in Any header = 'null',
+        in Number posX = 0,
+        in Number posY = 0,
+        in ButtonScale scale = ButtonScale.Medium,
+        in Color ShowColor = Color.White,
+        in Boolean interactable = false,
+        in MenuActive[] ofmenuActives,
+        in String name = '无名氏按钮'
+    ) {
+        uniqueButtonID++;
+        this.Data = {ID:uniqueButtonID,Interactable:interactable,Name:name,PosX:posX,PosY:posY,ofMenuActives:ofmenuActives,Scale:scale};
+        Button_Pool += this;
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(Data.ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: header,
+            Position: MenuButtonPosition_Local_Visible(posX,posY),
+            Scale: <Number>scale,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ShowColor
+        );
+    }
+    public void SetOnClick(in ()=>void onClick) {
+        OnClick = onClick;
+    }
+    public void SetHoverlabel(in String HoverString) {
+        HoverLabel = HoverString;
+    }
+}
+   MenuButton GetButtonByID(Number id!) "sub栍ID获取按钮" {
+    foreach (MenuButton b! in Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+        if (id == b.Data.ID) {
+            return b;
+        }
+        }
+        MinWait();
+    }
+
+    MenuButton GetButtonByName(String name) "sub栍名字获取按钮" {
+        foreach (MenuButton b! in Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+            if (name == b.Data.Name) {
+                return b;
+            }
+            MinWait();
+        }
+    }
+globalvar Number uniqueButtonID;
+globalvar MenuButton[] Button_Pool;
+playervar Boolean isInMenu;
+playervar MenuActive menuactive;
+playervar Vector AnchorFacing;
+enum MenuActive {
+    HexMenu,
+    RuleMenu,
+    ForgeMenu,
+    GuideMenu
+}
+
+enum ButtonScale {
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+Vector MenuButtonPosition_Local_Visible(in Number PosX,in Number PosY):
+    LocalPlayer().isInMenu?UpdateEveryFrame((CameraEye_Local+DirectionTowards(CameraEye_Local,CameraLookat_Local)) + MenuFlatBase1_Local * PosX + MenuFlatBase2_Local * PosY):null;
+Vector MenuButtonPosition_Local(in Number PosX,in Number PosY):
+    UpdateEveryFrame((CameraEye_Local+DirectionTowards(CameraEye_Local,CameraLookat_Local)) + MenuFlatBase1_Local * PosX + MenuFlatBase2_Local * PosY);
+
+Vector MenuFlatBase1_Local:
+    (-0.25 * Normalize(CrossProduct(Vector(0, 1, 0), CameraDir_Local)));
+
+Vector MenuFlatBase2_Local:
+    (-0.25 * Normalize(CrossProduct(CameraDir_Local, MenuFlatBase1_Local)))  ;
+
+Vector CameraDir_Local:
+    Normalize(CameraLookat_Local - CameraEye_Local);    
+
+void OpenMenu(Player p! = EventPlayer(),MenuActive name)'sub打开菜单'{
+    
+    p.menuactive = name;
+    if (!p.isInMenu) {
+        SetFacing(p,Vector(0,0,1),Relative.ToPlayer);
+        p.AnchorFacing = FacingDirectionOf(p);
+        p.isInMenu = true;
+        SetAimSpeed(p, 0.1);
+        SetPrimaryFireEnabled(p, false);
+        SetSecondaryFireEnabled(p, false);
+        DisableHeroHud(p);
+        DisableGameModeHud(p);
+    }
+    
+    switch (name) {
+        case MenuActive.HexMenu:
+            OpenHexMenu();
+            PlayEffect(VisibleTo: p,Type: PlayEffect.AnaBioticGrenadeIncreasedHealingSound,Position: CameraLookat,Radius: 200);
+            break;
+        case MenuActive.RuleMenu:
+            p.ShowText_RuleMenu = WanfaText;
+            break;
+    }
+    SetFacing(p,p.AnchorFacing);
+}
+
+void OpenHexMenu() {
+    
+}
+
+rule: "指针初" {
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: InputBindingString(Button.PrimaryFire),
+        Position: MenuButtonPosition_Local_Visible(CURSOR_X_LOCAL,CURSOR_Y_LOCAL),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+globalvar Number MenuCursorSensibility! = 2;
+Number CURSOR_X_LOCAL:
+    HorizontalAngleTowards(LocalPlayer(),LocalPlayer().AnchorFacing+EyePosition(LocalPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_X:
+   HorizontalAngleTowards(EventPlayer(),EventPlayer().AnchorFacing+EyePosition(EventPlayer())) / MenuCursorSensibility;
+Number CURSOR_Y_LOCAL:
+    -(VerticalFacingAngleOf(LocalPlayer())	- VerticalAngleFromDirection(LocalPlayer().AnchorFacing)) / MenuCursorSensibility;
+Number CURSOR_Y:
+    -(VerticalFacingAngleOf(EventPlayer())	- VerticalAngleFromDirection(EventPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+globalvar Number[][] HitBox = [[0.4, 0.15], [0.4, 0.25], [0.6, 0.35]];
+Number[] GetButtonHitBox(in MenuButton b):
+    HitBox[<Number>b.Data.Scale-2];
+    //switch (b.Data.Scale) {
+        //case ButtonScale.Small: return [0.4, 0.2]; break;
+        //case ButtonScale.Medium: return [0.4, 0.3]; break;
+        //case ButtonScale.Large: return [0.6, 0.4]; break;
+    //}
+//}
+playervar Number MenuLoop;
+playervar Boolean HoverVisible;
+playervar Boolean isButtonHovered;
+playervar String HoverText;
+
+void FindButton()'sub选按钮'{
+    EventPlayer().isButtonHovered = false;
+
+        define bns! = Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive));
+        MenuButton thebn! = FirstOf(bns.Filter(t=>AbsoluteValue(CURSOR_X - t.Data.PosX) < GetButtonHitBox(t)[0] && AbsoluteValue(CURSOR_Y - t.Data.PosY) < GetButtonHitBox(t)[1]));
+        
+        if (thebn.Data.ID != 0) {
+                    EventPlayer().MenuLoop = thebn.Data.ID;
+                    EventPlayer().HoverVisible = thebn.HoverLabel != 0;
+                    EventPlayer().HoverText = thebn.HoverLabel;
+                    EventPlayer().isButtonHovered = true;
+        }
+        //foreach (MenuButton bn in bns) {
+            //define HitBox! = GetButtonHitBox(bn);
+            //define ClickWidth = HitBox[0];
+            //define ClickHeight = HitBox[1];
+            //if (bn.Data.ID != 0) {
+                //if (AbsoluteValue(CURSOR_X - bn.Data.PosX) < ClickWidth && AbsoluteValue(CURSOR_Y - bn.Data.PosY) < ClickHeight) {
+                    //EventPlayer().MenuLoop = bn.Data.ID;
+                    //EventPlayer().HoverVisible = bn.HoverLabel != 0;
+                    //EventPlayer().HoverText = bn.HoverLabel;
+                    //EventPlayer().isButtonHovered = true;
+            //}
+        //}
+        //}
+        if (!EventPlayer().isButtonHovered) {
+            EventPlayer().MenuLoop = 0;
+            EventPlayer().HoverVisible = false;
+        }
+        MinWait();
+}
+
+rule: '钥匙插进去了吗'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(EventPlayer().isInMenu)
+if(IsAlive())
+{
+    // 每掯ŗ重置X??
+    Wait(RandomReal(0.15,0.3),WaitBehavior.AbortWhenFalse);
+    FindButton();
+    LoopIfConditionIsTrue();
+}
+
+Vector CameraEye_Local:
+    EyePosition(LocalPlayer());
+
+Vector CameraLookat_Local:
+    EyePosition(LocalPlayer())+FacingDirectionOf(LocalPlayer());
+
+Vector CameraEye:
+    EyePosition();
+
+Vector CameraLookat:
+    EyePosition()+FacingDirectionOf();
+
+
+
+struct HexDef{
+    public HexId Id;
+    public String Name;
+    public String Description;
+    public Hero[] AllowedHeroes;
+    public HexQuality Quality;
+    public Number Cooldown;
+}
+enum HexQuality{
+    average,
+    rare,
+    epic,
+    legend
+}
+playervar HexId[] Hexes = [];
+playervar Number[] HexCurrentCooldowns = [];
+globalvar HexId[] HexPool = [];
+
+Number HexDefIndexByName(in String name):
+    HexDefs.Map(h=>h.Name).IndexOf(name);
+
+HexId HexIdByName(in String name){
+    define idx : HexDefIndexByName(name);
+    return HexDefs[idx].Id;
+}
+
+Boolean HasHexId(in HexId id, in Player p = EventPlayer()):
+    p.Hexes.Contains(id);
+
+Boolean HasHexName(in String name, in Player p = EventPlayer()):
+    HasHexId(HexIdByName(name), p);
+
+Number HexSlotIndex(in HexId id, in Player p = EventPlayer()):
+    p.Hexes.IndexOf(id);
+
+Number PlayerHexCooldownById(in HexId id, in Player p = EventPlayer()):
+    p.HexCurrentCooldowns[HexSlotIndex(id, p)];
+
+Boolean PlayerHexReadyById(in HexId id, in Player p = EventPlayer()):
+    PlayerHexCooldownById(id, p) <= 0;
+
+Boolean PlayerHexReadyByName(in String name, in Player p = EventPlayer()):
+    PlayerHexReadyById(HexIdByName(name), p);
+
+Number HexBaseCooldownById(in HexId id){
+    return HexDefs[<Number>id].Cooldown;
+}
+
+void StartHexCooldownById(HexId id!, Player p! = EventPlayer()) 'sub开始Hex冷却ById'{
+    p.HexCurrentCooldowns[HexSlotIndex(id, p)] = HexBaseCooldownById(id);
+}
+
+void StartHexCooldownByName(in String name, in Player p = EventPlayer()) {
+    StartHexCooldownById(HexIdByName(name), p);
+}
+
+void TickPlayerHexCooldowns(Player p = EventPlayer(), Number step = 0.25) 'subTickHex冷却'{
+    while(p.HexCurrentCooldowns.Length < p.Hexes.Length){
+        p.HexCurrentCooldowns += 0;
+    }
+    for(define i! = 0; i < p.HexCurrentCooldowns.Length; i++){
+        p.HexCurrentCooldowns[i] = Max(0, p.HexCurrentCooldowns[i] - step);
+    }
+}
+
+void GrantHexToPlayerById(Player p, HexId hexId) 'sub授予HexById'{
+    p.Hexes += hexId;
+    p.HexCurrentCooldowns += 0;
+}
+
+String HexNameById(in HexId id){
+    return HexDefs[<Number>id].Name;
+}
+
+String HexNameById(in Number id){
+    return HexDefs[<Number>id].Name;
+}
+
+HexQuality HexQualityById(in HexId id){
+    return HexDefs[<Number>id].Quality;
+}
+
+String HexDescriptionById(in HexId id){
+    return HexDefs[<Number>id].Description;
+}
+
+Number HexCooldownBaseById(in HexId id){
+    return HexDefs[<Number>id].Cooldown;
+}
+
+HexId SelectedHexOfferId(Player p = EventPlayer()):
+    p.roundReward[p.roundReward_index];
+
+String HexOfferTitleLocal(in Number idx){
+    define id : LocalPlayer().roundReward[idx];
+    return <'<1><0>', HexNameById(id), LocalPlayer().roundReward_index == idx ? IconString(Icon.ArrowRight) : ''>;
+}
+
+Color HexOfferColorLocal(in Number idx){
+    define id : LocalPlayer().roundReward[idx];
+    return InteratableColor_Local(
+        Default: Quaility_Color[HexQualityById(id)][1],
+        Hover: Quaility_Color[HexQualityById(id)][0],
+        Visible: LocalPlayer().roundReward_index == idx
+    );
+}
+
+String HexOfferDescriptionLocal():
+    LocalPlayer().roundReward_index >= LocalPlayer().roundReward.Length ? '暂无描述' : HexDescriptionById(SelectedHexOfferId(LocalPlayer()));
+
+Boolean HexAllowedForPlayer(in HexId id, in Player p){
+    return HexDefs[<Number>id].AllowedHeroes.Contains(HeroOf(p));
+}
+
+HexId[] RollHexOffersByQualities(in Player p, in HexQuality[] qualities, in Number take = 3):
+    ArraySlice(RandomizedArray(HexPool.Filter(id => !p.Hexes.Contains(id) && qualities.Contains(HexQualityById(id)) && HexAllowedForPlayer(id, p))), 0, take);
+
+rule: "更新抽冷却"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HasSpawned())
+if(IsAlive())
+{
+    TickPlayerHexCooldowns(EventPlayer(), 0.25);
+    Wait(0.25, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+}
+enum TriggerType {
+        Ongoing,    // 持续?
+        OnDamage,     // 伤事??
+        OnDamgeTaken
+    }   
+
+globalvar Hero[] NonCritical_Heros = [
+    Hero.Winston,
+    Hero.Brigitte,
+    Hero.Junkrat,
+    Hero.Pharah,
+    Hero.Moira,
+    Hero.Venture,
+    Hero.Genji
+];
+// 定义狫的文属X??
+rule: '初始化特效'
+if(HexDefs.Length>0)
+{   
+    SetSlowMotion(10);
+    HexPool = [];
+    HexPool = HexDefs.Map(h=>h.Id);
+    SetSlowMotion(100);
+}
+
+rule: '勇敢之举'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('勇敢之举'))
+{
+    Hero RandomOther : AllowedHeroes().Filter(t=>t!=HeroOf()).Random();
+    ForcePlayerHero(
+        Hero: RandomOther,
+        Player: EventPlayer()
+    );
+    AllShuxingPctBoost(10);
+}
+
+
+rule: '星陨打击'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('星陨打击'))
+if(IsInAir())
+{
+    define hexName! = '星陨打击';
+    Number Cap = 6;
+    if(PlayerHexReadyByName(hexName))
+    {
+    
+    Number[] Heights = [AltitudeOf()];
+    while(IsInAir()){
+        Heights += AltitudeOf();
+        if(Heights.Sort(t=>t).First-Heights.First >= Cap){
+            PlayEffect(
+                EventPlayer(),
+                PlayEffect.BuffExplosionSound,
+                Position: PositionOf(),
+                Radius: 100
+            );
+        }
+        Wait(0.05);
+    }
+    StartHexCooldownByName(hexName);
+    define Enemy = PlayersWithinRadius(EventPlayer(),8,Team.All,RadiusLOS.Surfaces).Filter(t=>t!=EventPlayer()&&t!=TeamMate);
+    Damage(Enemy,EventPlayer(),Max(100,150*Min(1,(Heights.Sort(t=>t).First-Heights.First)/Cap)));
+    if(Heights.Sort(t=>t).Last-Heights.First > Cap){
+            SetStatus(Enemy,null,Status.KnockedDown,1);
+            PlayEffect(
+                Type: PlayEffect.RingExplosion,
+                Position: PositionOf(),
+                Radius: 8,
+                Color: Color.Red
+            );
+        }else{
+            PlayEffect(
+                Type: PlayEffect.RingExplosion,
+                Position: PositionOf(),
+                Radius: 8,
+                Color: Color.Yellow
+            );
+    }
+    }
+}
+
+playervar Any Effect_HuaQiangZengShang;
+rule: '滑增伤'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('滑墙增伤'))
+if(IsOnWall())
+{
+    shuxing.Attack.Pct += 60;
+    CreateEffect(
+        Type: Effect.MercyDamageBoostedEffect,
+        Position: EventPlayer()
+    );
+    Effect_HuaQiangZengShang = LastCreatedEntity();
+    WaitUntil(!IsOnWall(),999);
+    shuxing.Attack.Pct -= 60;
+    DestroyEffect(Effect_HuaQiangZengShang);
+}
+
+rule: '地震余波'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('地震余波'))
+if(CurrentGamePhase == GamePhase.Combat)
+if(IsUsingAbility2())
+{
+    Player[] Enemy = PlayersWithinRadius(EventPlayer(),10,Team.All,RadiusLOS.Surfaces).Filter(t=>t!=EventPlayer()&&t!=TeamMate);
+    foreach(Player p! in Enemy){
+        //SetFacing(p,DirectionFromAngles(HorizontalFacingAngleOf(p)+RandomInteger(-45,45),VerticalFacingAngleOf(p)+RandomInteger(-45,45)));
+        Damage(p,EventPlayer(),60);
+        p.shuxing.Speed.Abs -= 50;
+        RevShuxing(p);
+        WaitAsync(target: p,0.2,()=>{p.shuxing.Speed.Abs += 50;RevShuxing(p);});
+    }
+    PlayEffect(
+        Type: PlayEffect.LucioSoundBarrierCastEffect,
+        Position: EventPlayer()
+    );
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+playervar Any[] SwapTarget;
+playervar Vector SwapPosition;
+playervar Any SwapEffect;
+
+rule: '生命之握'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HeroOf(EventPlayer()) == Hero.Lifeweaver)
+if(AbilityCooldown(EventPlayer(), Button.Ability2) == 0)
+if(IsButtonHeld(EventPlayer(),Button.Ability2))
+{
+    // Find a valid target within 40 meters, alive, in view angle, and closest to reticle
+    SwapTarget = FilteredArray(
+        PlayersWithinRadius(EyePosition(EventPlayer()), 40, Team.All, RadiusLOS.Surfaces),
+        IsAlive(ArrayElement()) &&
+        HasSpawned(ArrayElement()) &&
+        ArrayElement() != EventPlayer() &&
+        IsInViewAngle(EventPlayer(), ArrayElement(), 45) &&
+        ArrayElement() == PlayerClosestToReticle(EventPlayer(), Team.All)
+    );
+
+    // Check if a valid target was found
+    if(SwapTarget[0] != null)
+    {
+        BigMessage(VisibleTo: SwapTarget[0],Header: '生命之握！');
+        // Store the target's position
+        SwapPosition = PositionOf(SwapTarget[0]);
+
+        // Create a visual effect on the target
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Type: Effect.GoodAura,
+            Color: Color.Rose,
+            Position: SwapTarget[0],
+            Radius: 1.5
+        );
+        SwapEffect = LastCreatedEntity();
+
+        // Play sound effect
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.MoiraFadeDisappearSound,
+            Color: Color.White,
+            Position: EyePosition(EventPlayer()),
+            Radius: 100
+        );
+
+        // Freeze the target
+        SetStatus(SwapTarget[0], EventPlayer(), Status.Frozen, 9999);
+
+        // Deal minor damage to the target
+        Damage(SwapTarget[0], EventPlayer(), 1);
+
+        // Move the event player towards the target's position
+        ChaseVariableAtRate(SwapPosition, PositionOf(EventPlayer()), 40, RateChaseReevaluation.DestinationAndRate);
+
+        // Force the target to the player's original position
+        StartForcingPlayerPosition(SwapTarget[0], SwapPosition, true);
+
+        // Wait until the target is within 6 meters of the player
+        WaitUntil(DistanceBetween(SwapTarget[0], EventPlayer()) < 6, 4);
+
+        // Stop forcing the target's position
+        StopForcingPlayerPosition(SwapTarget[0]);
+
+        // Apply a small knockback to the target
+        ApplyImpulse(
+            Player: SwapTarget[0],
+            Direction: DirectionTowards(PositionOf(EventPlayer()), PositionOf(SwapTarget[0])),
+            Speed: 1,
+            Relative: Relative.ToWorld,
+            Motion: ContraryMotion.Cancel
+        );
+
+        // Clear the frozen status
+        ClearStatus(SwapTarget[0], Status.Frozen);
+
+        // Destroy the visual effect
+        DestroyEffect(SwapEffect);
+
+        // Play additional effects
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.GoodExplosion,
+            Color: Color.Rose,
+            Position: SwapTarget[0],
+            Radius: 3
+        );
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.MoiraFadeReappearSound,
+            Color: Color.White,
+            Position: EyePosition(EventPlayer()),
+            Radius: 100
+        );
+
+        // Reset variables
+        SwapTarget = [];
+        SwapPosition = Vector(0, 0, 0);
+
+        // Set ability cooldown
+        SetAbilityCooldown(EventPlayer(), Button.Ability2, 12);
+    }
+    else
+    {
+        // Show message if no valid target is found
+        SmallMessage(EventPlayer(), '无抓取玩家');
+        Wait(0.5, WaitBehavior.IgnoreCondition);
+    }
+}
+rule: '直视引力'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('直视引力'))
+if(CurrentGamePhase == GamePhase.Combat)
+if(IsUsingAbility1())
+{
+    Player[] Enemy = GetTeamofPlayer().Opponent.Members;
+    foreach(Player p! in Enemy){
+        if (IsInLineOfSight(EyePosition(p),EyePosition(),BarrierLOS.NoBarriersBlock) && IsInViewAngle(p,EventPlayer(),60)){
+            StartFacing(EvaluateOnce(p),DirectionTowards(EvaluateOnce(p),EventPlayer()),1000,Reevaluation: FacingRev.DirectionAndTurnRate,Relative: Relative.ToWorld);
+        }else{
+            StopFacing(p);
+        }
+    }
+    Wait(0.1);
+    LoopIfConditionIsTrue();
+    StopFacing(Enemy);
+}
+
+rule: '三联核桃'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('三联核桃'))
+if(IsFiringPrimary())
+{
+    for( define count! = 0; count<2 ; count++){
+        CreateProjectile(
+            ProjectileType: ProjectileType.SigmaHypersphere,
+            Direction: DirectionFromAngles(20,VerticalFacingAngleOf()),
+            RicochetCount: 5,
+            Speed: 50,
+            Lifetime: 0.35,
+            ExplosionRadius: 3,
+            ExplosionEffect: PlayEffect.SigmaHypersphereImplosionEffect,
+            ExplosionSoundEffect: PlayEffect.SigmaHypersphereImplosionSound,
+            Amount: 55,
+            Player: EventPlayer(),
+            Relative: Relative.ToPlayer,
+            ModifyHealthType: ModifyHealthType.Damage,
+            AmountScalar: 0.2,
+            Impulse: -1.3,
+            );
+        CreateProjectile(
+            ProjectileType: ProjectileType.SigmaHypersphere,
+            Direction: DirectionFromAngles(-20,VerticalFacingAngleOf()),
+            RicochetCount: 5,
+            Speed: 50,
+            Lifetime: 0.35,
+            ExplosionRadius: 3,
+            ExplosionEffect: PlayEffect.SigmaHypersphereImplosionEffect,
+            ExplosionSoundEffect: PlayEffect.SigmaHypersphereImplosionSound,
+            Amount: 55,
+            Player: EventPlayer(),
+            Relative: Relative.ToPlayer,
+            ModifyHealthType: ModifyHealthType.Damage,
+            AmountScalar: 0.2,
+            Impulse: -1.3,
+            );
+        Wait(0.25);
+    }
+}
+
+rule: '寒冷消散'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('寒冷消散'))
+if(IsUsingAbility1())
+{
+    SetStatus(PlayersWithinRadius(EventPlayer(),2.5,Team.All,RadiusLOS.Surfaces).Filter(t=>t!=TeamMate&&!HasStatus(t,Status.Frozen)&&t!=EventPlayer()),EventPlayer(),Status.Frozen,1);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+
+rule: '荆棘防护'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('荆棘防护'))
+if(IsUsingAbility1())
+{
+    Damage(Attacker(),EventPlayer(),EventDamage());
+}
+
+rule: '你当像鸟'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('你当像鸟'))
+if([Button.PrimaryFire,Button.SecondaryFire].Contains(EventAbility()))
+if(IsOnGround())
+{
+    SetAbilityCooldown(EventPlayer(),Button.Ability2,AbilityCooldown(EventPlayer(),Button.Ability2)-1);
+}
+
+rule: '全垒打'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('全垒打'))
+if([Button.Ability1].Contains(EventAbility()))
+{
+    SetStatus(Victim(),EventPlayer(),Status.KnockedDown,1);
+}
+
+rule: '黑客飞弹'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('黑客飞弹'))
+if([Button.SecondaryFire].Contains(EventAbility()))
+{
+    SetStatus(Victim(),EventPlayer(),Status.Hacked,2);
+}
+
+rule: '入侵裂地'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('入侵裂地'))
+if([Button.Ability1].Contains(EventAbility()))
+{
+    SetStatus(Victim(),EventPlayer(),Status.Hacked,2);
+}
+
+rule: '应激放屁'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('应激放屁'))
+if(EventWasCriticalHit())
+{
+    PlayEffect(Type: PlayEffect.BadExplosion,Color: Color.LimeGreen,Position: EventPlayer(),Radius: 3);
+    Damage(PlayersWithinRadius(EventPlayer(),3,Team.All,RadiusLOS.Surfaces),EventPlayer(),30);
+    ApplyImpulse(EventPlayer(),Up(),4,Motion: ContraryMotion.Incorporate);
+}
+
+rule: '约德尔人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('约德尔人'))
+{
+    StartScalingPlayer(EventPlayer(),0.7);
+    shuxing.Attack.Pct += 10;
+    shuxing.Speed.Pct -= 15;
+}
+
+rule: '回归基本功'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('回归基本功'))
+{
+    SetUltimateAbilityEnabled(EventPlayer(),false);
+    shuxing.Attack.Pct += 20;
+    shuxing.Shields.Abs += 600;
+    shuxing.CoolDown.Abs += 100;
+}
+
+rule: '质变混沌'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('质变混沌'))
+{
+    HexId[] Hex = HexPool.Filter(t=>!Hexes.Contains(t) && HexQualityById(t)==HexQuality.rare).Randomize().Slice(0,2);
+    Hex = Hex.Filter(t=>HexAllowedForPlayer(t, EventPlayer()));
+    Hexes = Hexes.Filter(t=>t!=HexIdByName('质变混沌')); 
+    Hexes = Hexes.Append(Hex).Slice(0,6);
+}
+
+rule: '恶魔骰子'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('恶魔骰子'))
+{
+    RefreshCount += 10;
+    BigMessage(
+        VisibleTo: [EventPlayer(),TeamMate],
+        '你的队友已和恶魔缔结契约!!\n你的队伍在每回合开始时会扣5点生命值！'
+    );
+}
+
+rule: '纵火狂'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('纵火狂'))
+if(HasStatus(EventPlayer(),Status.Burning))
+{
+    Heal(EventPlayer(),EventPlayer(),80);
+    Wait(1,WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+rule: '恶魔骰子'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('恶魔骰子'))
+if(CurrentGamePhase == GamePhase.Preparation)
+{
+    GetTeamofPlayer().Health -= 5;
+    BigMessage(
+        VisibleTo: [EventPlayer(),TeamMate],
+        '你们向恶魔献祭了5点生命值'
+    );
+}
+
+void HealStop_Tengkongerqi()''{
+    WaitUntil(IsOnGround(),5);
+    StopHealOverTime(HealID_Tengkongerqi);
+    SmallMessage(EventPlayer(),'腾空而起效果已结束');
+    DestroyEffect(Effect_Tengkongerqi);
+}
+playervar Number HealID_Tengkongerqi;
+playervar Any Effect_Tengkongerqi;
+rule: '腾空而起'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('腾空而起'))
+if(IsInAir() && SpeedOfInDirection(EventPlayer(),Up())>=1)
+if(AltitudeOf() >= 1)
+{
+    define hexName! = '腾空而起';
+
+    if(PlayerHexReadyByName(hexName))
+    {
+        DestroyEffect(Effect_Tengkongerqi);
+        StopHealOverTime(HealID_Tengkongerqi);
+        StartHealOverTime(EventPlayer(),EventPlayer(),5,0.25*(MaxHealth()-Health()));
+        HealID_Tengkongerqi = LastHealOverTime();
+        SmallMessage(EventPlayer(),'腾空而起效果已激活！');
+
+        CreateEffect(
+            Type: Effect.AnaBioticGrenadeIncreasedHealingEffect,
+            Position: EventPlayer(),
+            Color: Color.Team1,
+        );
+        Effect_Tengkongerqi = LastCreatedEntity();
+        async HealStop_Tengkongerqi();
+        StartHexCooldownByName(hexName);
+    }
+}
+rule: '隆隆震地'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('隆隆震地'))
+if(IsUsingUltimate())
+{   
+    shuxing.CoolDown.Abs += 80;
+    PlayEffect(VisibleTo: AllPlayers(),Type: PlayEffect.LucioSoundBarrierCastEffect,Position: EventPlayer());
+    RevShuxing();
+    WaitUntil(!IsUsingUltimate(),120);
+    shuxing.CoolDown.Abs -= 80;
+    RevShuxing();
+}
+playervar Any Effect_Cikedoupeng;
+rule: '刺客斗篷生效'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('刺客斗篷'))
+if(CurrentGamePhase==GamePhase.Combat)
+{   
+    BigMessage(
+        [EventPlayer(),TeamMate,GetTeamofPlayer().Opponent.Members],
+        '刺客斗篷！！'
+    );
+    SetInvisible(EventPlayer(),InvisibleTo.All);
+    isInvisible = true;
+    DestroyEffect(Effect_Cikedoupeng);
+    CreateEffect(
+        VisibleTo: EventPlayer(),
+        Type: Effect.LucioSoundBarrierProtectedEffect,
+        Color: Color.Red,
+        Position: EventPlayer(),
+    );
+    Effect_Cikedoupeng = LastCreatedEntity();
+    PlayEffect(
+        Type: PlayEffect.ReaperWraithFormSound,
+        Position: PositionOf(),
+        Radius: 200
+    );
+    SmallMessage(
+        EventPlayer(),
+        '刺客斗篷已生效'
+    );
+}
+rule: '刺客斗篷失效'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('刺客斗篷'))
+if(isInvisible)
+{
+    CikedoupengRemove();
+}
+rule: '刺客斗篷失效'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('刺客斗篷'))
+if(isInvisible)
+{
+    CikedoupengRemove();
+}
+void CikedoupengRemove()''{
+    isInvisible = false;
+    SetInvisible(EventPlayer(),InvisibleTo.None);
+    DestroyEffect(Effect_Cikedoupeng);
+    SmallMessage(
+        EventPlayer(),
+        '刺客斗篷失效'
+    );
+}
+
+
+
+
+
+void AllShuxingPctBoost(Number Bonus)'sub全属性百分比加成管理'{
+    shuxing.Health.Pct+=Bonus;
+    shuxing.Attack.Pct+=Bonus;
+    shuxing.Drain.Pct+=Bonus;
+    shuxing.HealBoost.Pct+=Bonus;
+    shuxing.Reduction.Pct+=Bonus;
+    shuxing.Armor.Pct+=Bonus;
+    shuxing.Shields.Pct+=Bonus;
+    shuxing.CoolDown.Pct+=Bonus;
+    shuxing.Speed.Pct+=Bonus;
+    RevShuxing();
+}
+
+playervar Number LastHealth_MoWangZhiMian;
+playervar Number LastRound_MoWangZhiMian;
+rule: '魔王之冕'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('魔王之冕'))
+{
+    LastRound_MoWangZhiMian = CurrentRound;
+    LastHealth_MoWangZhiMian = GetTeamofPlayer().Health;
+    AllShuxingPctBoost(12); 
+    SmallMessage(VisibleTo: EventPlayer(),Header: '魔王之冕:全属性加成12%');
+}
+
+rule: '魔王之冕'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('魔王之冕'))
+if(LastRound_MoWangZhiMian!=CurrentRound)
+{
+    if(GetTeamofPlayer().Health < LastHealth_MoWangZhiMian){
+    AllShuxingPctBoost(-8);
+    SmallMessage(VisibleTo: EventPlayer(),Header: '魔王之冕:全属性加成-8%');
+    }
+    else{
+    AllShuxingPctBoost(4);
+    SmallMessage(VisibleTo: EventPlayer(),Header: '魔王之冕:全属性加成+4%');
+    }
+    LastHealth_MoWangZhiMian = GetTeamofPlayer().Health;
+    LastRound_MoWangZhiMian = CurrentRound;
+}
+
+rule: '火力全开'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('火力全开'))
+if(!IsReloading())
+{
+    SetAmmo(
+        EventPlayer(),
+        0,
+        999
+    );
+    SetMaxAmmo(
+        Clip: 0,
+        MaxAmmo: 999
+    );
+        SetAmmo(
+        EventPlayer(),
+        1,
+        999
+    );
+    SetMaxAmmo(
+        Clip: 1,
+        MaxAmmo: 999
+    );
+}
+
+rule: '超远距离'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('超远距离'))
+{
+    SetProjectileSpeed(ProjectileSpeedPercent: 300);
+}
+
+rule: '击退冷淡'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('击退冷淡'))
+{
+    SetKnockbackDealt(KnockbackDealtPercent: 10);
+}
+
+playervar Boolean isActive_PosuiWHZM;
+rule: '破碎王后之冕'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('破碎王后之冕'))
+if(CurrentGamePhase == GamePhase.Combat)
+if(IsAlive())
+{
+    isActive_PosuiWHZM = true;
+    shuxing.Reduction.Abs += 50;
+    RevShuxing();
+    SmallMessage(VisibleTo: EventPlayer(),Header: '破败王后之冕已生效');
+    WaitUntil(!isActive_PosuiWHZM||CurrentGamePhase==GamePhase.Preparation,240);{
+    isActive_PosuiWHZM = false;
+    shuxing.Reduction.Abs -= 50;
+    RevShuxing();
+    SmallMessage(VisibleTo: EventPlayer(),Header: '破败王后之冕已失效');
+    }
+}
+rule: '破败王后之冕受伤失效'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('破碎王后之冕'))
+if(isActive_PosuiWHZM)
+{
+    Wait(5);
+    isActive_PosuiWHZM = false;
+}
+
+playervar Boolean isActive_AiLiShaDeQiJi;
+rule: '艾莉莎的奇迹'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('艾莉莎的奇迹'))
+{
+    isActive_AiLiShaDeQiJi = true;
+    EventPlayer().shuxing.HealBoost.Pct += 40;
+    RevShuxing();
+}
+
+rule: '艾莎的又伤'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('艾莉莎的奇迹'))
+if(isActive_AiLiShaDeQiJi)
+{
+    define hexName! = '艾莉莎的奇迹';
+    
+    if(PlayerHexReadyByName(hexName))
+    {
+    StartHexCooldownByName(hexName);
+    EventPlayer().shuxing.HealBoost.Pct -= 20;
+    RevShuxing();
+    isActive_AiLiShaDeQiJi = false;
+    Wait(3);
+    EventPlayer().shuxing.HealBoost.Pct += 20;
+    RevShuxing();
+    
+    }
+}
+
+void void_ShenshengFLZ(){
+    define hexName! = '艾莉莎的奇迹';
+    
+    if(PlayerHexReadyByName(hexName))
+    {
+        StartHexCooldownByName(hexName);
+        
+        // 计算附伤?(50 + 5%盠朧生命?
+        define bonusDamage = 50 + (0.05 * MaxHealth(Victim()));
+        
+        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.BuffImpactSound,Position: EventPlayer(),Radius: 150);
+        if(EventWasCriticalHit())
+        {
+            // 暴恢??0%附值的生命?
+            Heal(EventPlayer(), EventPlayer(),  0.5 * bonusDamage);
+            HealEffectPlay();
+        }
+        
+        // ^附伤?
+        Damage(Victim(), EventPlayer(), bonusDamage);
+        
+        PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Violet, Victim(), 2);
+        YG_Shenshengfenlizhe = false;
+    }
+}
+playervar Boolean YG_Shenshengfenlizhe;
+rule: '神圣分离者'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('神圣分离者'))
+if(YG_Shenshengfenlizhe)
+{
+    void_ShenshengFLZ();
+    Wait(0.2);
+    LoopIfConditionIsTrue();
+}
+
+
+Number RatioofDamageuptoXofReduction(in Number X, in Number reduction):
+    1+X/(reduction-X+100);
+
+
+
+
+
+playervar Number Forge_Multiplier = 1;
+rule: '收菜'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('收菜'))
+{
+    Forge_Multiplier += 0.6;
+}
+rule: '时间裂隙'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('时间裂隙') && IsUsingUltimate())
+{
+    define hexName! = '时间裂隙';
+    if(PlayerHexReadyByName(hexName))
+    {
+        StartHexCooldownByName(hexName);
+        SetAbilityCooldown(EventPlayer(), Button.Ability1, 0);
+        SetAbilityCooldown(EventPlayer(), Button.Ability2, 0);
+        SetAbilityCooldown(EventPlayer(), Button.Jump, 0);
+        SetAbilityCooldown(EventPlayer(), Button.SecondaryFire, 0);
+        SetAbilityCooldown(EventPlayer(), Button.Crouch, 0);
+        PlayEffect(AllPlayers(), PlayEffect.TracerRecallReappearEffect, Color.Blue, EventPlayer(), 2);
+    }
+}
+
+rule: '灵魂链接'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('灵魂链接') && IsDead(EventPlayer().TeamMate))
+{
+    Number Attack! = EventPlayer().TeamMate.shuxing.Attack.VirtualShuxing() * 0.5;
+     Number Speed! = EventPlayer().TeamMate.shuxing.Speed.VirtualShuxing() * 0.5; 
+     Number Health_! = EventPlayer().TeamMate.shuxing.Health.VirtualShuxing() * 0.5; 
+     Number Armor! = EventPlayer().TeamMate.shuxing.Armor.VirtualShuxing() * 0.5; 
+     Number Shields! = EventPlayer().TeamMate.shuxing.Shields.VirtualShuxing() * 0.5; 
+     Number HealBoost! = EventPlayer().TeamMate.shuxing.HealBoost.VirtualShuxing() * 0.5;
+      Number CoolDown! = EventPlayer().TeamMate.shuxing.CoolDown.VirtualShuxing() * 0.5;
+
+
+    shuxing.Attack.Abs += Attack;
+    shuxing.Speed.Abs += Speed;
+    shuxing.Health.Abs += Health_;
+    shuxing.Armor.Abs += Armor;
+    shuxing.Shields.Abs += Shields;
+    shuxing.HealBoost.Abs += HealBoost;
+    shuxing.CoolDown.Abs += CoolDown;
+    SmallMessage(VisibleTo: EventPlayer(),'灵魂链接已触发');
+    RevShuxing();
+    PlayEffect(AllPlayers(), PlayEffect.GoodPickupEffect, Color.Yellow, EventPlayer(), 2);
+    WaitUntil(CurrentGamePhase == GamePhase.Preparation, 240);
+    shuxing.Attack.Abs -= Attack;
+    shuxing.Speed.Abs -= Speed;
+    shuxing.Health.Abs -= Health_;
+    shuxing.Armor.Abs -= Armor;
+    shuxing.Shields.Abs -= Shields;
+    shuxing.HealBoost.Abs -= HealBoost;
+    shuxing.CoolDown.Abs -= CoolDown;
+    RevShuxing();
+}
+
+rule: '共鸣屏障'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('共鸣屏障') && IsUsingUltimate(EventPlayer().TeamMate))
+{
+    define hexName! = '共鸣屏障';
+    if(PlayerHexReadyByName(hexName))
+    {
+        StartHexCooldownByName(hexName);
+        EventPlayer().shuxing.Shields.Abs+=300;
+        PlayEffect(AllPlayers(), PlayEffect.LucioSoundBarrierCastEffect, Color.Blue, EventPlayer(), 2);
+        WaitAsync(EventPlayer(), 4, () => { EventPlayer().shuxing.Shields.Abs-=300; });
+    }
+}
+rule: '引力脉冲'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('引力脉冲'))
+{
+    define hexName! = '引力脉冲';
+    if(PlayerHexReadyByName(hexName))
+    {
+        StartHexCooldownByName(hexName);
+            SetGravity(Victim(),200);
+             Victim().shuxing.Speed.Abs -= 20;
+            RevShuxing( Victim());
+            PlayEffect(AllPlayers(), PlayEffect.SigmaHypersphereImplosionEffect, Color.Purple,  Victim(), 1);
+            Wait(3);
+            SetGravity(Victim(),100);
+              Victim().shuxing.Speed.Abs += 20; RevShuxing( Victim()); 
+    }
+    Wait(0.1);
+}
+rule: '钢铁巨人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('钢铁巨人'))
+{
+    SetKnockbackReceived(Player: EventPlayer(),40);
+}
+
+rule: '钢铁巨人'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('加长护盾'))
+{
+    StartScalingBarriers(Player: EventPlayer(), 2);
+}
+playervar Number Count_Reshendongzuo;
+rule: '热身动作文本'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('热身动作'))
+{
+    CreateInWorldText(VisibleTo: IsCommunicatingAnyEmote()&&Count_Reshendongzuo<24?Append(GetTeamofPlayer().Members,GetTeamofPlayer().Opponent.Members):null,Header: <'<0>热身中..<1>%伤害',HeroIconString(),Count_Reshendongzuo>,Position: EventPlayer(),Scale: 2,Clipping: Clipping.DoNotClip);
+}
+rule: '热身动作'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('热身动作'))
+if(IsCommunicatingAnyEmote())
+if(Count_Reshendongzuo<24)
+if(CurrentGamePhase == GamePhase.Combat)
+{
+    Count_Reshendongzuo += 3;
+    PlayEffect(Type: PlayEffect.RingExplosion,Color: Color.Violet,Position: EventPlayer(),Radius: 2);
+    PlayEffect(Type: PlayEffect.BuffImpactSound,Color: Color.Violet,Position: EventPlayer(),Radius: 200);
+    shuxing.Attack.Pct += 3;
+    RevShuxing();
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+playervar Number GoldenShovelKills;
+rule: '收菜激活'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('收菜'))
+{
+        shuxing.Health.Pct -= 25;
+        RevShuxing(EventPlayer());
+}
+rule: '收菜'
+Event.OnElimination
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('收菜'))
+{
+    GoldenShovelKills++;
+    SmallMessage(EventPlayer(), '收菜');
+    if(GoldenShovelKills >= 5)
+    {
+        shuxing.Health.Pct += 50;
+        shuxing.Attack.Pct += 25;
+        shuxing.CoolDown.Pct += 25;
+        shuxing.Speed.Pct += 25;
+        shuxing.HealBoost.Pct += 25;
+        shuxing.Reduction.Pct += 25;
+        shuxing.Shields.Pct += 25;
+        shuxing.Armor.Pct += 25;
+        RevShuxing(EventPlayer());
+        PlayEffect(AllPlayers(), PlayEffect.GoodExplosion, Color.Yellow, EventPlayer(), 2);
+        SmallMessage(EventPlayer(), '收菜：属性提升25%！');
+
+        GoldenShovelKills=-999;
+    }
+    Wait(99999999);
+    Wait(99999999);
+}
+rule: '玻璃大炮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('玻璃大炮'))
+{
+    shuxing.Health.Pct -= 70;
+    shuxing.Attack.Abs += 50;
+    shuxing.Attack.Pct += 15;
+    RevShuxing(EventPlayer());
+    PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Red, EventPlayer(), 1);
+}
+
+rule: '红包'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('红包'))
+if(GamePhase.Preparation == CurrentGamePhase)
+if(rewardFlow.Length>0)
+{
+    rewardFlow += RewardStepType.ForgeAverage;
+}
+
+rule: '大红包'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('大红包'))
+if(GamePhase.Preparation == CurrentGamePhase)
+if(rewardFlow.Length>0)
+{
+    rewardFlow += RewardStepType.ForgeAverage;
+    rewardFlow += RewardStepType.ForgeAverage;
+}
+
+rule: '大红包'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('大红包'))
+{
+    AllShuxingPctBoost(-15);
+}
+
+rule: '红包'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('红包'))
+{
+    AllShuxingPctBoost(-5);
+}
+
+
+rule: '爆裂射击'
+ Event.OnDamageDealt
+  Team.All Player.All 
+  if(TeamID != -1)
+  if(HasHexName('爆裂射击'))
+  if([Button.PrimaryFire,Button.SecondaryFire].Contains(EventAbility()))
+   { 
+    define hexName! = '爆裂射击';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+            Damage(PlayersWithinRadius(Victim(),3,Team.All,RadiusLOS.SurfacesAndAllBarriers), EventPlayer(), 50);
+            PlayEffect(AllPlayers(), PlayEffect.BadExplosion, Color.Red, Victim(), 3);
+    }
+    Wait(0.1);
+    }
+
+
+playervar Number TearStacks;
+playervar Player TearTarget;
+rule: '撕裂伤口'
+Event.OnDamageDealt
+Team.All Player.All 
+if(TeamID != -1)
+if(HasHexName('撕裂伤口'))
+if([Button.PrimaryFire,Button.SecondaryFire].Contains(EventAbility()))
+{
+    
+    // 判断昐昐丠
+    if(TearTarget != Victim()){
+        TearStacks = 0;
+    }
+    TearTarget = Victim();
+    // 秮数
+    {
+    TearStacks++;
+        if(TearStacks>=3){
+            StartDamageOverTime(Receivers: Victim(),Damagers: EventPlayer(),Duration: 2,DamagePerSecond: 30);
+            PlayEffect(AllPlayers(), PlayEffect.SigmaHypersphereImplosionEffect, Color.Red, Victim(), 1);
+            TearStacks = 0;
+            SmallMessage(EventPlayer(), '撕裂伤口：已触发');
+            Wait(0.2);
+        }
+    }
+    // 内置CD
+    Wait(0.1);
+    Wait(2,WaitBehavior.RestartWhenTrue);
+    // 层数重置 
+    TearStacks = 0;
+}
+    
+    
+rule: '精准锁定'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('精准锁定'))
+if(EventWasCriticalHit())
+if(EventDamage()>0.12*MaxHealth(Victim()))
+{
+    define hexName! = '精准锁定';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+            Damage(Victim(), EventPlayer(), 200);
+            PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Orange, Victim(), 2);
+            SetStatus(Player: Victim(),Status: Status.KnockedDown,Duration: 2,Assister: EventPlayer());
+    }
+    Wait(0.1);
+}
+playervar Number HitCount_MadCombo!;
+rule: '狂暴连击'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('狂暴连击'))
+{
+
+    define hexName! = '狂暴连击';
+    if(PlayerHexReadyByName(hexName))
+{
+    if(Victim() == LastVictim_MadCombo)
+    {
+        HitCount_MadCombo++;
+
+            if(HitCount_MadCombo >= 3){
+            StartHexCooldownByName(hexName);
+            Damage(Victim(), EventPlayer(), 0.1*Health(Victim()));
+            PlayEffect(AllPlayers(), PlayEffect.BadPickupEffect, Color.Orange, Victim(), 2);
+            HitCount_MadCombo = 0;
+            }
+        
+    }
+    else
+    {
+        HitCount_MadCombo = 1;
+        LastVictim_MadCombo = Victim();
+    }
+    Wait(0.1);
+}
+}
+playervar Player LastVictim_MadCombo!;
+rule: '破甲穿刺'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('破甲穿刺'))
+{
+    define hexName! = '破甲穿刺';
+    if(PlayerHexReadyByName(hexName))
+    {
+        StartHexCooldownByName(hexName);
+        Damage(Victim(),EventPlayer(),0.2*HealthOfType(Victim(),HealthType.Armor));
+        Damage(Victim(),EventPlayer(),0.2*HealthOfType(Victim(),HealthType.Shields));
+        PlayEffect(AllPlayers(), PlayEffect.SombraLogoEffect, Color.Purple, Victim(), 1);
+    }
+    Wait(0.1);
+}
+rule: '终极充能器'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('终极充能器'))
+if(CurrentGamePhase == GamePhase.Combat)
+{
+    SetUltimateCharge(ChargePercent: 100);
+}
+
+rule: '残暴之力'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('残暴之力'))
+{
+    shuxing.Attack.Abs +=25;
+    shuxing.CoolDown.Abs +=10;
+    RevShuxing();
+}
+
+rule: '威尔海姆重甲'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('威尔海姆重甲'))
+if(NormalizedHealth()<=0.5)
+{
+    SmallMessage(VisibleTo: EventPlayer(),'威尔海姆重甲已生效');
+    PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.BrigitteRepairPackArmorSound,Position: EventPlayer(),Radius: 150);
+    PlayEffect(Type: PlayEffect.BrigitteRepairPackImpactEffect,Position: EventPlayer(),Radius: 150);
+    shuxing.Reduction.Abs += 35;
+    RevShuxing();
+    WaitUntil(NormalizedHealth()>0.5,240);
+    shuxing.Reduction.Abs -= 35;
+    RevShuxing();
+}
+
+rule: '缓冲衬垫'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('缓冲衬垫'))
+if(HasStatus(EventPlayer(),Status.Asleep)||HasStatus(EventPlayer(),Status.Frozen)||HasStatus(EventPlayer(),Status.Rooted)||HasStatus(EventPlayer(),Status.Stunned))
+{
+
+    define hexName! = '缓冲衬垫';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+    StartHealOverTime(Player: EventPlayer(),Healer: EventPlayer(),Duration: 3,HealingPerSecond: 0.1*MaxHealth()/3);
+
+    }
+}
+rule: '应急芯片'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('应急芯片'))
+if(NormalizedHealth()<=0.3)
+{
+    shuxing.Drain.Abs += 30;
+    WaitUntil(NormalizedHealth()>0.3,240);
+    shuxing.Drain.Abs -= 30;
+}
+rule: '心之钢'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('心之钢'))
+if(IsUsingUltimate())
+{
+    shuxing.Health.Abs+=100;
+    shuxing.Health.Pct+=10;
+    SmallMessage(VisibleTo: EventPlayer(),Header: '心之钢:生命值加成10%');
+}
+
+rule: '棱彩'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('棱彩'))
+{
+    AllShuxingPctBoost(20);
+    SmallMessage(VisibleTo: EventPlayer(),Header: '棱彩:全属性加成20%(但攻击基础值不能超过200)');
+}
+rule: '棱彩攻击力'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('棱彩'))
+if(shuxing.Attack.Abs>200)
+{
+    shuxing.Attack.Abs=Min(200,shuxing.Attack.Abs);
+    Wait(0.1);
+    LoopIfConditionIsTrue();
+}
+playervar Any[] Pools_Tiejiapaiqikou! =[];
+rule: '弹簧跳减伤'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('弹簧跳'))
+if(IsJumping())
+
+{
+    shuxing.Reduction.Abs+=20;
+    RevShuxing();
+    WaitUntil(!IsJumping(),10);
+    RevShuxing();
+    shuxing.Reduction.Abs-=20;
+}
+rule: '弹簧跳获得'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('弹簧跳'))
+{
+    SmallMessage(EventPlayer(),'弹簧跳已获得');
+    shuxing.JumpVerticalSpeed.Abs+=100;
+    CreateEffect(VisibleTo: IsJumping()?AllPlayers():null,Type: Effect.ZenyattaOrbOfDiscordTargetEffect,Position: EventPlayer(),Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+}
+playervar Boolean YG_Tiannvsanhua!;
+rule: '天女散花'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('天女散花'))
+if(YG_Tiannvsanhua)
+{
+    define hexName! = '天女散花';
+    if(PlayerHexReadyByName(hexName)){
+        YG_Tiannvsanhua = false;
+        StartHexCooldownByName(hexName);
+
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.All,Amount: 40, AmountScalar: 5,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.All,Amount: 40, AmountScalar: 5,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+            CreateProjectile(ProjectileType: ProjectileType.ZaryaParticleCannon,Player: EventPlayer(), ExplosionEffect: PlayEffect.BadExplosion,Speed: 10,Lifetime: 10,Impulse: 10,AffectedTeam: Team.All,Amount: 40, AmountScalar: 5,Gravity: 10,StartPosition: EyePosition(),Direction: Vector(RandomReal(-1,1),RandomReal(0.7,1),RandomReal(-1,1)) + FacingDirectionOf(),ExplosionRadius: 2,Oversize: 0.05,RicochetCount: RandomInteger(0,3));
+
+    }
+    Wait(0.5,WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+playervar Number last2sec_Shengjizhanfang;
+rule: '生机绽放'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsAlive())
+if(HasHexName('生机绽放'))
+
+{
+    CreateHomingProjectile(ProjectileType: ProjectileType.SymmetraPhotonProjector,Speed: 15,Lifetime: 10,HomingTarget: PlayerClosestToReticle(EventPlayer(),Team.All));
+    last2sec_Shengjizhanfang = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.HealingDealt);
+    Wait(2);
+    LoopIfConditionIsTrue();
+}
+rule: '寄生关系'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsAlive(TeamMate))
+if(HasHexName('寄生关系'))
+
+{
+
+    Heal(TeamMate,EventPlayer(),0.15*(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt)-last_halfsec_Damaged));
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+rule: '心心相印'
+Event.OnHealingDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsAlive(TeamMate))
+if(HasHexName('心心相印'))
+
+{
+
+    Heal(TeamMate,EventPlayer(),0.3*(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.HealingDealt)-last_halfsec_Healed));
+    Wait(0.1);
+}
+
+playervar Boolean isActive_Kongyukexing!;
+rule: '空域克星'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('空域克星'))
+if(IsInAir(Victim()))
+{
+    if(!isActive_Kongyukexing){
+        isActive_Kongyukexing = true;
+        PlayEffect(AllPlayers(),PlayEffect.BadPickupEffect,Color.Gray,Position: Victim());
+        Victim().shuxing.Speed.Abs-=30;
+        RevShuxing(Victim());
+        Wait(3);
+        isActive_Kongyukexing = false;
+        Victim().shuxing.Speed.Abs+=30;
+        RevShuxing(Victim());
+    }
+    Wait(0.1);
+
+}
+playervar Boolean isActive_Suoxiaoshexian!;
+rule: '缩小射线'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('缩小射线'))
+{
+    if(!isActive_Suoxiaoshexian){
+        isActive_Suoxiaoshexian = true;
+        PlayEffect(AllPlayers(),PlayEffect.BadPickupEffect,Color.Gray,Position: Victim());
+        Victim().shuxing.Attack.Abs-=15;
+        RevShuxing(Victim());
+        Wait(3);
+        isActive_Suoxiaoshexian = false;
+        Victim().shuxing.Attack.Abs+=15;
+        RevShuxing(Victim());
+    }
+    Wait(0.1);
+}
+
+playervar Boolean TeammateDead_Fuchou;
+rule: '复仇'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('复仇'))
+if(CurrentGamePhase == GamePhase.Combat)
+if(IsDead(EventPlayer().TeamMate) && !TeammateDead_Fuchou)
+{
+    TeammateDead_Fuchou = true;
+    shuxing.Attack.Abs += 50; // 大幅提升伤，??0%
+    shuxing.Drain.Abs += 30; // 全能吸，??0%
+    RevShuxing();
+    BigMessage(EventPlayer(), '复仇模式激活！');
+    Wait(0.1);
+}
+
+rule: '星界躯体'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('星界躯体'))
+{
+    StartScalingPlayer(Scale: 1.5);
+    shuxing.Health.Abs += 1000;
+    shuxing.Attack.Pct -= 15;
+    RevShuxing();
+}
+
+playervar Boolean IsUsed_Jianjue!;
+rule: '坚决'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('坚决'))
+if(!IsUsed_Jianjue)
+if(NormalizedHealth(EventPlayer()) <= 0.5)
+{
+    SmallMessage(VisibleTo: EventPlayer(),Header: '坚决已触发');
+    IsUsed_Jianjue = true;
+    StartHealOverTime(Player: EventPlayer(),Healer: EventPlayer(),Duration: 3,HealingPerSecond: (0.6 * MaxHealth(EventPlayer())) / 3);
+    HealEffectPlay();
+}
+
+
+rule: '循环往复'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('循环往复'))
+{
+shuxing.CoolDown.Abs += 60;
+RevShuxing();
+}
+
+playervar Boolean YG_JiaNiang;
+rule: '佳酿'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('佳酿'))
+if(YG_JiaNiang)
+{    
+    define hexName! = '佳酿';
+    if(PlayerHexReadyByName(hexName)){
+    {
+    Heal(EventPlayer(),EventPlayer(),175);
+    HealEffectPlay();
+    YG_JiaNiang = false;
+
+    StartHexCooldownByName(hexName);
+    }
+
+
+    }
+        Wait(0.5,WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+Boolean isMelee(){
+    return EventAbility()== Button.Melee||ArrayContains([Hero.Reinhardt,Hero.Brigitte],HeroOf(Attacker()))&&EventAbility()==Button.PrimaryFire||(ArrayContains([Hero.Winston],HeroOf(Attacker()))&&EventAbility()==Button.PrimaryFire&&IsUsingUltimate(Attacker()))
+;}
+
+rule: '秘术冲拳'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('秘术冲拳'))
+if(EventAbility()==Button.Melee)
+{
+    foreach(Button b! in Buttons){
+            if(!WrongButtons.Contains(b)){
+                if(AbilityCooldown(EventPlayer(),b)>0){
+                    SetAbilityCooldown(EventPlayer(),b,Max((AbilityCooldown(EventPlayer(),b)-1),0));
+                }
+            }
+    }
+    Wait(1);
+}
+rule: '老练狙神'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('老练狙神'))
+{
+    define hexName! = '老练狙神';
+    if(PlayerHexReadyByName(hexName)){
+        
+        if(DistanceBetween(EventPlayer(),Victim()) >= 15 && EventAbility() != Button.Ultimate && EventAbility() != Button.PrimaryFire){
+            Wait(0.1);
+                SetAbilityCooldown(EventPlayer(),EventAbility(),0.5);
+            SmallMessage(EventPlayer(), '技能冷却缩短至0.5秒!');
+            PlayEffect(Type: PlayEffect.GoodPickupEffect,Position: EventPlayer());
+
+            StartHexCooldownByName(hexName);
+        }
+    }
+    Wait(0.1);
+}
+
+void HealEffectPlay()'sub播放治疗特效'{
+    PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: EventPlayer(),Radius: 1);
+    PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: EventPlayer(),Radius: 150,VisibleTo: EventPlayer());
+}
+
+
+
+playervar Vector SelfPostion_Wangcheyiwei!;
+rule: '裁决使'
+Event.OnElimination
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('裁决使'))
+{
+    SetAbilityCooldown(Button: Button.Ability1,Cooldown: 0);
+     SetAbilityCooldown(Button: Button.Ability2,Cooldown: 0);
+      SetAbilityCooldown(Button: Button.Crouch,Cooldown: 0);
+       SetAbilityCooldown(Button: Button.Jump,Cooldown: 0);
+        SetAbilityCooldown(Button: Button.SecondaryFire,Cooldown: 0);
+    
+    SetUltimateCharge(ChargePercent: UltimateChargePercent()+50);
+
+    PlayEffect(Type: PlayEffect.GoodPickupEffect,Position: EventPlayer());
+}
+rule: '王车易位'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('王车易位'))
+if(IsUsingUltimate())
+{
+    if(EntityExists(TeamMate)){
+        SelfPostion_Wangcheyiwei = PositionOf();
+        Teleport(EventPlayer(),TeamMate);
+        Teleport(TeamMate,SelfPostion_Wangcheyiwei);
+        SetStatus(EventPlayer(),EventPlayer(),Status.Invincible,1);
+        SetStatus(TeamMate,EventPlayer(),Status.Invincible,1);
+        BigMessage(TeamMate,'你的队友发动了王车易位!!');
+    }
+}
+rule: '唯快不破'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('唯快不破'))
+{
+    foreach(Player p! in AllPlayers().Filter(t=>t!=EventPlayer()&&t!=EventPlayer().TeamMate)){
+        MinWait();
+    StartDamageModification(Receivers: EvaluateOnce(p),Damagers: EventPlayer(),100+15*Min(10,(SpeedOf(EventPlayer())-SpeedOf(EvaluateOnce(p)))),Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    }
+}
+rule: '巨人杀手'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('巨人杀手'))
+{
+    foreach(Player p! in AllPlayers().Filter(t=>t!=EventPlayer()&&t!=EventPlayer().TeamMate)){
+        MinWait();
+    StartDamageModification(Receivers: EvaluateOnce(p),Damagers: EventPlayer(),100+Max(75,5*(Max((MaxHealth(EvaluateOnce(p))-MaxHealth())/150   ,0))),Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    }
+}
+rule: '恶趣味'
+Event.PlayerDealtKnockback
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('恶趣味'))
+{
+    define hexName! = '恶趣味';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+        HealEffectPlay();
+        Heal(Amount: 100,Healer: EventPlayer(),Player: EventPlayer());
+    }
+}
+rule: '渴血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('渴血'))
+{
+    shuxing.Drain.Abs+=20;
+}
+
+rule: '急救用具'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('急救用具'))
+{
+    shuxing.HealBoost.Pct+=20;
+    RevShuxing();
+}
+
+rule: '重量级打手'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('重量级打手'))
+if(DistanceBetween(Victim(),EventPlayer())<=8)
+{
+    define hexName! = '重量级打手';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+        Damage(Victim(),EventPlayer(),0.1*MaxHealth());
+        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.BadPickupEffect,Color.Red,Victim());
+        
+    }
+    Wait(0.1);
+}
+
+playervar Any ID_Shibukedang;
+rule: '势不可挡'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('势不可挡')&&IsUsingUltimate())
+{
+    SetStatus(EventPlayer(),EventPlayer(),Status.Invincible,4);
+    CreateEffect(Type: Effect.EchoCloningEffect,Position: EventPlayer());
+    ID_Shibukedang = LastCreatedEntity();
+    Wait(4);
+    DestroyEffect(ID_Shibukedang);
+    SmallMessage(EventPlayer(),'无̈果已结束！');
+}
+rule: '大发明家'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('大发明家'))
+if(!WrongButtons.Contains(Button.Ability1))
+if(IsAlive())
+{
+    SetAbilityCooldown(EventPlayer(),Button.Ability1,Max((AbilityCooldown(EventPlayer(),Button.Ability1)-1),0));
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+rule: '面包与奶酪'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('面包与奶酪'))
+if(!WrongButtons.Contains(Button.Ability2))
+if(IsAlive())
+{
+    SetAbilityCooldown(EventPlayer(),Button.Ability2,Max((AbilityCooldown(EventPlayer(),Button.Ability2)-1),0));
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+rule: '护甲发生器'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('护甲发生器'))
+{
+    SmallMessage(EventPlayer(),'护甲发生器已启动');
+    shuxing.Armor.Abs += 300;
+    shuxing.Health.Abs -= 300;
+}
+playervar Any[] Pools_Shenshangxiansu! = [];
+playervar Any SpeedBoostID_Shenshangxiansu!;
+rule: '肾上腺素'
+Event.OnHealingTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('肾上腺素'))
+{
+    if(EventWasHealthPack()){
+        AddHealthPoolToPlayer(EventPlayer(),HealthType.Health,200,false,true);
+        Pools_Shenshangxiansu+=LastCreatedHealthPool();
+
+        shuxing.Speed.Abs += 25;
+        RevShuxing();   
+        if(SpeedBoostID_Shenshangxiansu == 0){
+        CreateEffect(Type: Effect.Soldier76SprintingEffect,Position: EventPlayer(),Radius: 1);
+        SpeedBoostID_Shenshangxiansu = LastCreatedEntity();
+        }
+        
+        
+        PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorEffect,Position: EventPlayer(),Radius: 1);
+        PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorSound,Position: EventPlayer(),Radius: 150,VisibleTo: EventPlayer());
+        WaitAsync(EventPlayer(),5,()=>{
+        RemoveHealthPoolFromPlayer(FirstOf(Pools_Tiejiapaiqikou));
+        ModifyVariable(Pools_Shenshangxiansu,Operation.RemoveFromArrayByIndex,0);
+
+        DestroyEffect(SpeedBoostID_Shenshangxiansu);
+        SpeedBoostID_Shenshangxiansu = 0;
+
+        shuxing.Speed.Abs -= 25;
+        RevShuxing();
+        });
+    }
+    MinWait();
+}
+rule: '虹吸手套'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('虹吸手套'))
+if(isMelee())
+{
+    define hexName! = '虹吸手套';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+        StartHealOverTime(Player: EventPlayer(),Healer: EventPlayer(),Duration: 0.5,HealingPerSecond: 200);
+        HealEffectPlay();
+    }
+    Wait(1);
+}
+playervar Any VisibleID_Shandianyzq;
+rule: '闪电抑制器'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('闪电抑制器'))
+if(EventWasCriticalHit())   
+{
+    {
+        if(VisibleID_Shandianyzq==0){
+            CreateEffect(Type: Effect.AnaBioticGrenadeNoHealingEffect,VisibleTo: AllPlayers(),Color: Team.Team2,Position: Victim(),Radius: 1);
+            VisibleID_Shandianyzq = LastCreatedEntity();
+        }
+        PlayEffect(Type: PlayEffect.SombraTranslocatingMaterialEffect,Position: Victim());
+        Wait(3,WaitBehavior.RestartWhenTrue);
+        DestroyEffect(VisibleID_Shandianyzq);
+        VisibleID_Shandianyzq = 0;
+    }
+    Wait(0.1);
+}
+
+rule: '蜘蛛之眼'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('蜘蛛之眼'))
+{
+    StartDamageModification(AllPlayers().Filter(t=>NormalizedHealth(t)<=0.3),EventPlayer(),DamagePercent: 110,Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    MinWait();
+}
+
+
+void Tiejiapaiqikou(){
+        AddHealthPoolToPlayer(EventPlayer(),HealthType.Health,100+0.1*MaxHealth(),false,true);
+        Pools_Tiejiapaiqikou+=LastCreatedHealthPool();
+        
+        PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorEffect,Position: EventPlayer(),Radius: 1);
+        PlayEffect(Type: PlayEffect.BrigitteRepairPackArmorSound,Position: EventPlayer(),Radius: 150,VisibleTo: EventPlayer());
+        WaitAsync(EventPlayer(),4,()=>{RemoveHealthPoolFromPlayer(FirstOf(Pools_Tiejiapaiqikou));
+        ModifyVariable(Pools_Tiejiapaiqikou,Operation.RemoveFromArrayByIndex,0);});
+        MinWait();
+}
+rule: '铁甲排气口'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('铁甲排气口'))
+if(YG_Tiejiapaiqikou)
+if(IsAlive())
+{
+    define hexName! = '铁甲排气口';
+    if(PlayerHexReadyByName(hexName)){
+        YG_Tiejiapaiqikou = false;
+        StartHexCooldownByName(hexName);
+        Tiejiapaiqikou();
+    }
+    Wait(0.5,WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+void Yidonghuixue(){
+        Heal(EventPlayer(),EventPlayer(),0.15*SpeedOf());
+        PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: EventPlayer(),Radius: 1);
+        MinWait();
+}
+
+rule: '移动回血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('移动回血'))
+if(IsAlive())
+{
+    if(SpeedOf(EventPlayer())>0){
+        Yidonghuixue();
+    }
+    Wait(0.1);
+    LoopIfConditionIsTrue();
+}
+
+
+void Tieyan(){
+        StartHealOverTime(Player: EventPlayer(),Healer: EventPlayer(),Duration: 1,HealingPerSecond: 0.3*EventDamage());
+        HealEffectPlay();
+        MinWait();
+}
+rule: '铁眼'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('铁眼'))
+{
+    if(EventWasCriticalHit()){
+        Tieyan();
+    }
+}
+
+playervar Number TimeCount_Zhuangtianhuixue;
+rule: '装填回血'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('装填回血'))
+if(IsReloading())
+{
+    TimeCount_Zhuangtianhuixue = 0;
+    while(IsReloading()){
+        TimeCount_Zhuangtianhuixue += 0.1;
+        Wait(0.1);
+    }
+        Heal(EventPlayer(),EventPlayer(),75*TimeCount_Zhuangtianhuixue);
+        HealEffectPlay();
+        MinWait();
+}
+
+void Jingzhundanmu(){
+    PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.PharahRocketLauncherExplosionSound,Position: EventPlayer(),Radius: 75);
+    CreateHomingProjectile(ProjectileType: ProjectileType.PharahRocket,Speed: 30,Lifetime: 5,Impulse: 10,HomingTarget: Victim(),Player: EventPlayer(),Amount: 100,HomingStrength: 1,StartPosition: EyePosition(),Direction: FacingDirectionOf());
+}
+rule: ''
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName(''))
+{
+    define hexName! = '';
+    if(PlayerHexReadyByName(hexName)){
+        StartHexCooldownByName(hexName);
+        Jingzhundanmu();
+    }
+    Wait(0.1);
+}
+
+rule: '返回战场'
+Event.OnDeath
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('返回战场'))
+{
+    Wait(0.1);
+    RevivePercent += 50;
+}
+
+rule: '断魂曲'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(TeamID != -1)
+if(HasHexName('断魂曲'))
+{
+    if(EventWasCriticalHit()){
+    SetStatus(Victim(),EventPlayer(),Status.Hacked,0.1);
+    }
+    Wait(0.1);
+}
+
+
+void AutoSelectReward(in Player p){
+    Number guard! = 0;
+    while(p.isInMenu && p.rewardFlowIndex < p.rewardFlow.Length && guard < 10){
+        if(CurrentRewardStep(p) == RewardStepType.Hex){
+            p.roundReward_index = 0;
+        }
+        else{
+            p.forgeReward_index = 0;
+        }
+        OnClickYesofRewards(p);
+        guard++;
+        Wait(0.03, WaitBehavior.IgnoreCondition);
+    }
+    if(p.isInMenu){
+        CloseMenu(p);
+    }
+}
+
+rule: '主玩测'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsButtonHeld(EventPlayer(),Button.Reload))
+if(HostPlayer()==EventPlayer())
+if(!IsGameInProgress())
+{
+    OpenMenu(name: MenuActive.HexMenu);
+}
+
+playervar HexId[] roundReward;
+playervar Number roundReward_index;
+playervar Number RefreshCount=4;
+rule: '菜单初始化'
+{
+    // 主菜单按??
+    new MenuButton(
+        header: <'选择你的海克斯 (<0>)',MatchTime().Round()>,
+        posX: 0,
+        posY: 1.7,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    );
+
+    new MenuButton(
+        header: <'<0>',HexOfferTitleLocal(0)>,
+        posX: -2,
+        posY: 0.8,
+        ShowColor: HexOfferColorLocal(0),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(()=>{EventPlayer().roundReward_index=0;        });
+    new MenuButton(
+        header: <'<0>',HexOfferTitleLocal(1)>,
+        posX: 0,
+        posY: 0.8,
+        ShowColor: HexOfferColorLocal(1),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(()=>{EventPlayer().roundReward_index=1;        });
+    new MenuButton(
+        header: <'<0>',HexOfferTitleLocal(2)>,
+        posX: 2,
+        posY: 0.8,
+        ShowColor: HexOfferColorLocal(2),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(()=>{EventPlayer().roundReward_index=2;        });
+    new MenuButton(
+        header: <'<0>',HexOfferDescriptionLocal()>,
+        posX: -1.5,
+        posY: -0.5,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        scale: ButtonScale.Medium,
+        ofmenuActives: [MenuActive.HexMenu]
+    );
+    new MenuButton(
+        header: <'<0>确认选择',IconString(Icon.Happy)>,
+        posX: 1.5,
+        posY: 0,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(()=>OnClickYesofRewards(EventPlayer()));
+    new MenuButton(
+        header: <'刷新(<0>)',LocalPlayer().RefreshCount>,
+        posX: 1.5,
+        posY: -0.5,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(()=>{
+        if(RefreshCount>0 && roundReward.Length > 0 && roundReward_index < roundReward.Length){
+            HexId selectedHexId! = SelectedHexOfferId();
+            HexId[] pool! = HexPool.Filter(
+                id => id != selectedHexId
+                    && !Hexes.Contains(id)
+                    && !roundReward.Contains(id)
+                    && HexQualityById(id) == HexQualityById(selectedHexId)
+                    && HexAllowedForPlayer(id, EventPlayer())
+            );
+            if(pool.Length > 0){
+                roundReward[roundReward_index] = RandomValueInArray(pool);
+                RefreshCount--;
+                PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.Soldier76SprintStartSound,Position: CameraLookat,Radius: 200);
+            }
+        }
+        
+        });
+}
+void ApplyCurrentRewardStep(Player p!)'sub应用当前奖励步骤'{
+    if(p.rewardFlowIndex >= p.rewardFlow.Length){
+        return;
+    }
+    switch(CurrentRewardStep(p)){
+        case RewardStepType.Hex:
+            if(p.roundReward.Length > 0){
+                if(p.roundReward_index >= p.roundReward.Length){
+                    p.roundReward_index = 0;
+                }
+                GrantHexToPlayerById(p, p.roundReward[p.roundReward_index]);
+            }
+            p.roundReward = [];
+            break;
+        case RewardStepType.ForgeAverage:
+        case RewardStepType.ForgeRare:
+            if(p.forgeReward.Length > 0){
+                if(p.forgeReward_index >= p.forgeReward.Length){
+                    p.forgeReward_index = 0;
+                }
+                ShuxingForge selectedForge! = p.forgeReward[p.forgeReward_index];
+                p.Forges += selectedForge;
+                ApplyForge(selectedForge,p);
+            }
+            p.forgeReward = [];
+            break;
+    }
+}
+
+void OnClickYesofRewards(Player p!)'sub确认选择'{
+    if(p.rewardFlowIndex >= p.rewardFlow.Length){
+        CloseMenu(p);
+        return;
+    }
+
+    ApplyCurrentRewardStep(p);
+    p.rewardFlowIndex++;
+    if(p.rewardFlowIndex < p.rewardFlow.Length){
+        OpenCurrentRewardMenu(p);
+        PlayEffect(VisibleTo: p,Type: PlayEffect.BuffImpactSound,Position: p,Radius: 150);
+        return;
+    }
+
+    p.rewardFlow = [];
+    p.rewardFlowIndex = 0;
+    p.roundReward = [];
+    p.forgeReward = [];
+    CloseMenu(p);
+    PlayEffect(VisibleTo: p,Type: PlayEffect.BuffImpactSound,Position: p,Radius: 150);
+}
+void ApplyForge(ShuxingForge selectedForge!,Player p! = EventPlayer())'sub应用属锻造器'{
+        MinWait();
+        switch(selectedForge.type){
+        case ShuxingType.Attack:
+        p.shuxing.Attack.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.CoolDown:
+        p.shuxing.CoolDown.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Speed:
+        p.shuxing.Speed.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.HealBoost:
+        p.shuxing.HealBoost.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Drain:
+        p.shuxing.Drain.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Reduction:
+        p.shuxing.Reduction.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Armor:
+        p.shuxing.Armor.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Health:
+        p.shuxing.Health.Forge += selectedForge.absBonus;
+        break;
+        case ShuxingType.Shields:
+        p.shuxing.Shields.Forge += selectedForge.absBonus;
+        break;
+    }
+    RevShuxing(p);
+
+}
+rule: '锻造器菜单初始化'
+{
+    // 于海克菜?
+    new MenuButton(
+        header: <'选择你的属性锻造器 (<0>)',MatchTime().Round()>,
+        posX: 0,
+        posY: 1.7,
+        scale: ButtonScale.Large,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    );
+    new MenuButton(
+        header: <'<1><0>',LocalPlayer().forgeReward[0].GetName(),LocalPlayer().forgeReward_index==0?IconString(Icon.ArrowRight):''>,
+        posX: -2,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Default:Quaility_Color[LocalPlayer().forgeReward[0].quality][1],Hover:Quaility_Color[LocalPlayer().forgeReward[0].quality][0],Visible: LocalPlayer().forgeReward_index==0),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    ).SetOnClick(()=>{EventPlayer().forgeReward_index=0;});
+    new MenuButton(
+        header: <'<1><0>',LocalPlayer().forgeReward[1].GetName(),LocalPlayer().forgeReward_index==1?IconString(Icon.ArrowRight):''>,
+        posX: 0,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Default:Quaility_Color[LocalPlayer().forgeReward[1].quality][1],Hover:Quaility_Color[LocalPlayer().forgeReward[1].quality][0],Visible: LocalPlayer().forgeReward_index==1),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    ).SetOnClick(()=>{EventPlayer().forgeReward_index=1;});
+    new MenuButton(
+        header: <'<1><0>',LocalPlayer().forgeReward[2].GetName(),LocalPlayer().forgeReward_index==2?IconString(Icon.ArrowRight):''>,
+        posX: 2,
+        posY: 0.8,
+        ShowColor: InteratableColor_Local(Default:Quaility_Color[LocalPlayer().forgeReward[2].quality][1],Hover:Quaility_Color[LocalPlayer().forgeReward[2].quality][0],Visible: LocalPlayer().forgeReward_index==2),
+        scale: ButtonScale.Large,
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    ).SetOnClick(()=>{EventPlayer().forgeReward_index=2;});
+    new MenuButton(
+        header: <'<0>',LocalPlayer().forgeReward[LocalPlayer().forgeReward_index].GetDes()>,
+        posX: -1.5,
+        posY: -0.5,
+        ShowColor: CustomColor(255, 233, 215, 255),
+        scale: ButtonScale.Medium,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    );
+    new MenuButton(
+        header: <'<0>确认选择',IconString(Icon.Happy)>,
+        posX: 1.5,
+        posY: 0,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    ).SetOnClick(()=>OnClickYesofRewards(EventPlayer()));
+    new MenuButton(
+        header: <'刷新(<0>)',LocalPlayer().RefreshCount>,
+        posX: 1.5,
+        posY: -0.5,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu]
+    ).SetOnClick(()=>{
+        if(RefreshCount>0){
+               // 栍品质刷?
+        Quality currentQuality! = forgeReward[forgeReward_index].quality;
+        ShuxingForge newForge!;
+        if(currentQuality == Quality.average){
+        newForge = GenerateAverageForge();
+        while(ArrayContains(forgeReward, newForge) || ArrayContains(Forges, newForge)){
+        newForge = GenerateAverageForge();
+        }
+        } else {
+        // 寺rare筼从池子随机，但排除已??
+        newForge = RandomValueInArray(RareForgePool.Filter(t=>!ArrayContains(forgeReward,t) && !ArrayContains(Forges,t)));
+        }
+        forgeReward += forgeReward[forgeReward_index];
+        forgeReward[forgeReward_index] = newForge;
+        RefreshCount--;
+        PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.TracerRecallReappearSound,Position: CameraLookat,Radius: 150); 
+        }
+
+    });
+
+        // 新：转为锻体按??
+    new MenuButton(
+        header: <'[转为锻体]'>,
+        posX: 0,
+        posY: 1.35,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(),
+        interactable: true,
+        ofmenuActives: [MenuActive.HexMenu]
+    ).SetOnClick(() => {
+        if(rewardFlowIndex < rewardFlow.Length && CurrentRewardStep(EventPlayer()) == RewardStepType.Hex){
+            rewardFlow[rewardFlowIndex] = CurrentRound == 7 ? RewardStepType.ForgeRare : RewardStepType.ForgeAverage;
+            roundReward = [];
+            roundReward_index = 0;
+            forgeReward = [];
+            forgeReward_index = 0;
+            OpenCurrentRewardMenu(EventPlayer());
+            PlayEffect(VisibleTo: EventPlayer(), Type: PlayEffect.Soldier76SprintStartSound, Position: CameraEye, Radius: 200);
+        }
+    });
+}
+
+void GenerateForgeRewards(Player p, Boolean isRare) 'sub生成锻体奖励'{
+    p.forgeReward = [];
+    if(isRare){
+        p.forgeReward = RareForgePool.Randomize().Slice(0,3);
+    }
+    else{
+        p.forgeReward = Forge_Average_List.Randomize().Slice(0,3);
+    }
+}
+
+ShuxingForge[] GetForgeRewards(Boolean isRare)'sub获取锻体奖励'{
+    ShuxingForge[] forgeReward = [];
+    for (Number i = 0; i < 3; i++) {
+        ShuxingForge newForge!;
+        if (isRare) {
+            newForge = RareForgePool.Randomize().Slice(0,3);
+        } else {
+            newForge = GenerateAverageForge();
+            while (ArrayContains(forgeReward.Map(t => t.type), newForge.type)) {
+                newForge = GenerateAverageForge();
+                MinWait();
+            }
+        }
+        forgeReward += newForge;
+    }
+    return forgeReward;
+}
+void CloseMenu(Player p! =EventPlayer())'关闭菜单'{
+    p.isInMenu = false;
+    StopCamera(p);
+    SetAimSpeed(p,100);
+    SetPrimaryFireEnabled(p,true);
+    SetSecondaryFireEnabled(p,true);
+    EnableHeroHud(p);
+    EnableGameModeHud(p);
+    SetFacing(p,p.AnchorFacing);
+    MinWait();
+}
+
+rule: "X文本初始化" {
+    define offset! = -0.1;
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverText,
+        Position: UpdateEveryFrame(CameraLookat_Local + MenuFlatBase1_Local * CURSOR_X_LOCAL + MenuFlatBase2_Local * (CURSOR_Y_LOCAL + offset)),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Yellow
+    );
+}
+
+Color InteratableColor_Local(in Color Default=Color.White,in Color Hover=Color.Orange,in Boolean Visible=false):
+    (LocalPlayer().MenuLoop==EvaluateOnce(<Color>uniqueButtonID))||Visible?Hover:Default;
+
+
+
+enum Quality{
+    average,
+    rare,
+    epic,
+    legend
+}
+globalvar Color[][] Quaility_Color = [[CustomColor(255, 255, 181, 255),CustomColor(255, 255, 181,100)],[CustomColor(66, 176, 255, 255),CustomColor(66, 176, 255,100)],[CustomColor(210, 126, 247, 255),CustomColor(210, 126, 247,100)]];
+class Shuxing{
+    public ShuxingBase Attack;
+    public ShuxingBase CoolDown;
+    public ShuxingBase Speed;
+    public ShuxingBase HealBoost;
+    public ShuxingBase Drain;
+    public ShuxingBase Armor;
+    public ShuxingBase Health;
+    public ShuxingBase Shields;
+    public ShuxingBase Reduction;
+    public ShuxingBase Scale;
+    public ShuxingBase JumpVerticalSpeed;
+
+    public constructor(){
+        Attack = new ShuxingBase();
+        CoolDown = new ShuxingBase(abs: 0);
+        Speed = new ShuxingBase();
+        HealBoost = new ShuxingBase();
+        Drain = new ShuxingBase(abs: 0);
+        Armor = new ShuxingBase(abs: 0);
+        Health = new ShuxingBase(abs: 0);
+        Shields = new ShuxingBase(abs: 0);
+        Reduction = new ShuxingBase(abs: 0);
+        Scale = new ShuxingBase();
+        JumpVerticalSpeed = new ShuxingBase();
+    }
+}
+class ShuxingBase{
+    public Number Abs;
+    public Number Pct;
+    public Number Forge;
+
+    Number RealShuxing(in Player p! = EventPlayer()):
+        Abs+Forge*p.Forge_Multiplier;
+
+    Number RealShuxing_Local():
+        Abs+Forge*LocalPlayer().Forge_Multiplier;
+
+    Number VirtualShuxing(in Player p! = EventPlayer()):
+        RealShuxing(p)*(1+Pct/100);
+
+    Number VirtualShuxing_Local():
+        RealShuxing_Local()*(1+Pct/100);
+    
+    public constructor(in Number abs=100){
+        Abs = abs;
+    }
+}
+rule: '持续赋属W'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+{
+    AddHealthPoolToPlayer(HealthType: HealthType.Armor,Player: EventPlayer(),MaxHealth: shuxing.Armor.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Shields,Player: EventPlayer(),MaxHealth: shuxing.Shields.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+    AddHealthPoolToPlayer(HealthType: HealthType.Health,Player: EventPlayer(),MaxHealth: shuxing.Health.VirtualShuxing(),Recoverable: true,Reevaluation: true);
+
+}
+void RevShuxing(Player p! = EventPlayer())'sub刷新属性'{
+    SetMoveSpeed(p,p.shuxing.Speed.VirtualShuxing(p)); 
+    SetDamageDealt(p,p.shuxing.Attack.VirtualShuxing(p));
+    SetDamageReceived(p,Max(20,100*100/(100+1.5 *p.shuxing.Reduction.VirtualShuxing(p))));
+    SetHealingDealt(p,p.shuxing.HealBoost.VirtualShuxing(p));
+
+    SetJumpVerticalSpeed(p,p.shuxing.JumpVerticalSpeed.VirtualShuxing(p));
+}
+Number CooldownReductionPerTick : 0.5 * (shuxing.CoolDown / (100 + shuxing.CoolDown));
+playervar Number last_halfsec_Damaged!;
+playervar Number last_halfsec_Healed!;
+globalvar Button[] Buttons = [Button.Ability1,Button.Ability2,Button.Jump,Button.SecondaryFire,Button.Crouch];
+rule: '全能效果实现吸血效果'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsAlive())
+if(CurrentGamePhase == GamePhase.Combat)
+{
+    Heal(EventPlayer(),EventPlayer(),(PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt)-last_halfsec_Damaged)*shuxing.Drain.VirtualShuxing()/100);
+
+    last_halfsec_Damaged = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.AllDamageDealt);
+
+    last_halfsec_Healed = PlayerHeroStat(EventPlayer(),HeroOf(),PlayerHeroStat.HealingDealt);
+
+    if(shuxing.CoolDown.VirtualShuxing()>0){
+        foreach(Button b! in Buttons){
+            if(!WrongButtons.Contains(b)){
+                if(AbilityCooldown(EventPlayer(),b)>0){
+                    SetAbilityCooldown(EventPlayer(),b,Max((AbilityCooldown(EventPlayer(),b)-CooldownReductionPerTick),0));
+                }
+                
+            }
+        }   
+    }
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}
+
+playervar Shuxing shuxing = new Shuxing();
+
+playervar Boolean YG_Tiejiapaiqikou!;
+
+void RefreshYaoGuangLeiBool()'Љ刷新'{
+    YG_Tiejiapaiqikou = true;
+    YG_JiaNiang = true;
+    YG_Tiannvsanhua = true;
+    YG_Shenshengfenlizhe = true;
+}
+rule: '使用了技能1'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsUsingAbility1())
+{
+    RefreshYaoGuangLeiBool();
+}
+rule: '使用了技能2'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsUsingAbility2())
+{
+    RefreshYaoGuangLeiBool();
+}
+rule: '使用了技能跳跃'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(AbilityCooldown(EventPlayer(),Button.Jump)>0)
+{
+    RefreshYaoGuangLeiBool();
+}
+rule: '使用了技能右键'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(AbilityCooldown(EventPlayer(),Button.SecondaryFire)>0)
+{
+    RefreshYaoGuangLeiBool();
+}
+rule: "挒点击" 
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    if (EventPlayer().MenuLoop != 0 && GetButtonByID(EventPlayer().MenuLoop).Data.Interactable) {
+            (<()=>void>GetButtonByID(EventPlayer().MenuLoop).OnClick).Invoke();
+            PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.Soldier76SprintStartSound,Position: CameraEye,Radius: 200);
+    }
+}
+playervar Player ViewingPlayer = EventPlayer();
+
+Number ViewingHexCooldownBySlotLocal(in Number slot):
+    LocalPlayer().ViewingPlayer.HexCurrentCooldowns[slot];
+
+String ViewingHexStatusHeaderLocal(in Number slot){
+    define id : LocalPlayer().ViewingPlayer.Hexes[slot];
+    define baseCd : HexCooldownBaseById(id);
+    define cdNow : ViewingHexCooldownBySlotLocal(slot);
+    return HexNameById(id)
+        + (baseCd == 0
+            ? ''
+            : (cdNow > 0
+                ? <'(剩余 <0>)', cdNow>
+                : <'(已就绪<0>)', IconString(Icon.Checkmark)>));
+}
+
+Color ViewingHexStatusColorLocal(in Number slot){
+    define id : LocalPlayer().ViewingPlayer.Hexes[slot];
+    define baseCd : HexCooldownBaseById(id);
+    define cdNow : ViewingHexCooldownBySlotLocal(slot);
+    return baseCd > 0 && cdNow > 0
+        ? GradientColor(
+            [UnfinishedColor_Red_R,UnfinishedColor_Red_G,UnfinishedColor_Red_B],
+            [FinishedColor_Gold_R,FinishedColor_Gold_G,FinishedColor_Gold_B],
+            cdNow / baseCd
+        )
+        : Quaility_Color[HexQualityById(id)][0];
+}
+
+rule: '创建海克斯状态'
+{
+    for(define i = 0;i<6;i++){
+        CreateInWorldText(
+        VisibleTo: CountOf(LocalPlayer().ViewingPlayer.Hexes) > EvaluateOnce(i) ? AllPlayers().Filter(t=>t==LocalPlayer()&&IsAlive(t)&&!t.FPSMode) : null,
+        Header: ViewingHexStatusHeaderLocal(EvaluateOnce(i)),
+        
+        Position: MenuButtonPosition_Local(((EvaluateOnce(i)<3)*1.2-0.6),(-0.3+0.2*(EvaluateOnce(i)%3))-1.6),
+
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+
+        TextColor: ViewingHexStatusColorLocal(EvaluateOnce(i)),
+        
+        Spectators: Spectators.VisibleAlways
+        );
+    }
+}
+
+rule: '更改海克斯查看'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(IsButtonHeld(EventPlayer(),Button.Interact)&&IsAlive())
+{
+    ViewingPlayer = PlayerClosestToReticle();
+    PlayEffect(VisibleTo: EventPlayer(),Type: PlayEffect.BuffImpactSound,Position: EventPlayer(),Radius: 200);
+    SmallMessage(VisibleTo: EventPlayer(),Header: '已切换文本 v更改');
+    Wait(3);
+    ViewingPlayer = EventPlayer();
+}
+Color UnfinishedColor_Red:
+    CustomColor(178, 34, 34, 255);
+
+    Number UnfinishedColor_Red_R:
+        178;
+
+    Number UnfinishedColor_Red_G:
+        34;
+
+    Number UnfinishedColor_Red_B:
+        34;
+
+Color FinishedColor_Yellow:
+    CustomColor(62, 220, 94, 255);
+
+    Number FinishedColor_Gold_R:
+        255;
+
+    Number FinishedColor_Gold_G:
+        215;
+
+    Number FinishedColor_Gold_B:
+        0;
+
+Color GradientColor(Number[] Start_RGB,Number[] End_RGB,Number Loader):
+    CustomColor(
+        End_RGB[0] - Loader*(End_RGB[0]-Start_RGB[0]),
+        End_RGB[1] - Loader*(End_RGB[1]-Start_RGB[1]),
+        End_RGB[2] - Loader*(End_RGB[2]-Start_RGB[2]),
+
+        200 - Loader*(200-75)
+    );
+
+
+
+    rule: '显示属性'
+    {
+
+            // 笸部分：攻击技能槻动?
+    // 笸部分：攻击技能槻动?
+    CreateHudText(
+        Text: <'
+            <0>属性概览\n
+            造成伤害: <1> (<2> +<3>%)\n
+            技能急速: <4> (<5> +<6>%)\n
+            移动速度: <7> (<8> +<9>%)',
+            HeroIconString(HeroOf(LocalPlayer().ViewingPlayer)),
+            LocalPlayer().ViewingPlayer.shuxing.Attack.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Attack.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Attack.Pct,
+            LocalPlayer().ViewingPlayer.shuxing.CoolDown.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.CoolDown.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.CoolDown.Pct,
+            LocalPlayer().ViewingPlayer.shuxing.Speed.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Speed.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Speed.Pct
+        >,
+        Location: Location.Left,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        SortOrder: 50,
+        VisibleTo: !LocalPlayer().isInMenu&&!LocalPlayer().FPSMode?LocalPlayer():null,
+        TextColor: CustomColor(255, 239, 132, 255)
+    );
+
+        // 笺部分：治疗生命害
+    CreateHudText(
+        Text: <'
+            造成治疗: <0> (<1> +<2>%)\n
+            吸血: <3> (<4> +<5>%)\n
+            伤害抵抗: <6> (<7> +<8>%)',
+            LocalPlayer().ViewingPlayer.shuxing.HealBoost.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.HealBoost.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.HealBoost.Pct,
+            LocalPlayer().ViewingPlayer.shuxing.Drain.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Drain.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Drain.Pct,
+            LocalPlayer().ViewingPlayer.shuxing.Reduction.VirtualShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Reduction.RealShuxing_Local(),
+            LocalPlayer().ViewingPlayer.shuxing.Reduction.Pct
+        >,
+        Location: Location.Left,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor,
+        SortOrder: 51,
+        VisibleTo: !LocalPlayer().isInMenu&&!LocalPlayer().FPSMode?LocalPlayer():null,
+                TextColor: CustomColor(255, 239, 132, 255)
+    );
+    }
+
+
+
+
+globalvar Vector Hall_Screen;
+
+rule: '休息室介绍'
+{
+    CreateInWorldText(Header: <'本回合<0>--\n队伍<1> VS 队伍<2>\n\n在第2-7回合有海克斯或锻体奖励\n每个玩家最多选择6个海克斯\n交流群:777095247\n添加拉群，监工提建议~\n',LocalPlayer().TeamID,GetTeamofPlayer(LocalPlayer()).Opponent.ID,GetTeamofPlayer(LocalPlayer())==byeTeam?'你轮空':''>,
+    Position: Hall_Screen,
+    Scale: 3,
+    Clipping: Clipping.ClipAgainstSurfaces,
+    TextColor: Color.Yellow,
+    Spectators: Spectators.VisibleAlways,
+    VisibleTo: CurrentGamePhase==GamePhase.Preparation?AllPlayers().Filter(t=>!t.isInMenu&&!t.FPSMode):null);
+}
+
+rule: '优化-如果玩家在游戏中，则传送到指定区域'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+if(TeamID != -1 && !isKnockOut)
+{
+    if(TeamID != -1)
+    if(CurrentGamePhase == GamePhase.Preparation){
+        Teleport(Player: EventPlayer(),Hall);
+    }
+    if(CurrentGamePhase == GamePhase.Combat){
+        Teleport(Player: EventPlayer(),TeamMate);
+    }
+    MinWait();
+}
+
+
+rule: '优化-卡菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(GamePhase.Combat == CurrentGamePhase)
+{
+    CloseMenu();
+}
+
+rule: '优化-提示按近战'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(TeamID != -1)
+if(isInMenu)
+if(IsAlive())
+{
+     Wait(RandomInteger(4,8));
+    SmallMessage(Header: '按近战重置鼠标哦！',VisibleTo: EventPlayer());
+   
+    LoopIfConditionIsTrue();
+}
+
+playervar Boolean isSpectating;
+playervar Vector LastSpectating_Position;
+// 3. 处理玩挰 - 进入观战
+rule: 'nteract进入观战'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isKnockOut && HasSpawned() && IsButtonHeld(EventPlayer(), Button.Interact) && !isInMenu)
+{
+    if(isSpectating){
+    if(LastSpectating_Position!=0){
+        Teleport(Position: LastSpectating_Position,Player: EventPlayer());
+    }
+    DisableSpectate();
+    Camera();
+    SmallMessage(EventPlayer(),     '已进入自由移动模式');
+    PlayEffect(VisibleTo: EventPlayer(), Type: PlayEffect.BuffImpactSound, Position: CameraLookat, Radius: 150);
+        StartForcingPlayerPosition(
+        Player: EventPlayer(),
+        Position: WorldVectorOf(
+            Vector(
+                0,
+                (IsButtonHeld(EventPlayer(), Button.Ultimate)||IsButtonHeld(EventPlayer(), Button.Jump) ? 
+                    (IsButtonHeld(EventPlayer(), Button.Ability1) ? 0.300 : 0.150) : 
+                    0) +
+                (IsButtonHeld(EventPlayer(), Button.Ability2)||IsButtonHeld(EventPlayer(), Button.Crouch) ? 
+                    (IsButtonHeld(EventPlayer(), Button.Ability1) ? -0.300 : -0.150) : 
+                    0),
+                0
+            ),
+            EventPlayer(),
+            <LocalVector>Transformation.RotationAndTranslation
+        ) + WorldVectorOf(
+            ThrottleOf(EventPlayer()) * 
+            (IsButtonHeld(EventPlayer(), Button.Ability1) ? 0.300 : 0.100),
+            EventPlayer(),
+            <LocalVector>Transformation.Rotation
+        ),
+        Reevaluation: true
+    );
+
+    }
+    else{
+    LastSpectating_Position = PositionOf();
+    StopCamera();
+    SmallMessage(EventPlayer(), '已进入观战模式');
+    PlayEffect(VisibleTo: EventPlayer(), Type: PlayEffect.BuffImpactSound, Position: EyePosition(), Radius: 150);
+    // 观ѡ式：玩不能自由移劼位置由游戏辑控制
+    EnableSpectate();
+    StopForcingPlayerPosition(EventPlayer());
+    }
+    isSpectating = !isSpectating;
+        Wait(0.5);  // 防重触?
+    
+}
+
+rule: '观战Hud提示'
+{
+    CreateHudText(
+    VisibleTo: LocalPlayer().isKnockOut&&!LocalPlayer().isInMenu?LocalPlayer():null,
+    Header: '   中途加入的玩家可递补\n详情见右上角~\n按 [互动] 切换观战\n或进入自由移动\n已淘汰的玩家可以递补进独狼队伍',
+    Location: Location.Top,
+    SortOrder: 100
+    );
+}
+
+void Camera()'sub Camera'{
+    if(isSpectating){
+        StartCamera(Player: EventPlayer(),EyePosition: UpdateEveryFrame(EyePosition()),LookAtPosition: UpdateEveryFrame(EyePosition()+FacingDirectionOf()*100),150);
+
+    }
+}
+globalvar String[] tips =[
+    '你知道吗？按下互动键可以查看其他玩家的海克斯和属性哦！',
+    '队友死后，可以靠近队友复活他，一局只能一次',
+    '要活到最后真是不容易，所以请不要随意退出，免得你的队友...',
+    '火圈在倒计时结束会开始收缩...还会越来越疼..附带减疗',
+    '交流群777095247,汇报bug和更新意见，找斗魂搭子',
+    '本模式本质是死斗，所以技能会打到队友，也奶不了队友,受限于工坊',
+    '作者：独立与主格#5299',
+    '你知道吗?单人是有BUFF加成的',
+    '中途加入的玩家会获得随机属性补偿'
+];
+
+
+
+
+
+
+
+
+
+rule: '准小tips'
+if(CurrentGamePhase==GamePhase.Preparation)
+{
+    SmallMessage(VisibleTo: AllPlayers(),Header: RandomValueInArray(tips));
+    Wait(RandomReal(3,5));
+    LoopIfConditionIsTrue();
+}
+
+rule: '轩队伍提示hud'
+{
+    CreateHudText(VisibleTo: byeTeam.Members,Header: '本回合你的队伍轮空！\n等待下回合的战斗吧！',Location: Location.Top,SortOrder: 100,);
+}
+
+rule: '显示负载'
+{
+    CreateHudText(VisibleTo: HostPlayer(),Header: ServerLoad(),Subheader: ServerLoadAverage(),Text: ServerLoadPeak(),Location: Location.Right);
+}
+
+
+globalvar Player[] WaitQueue = [];
+globalvar PlayTeam[] LoneTeams = [];
+
+globalvar Boolean UseLoneTeamAdd = WorkshopSettingToggle('体验',Name: '让等待队列单个玩家即可创建独狼队伍加入比赛',false,0);
+void CreateAndSetupTeam(Player[] members!, Number teamId!, Boolean isLoneTeam!) 'sub设置队伍'{
+    PlayTeam newTeam! = new PlayTeam(members: members, id: teamId);
+    newTeam.Health = UsePointSystem ? FirstOf(Teams.Map(t => t.Health)) : Max(50, 100 - 25 * (CurrentStage - 1));
+    foreach (Player p! in members) {
+        CloseMenu(p);
+        compens_Forge(p);
+        if (isLoneTeam) {
+            AloneSet(p);
+        }
+    }
+    BigMessage(Header: '有新的队伍中途加入！！~');
+    for (Number i! = 0; i < CountOf(members); i++) {
+        WaitQueue.ModRemoveByIndex(0);
+    }
+    Teams += newTeam;
+    Wait(0.1);
+}
+globalvar Number[] TeamIDs = [0,1,2,3];
+void JoinDetect()'sub等待队列处理'{
+    //先做??
+    WaitQueue = WaitQueue.Filter(t=>EntityExists(t)&&CurrentStage<3&&t.TeamID==-1);
+
+    LoneTeams = Teams.Filter(t=>CountOf(t.Members)==1);
+    //队伍数量不?为，创建新狼队?
+    while(UseAloneTeamUpto4&&CountOf(Teams)<4&&CountOf(WaitQueue) > 0){
+            CloseMenu(WaitQueue[0]);
+            PlayTeam NewLoneTeam! = new PlayTeam(members: [WaitQueue[0]],id: Teams.Length);
+            NewLoneTeam.Health = UsePointSystem?FirstOf(Teams.Map(t=>t.Health)):TeamHealth-25*CurrentStage;
+            compens_Forge(WaitQueue[0]);
+            AloneSet(WaitQueue[0]);
+            BigMessage(Header: '有新的队伍中途加入！！~');
+            WaitQueue.ModRemoveByIndex(0);
+    }
+    MinWait();
+    if (CountOf(WaitQueue) > 0){
+        // 优先塡队?
+        while (CountOf(LoneTeams) > 0 && CountOf(WaitQueue) > 0) {
+            PlayTeam loneTeam! = FirstOf(LoneTeams);
+            if (loneTeam != 0) {
+                CloseMenu(WaitQueue[0]);
+                compens_Forge(WaitQueue[0]);
+                loneTeam.AddMember(WaitQueue[0]);
+                WaitQueue.ModRemoveByIndex(0); // 秙匹配的玩
+            }
+            LoneTeams = Teams.Filter(t=>CountOf(t.Members)==1);
+        }
+        // 塡完了屸还有队伍不满，试s创建二人队?
+        while (CountOf(WaitQueue)%2==0&&CountOf(WaitQueue)>0&&CountOf(Teams)<4) {
+            PlayTeam NewTeam! = new PlayTeam(members: [WaitQueue[0],WaitQueue[1]],id: Teams.Length);
+            NewTeam.Health = UsePointSystem?FirstOf(Teams.Map(t=>t.Health)):TeamHealth-25*CurrentStage;
+            compens_Forge(WaitQueue[0]);
+            compens_Forge(WaitQueue[1]);
+            BigMessage(Header: '有新的队伍中途加入！！~');
+
+            CloseMenu(WaitQueue[0]);
+            CloseMenu(WaitQueue[1]);
+            WaitQueue.ModRemoveByIndex(0);
+            WaitQueue.ModRemoveByIndex(0);
+        }
+        if(CountOf(WaitQueue) == 1&&UseLoneTeamAdd&&CountOf(Teams)<4){
+            CloseMenu(WaitQueue[0]);
+            PlayTeam NewLoneTeam! = new PlayTeam(members: [WaitQueue[0]],id: Teams.Length);
+            NewLoneTeam.Health = UsePointSystem?FirstOf(Teams.Map(t=>t.Health)):TeamHealth-25*CurrentStage;
+            compens_Forge(WaitQueue[0]);
+            AloneSet(WaitQueue[0]);
+            BigMessage(Header: '有新的队伍中途加入！！~');
+            WaitQueue.ModRemoveByIndex(0);
+        }
+    }
+    LoneTeams = Teams.Filter(t=>CountOf(t.Members)==1);
+    
+    while(CountOf(LoneTeams)>0 && AllPlayers().Filter(p=>p.isKnockOut).Length>0){
+        Player ReturnPlayer! = AllPlayers().Filter(p=>p.isKnockOut).Random();
+        PlayTeam ReturnTeam! = LoneTeams[0];
+        ReturnPlayer.isKnockOut = false;
+        ReturnTeam.AddMember(ReturnPlayer);
+        BigMessage(Header: '新带老，老带新\n有玩家被复活重组队伍啦！');
+        LoneTeams = Teams.Filter(t=>CountOf(t.Members)==1);
+    }
+} 
+
+Player[] RealWaitQueue:
+    WaitQueue.Filter(t=>EntityExists(t));
+
+rule: 'My Rule'
+{
+    CreateHudText(Text: <'————[等待下个准备回合]————\n <0>\n <1>\n <2>\n...\n\n\n[递补规则]:\n\n1:优先替补场上已存独狼队伍\n\n2:若替补结束后等待队列还剩下2名玩家\n则这两名玩家组成新队伍加入游戏',
+    RealWaitQueue[0]!=0?<'<0><1>',HeroIconString(HeroOf(RealWaitQueue[0])),RealWaitQueue[0]>:'',
+    RealWaitQueue[1]!=0?<'<0><1>',HeroIconString(HeroOf(RealWaitQueue[1])),RealWaitQueue[1]>:'',
+    RealWaitQueue[2]!=0?<'<0><1>',HeroIconString(HeroOf(RealWaitQueue[2])),RealWaitQueue[2]>:''
+    >
+    ,
+    Location: Location.Right,
+    TextColor: CustomColor(255, 161, 197, 255),
+    SortOrder: -998,
+    VisibleTo: !LocalPlayer().isInMenu&&!LocalPlayer().FPSMode?(CurrentGamePhase == GamePhase.Preparation?AllPlayers():AllPlayers().Filter(t=>t.isKnockOut)):null
+    );
+
+}
+
+void compens_Forge(Player p!)'上入锻体补偿'{
+        // 补偿锻体
+    Number compens = Min(15,(CurrentRound+8*(CurrentStage-1))+2);
+    for(Number i = 0; i < compens; i++) {
+        ShuxingForge forge = Forge_Average_List.Randomize()[i][0];
+        ApplyForge(forge, p);
+        MinWait();
+    }
+    BigMessage(VisibleTo: p,Header: '中途加入比赛\n已补偿属性锻造器！');
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(isKnockOut== false)
+{
+    StopForcingPlayerPosition();
+}
+
+rule: '当前队伍数'
+{
+    CreateHudText(Subheader: <'当前队伍数:<0>',CountOf(Teams)>,SortOrder: -999,Location: Location.Right);
+}
+
+rule: 'My Player Rule'
+Event.OnHealingTaken
+Team.All
+Player.All
+if(EventWasHealthPack())
+{
+    SetUltimateCharge(EventPlayer(),UltimateChargePercent()+20);
+    Wait(0.1);
+}
+
+
+
+
+globalvar ShuxingForge[][] Forge_Average_List = [];
+globalvar ShuxingForge[][] Forge_Rare_List = [];
+rule: '预生成锻体list'
+{
+    for(define i = 0; i < 20; i++){
+        Forge_Average_List[i] = GetForgeRewards(false);
+    }
+}
+playervar Button[] WrongButtons = [];
+
+rule: '弗雷雅问题按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Freja)
+{
+    WrongButtons = [Button.Ability1];
+}
+
+rule: '大锤问题按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Reinhardt)
+{
+    WrongButtons = [Button.Ability2];
+}
+
+rule: '76按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Soldier76)
+{
+    WrongButtons = [Button.SecondaryFire];
+}
+
+rule: 'tracer按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Tracer)
+{
+    WrongButtons = [Button.Ability1,Button.Ability2,Button.Jump];
+}
+
+rule: 'tracer按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Genji)
+{
+    WrongButtons = [Button.Ability1];
+}
+
+
+rule: '毛加按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Mauga)
+{
+    WrongButtons = [Button.Ability2];
+}
+rule: '小美按钮'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HeroOf()==Hero.Mei)
+{
+    WrongButtons = [Button.Jump];
+}
+
+rule: '按钮显示'
+{
+    CreateHudText(
+        VisibleTo: AllPlayers().Filter(t=>t.WrongButtons.Length>0),
+        Subheader: IconString(Icon.Warning)+HeroOf(LocalPlayer())+<'的以下技能无法享受技能急速: 
+        <0>
+        <1>',
+        LocalPlayer().WrongButtons[0]!=null?AbilityIconString(HeroOf(LocalPlayer()),LocalPlayer().WrongButtons[0]):'',
+        LocalPlayer().WrongButtons[1]!=null?AbilityIconString(HeroOf(LocalPlayer()),LocalPlayer().WrongButtons[1])
+        >,
+        Text: <'补偿:\n攻击百分比:<0>%\n移速百分比:<0>%',5*LocalPlayer().WrongButtons.Length>,
+        SortOrder: -9999,
+        HeaderColor: Color.Orange
+    );
+}
+
+rule: '问题按钮补偿'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(WrongButtons.Length>0)
+if(shuxing.Attack.VirtualShuxing()>0)
+{
+    shuxing.Speed.Pct += 5*WrongButtons.Length;
+    shuxing.Attack.Pct += 5*WrongButtons.Length;
+}
+
+playervar Boolean Surrendered = false;
+globalvar Boolean UseSurrender = WorkshopSettingToggle('功能','启用投降系统',true,0);
+
+Number SurrenderDivider : 8;
+rule: '投降'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentGamePhase == GamePhase.Preparation)
+if(CurrentStage >= 2)
+if(IsCommunicating(EventPlayer(),Communication.GroupUp))
+{
+    Surrendered = !Surrendered;
+    if(Surrendered)
+    {
+        BigMessage(VisibleTo: AllPlayers(),Header: HeroIconString(HeroOf())+EventPlayer()+'选择了投降！\n发送集合投降，详见右上角');
+    }
+    if(AllPlayers().Filter(t=>t.TeamID!=-1&&!t.isKnockOut&&t.Surrendered).Length>=(AllPlayers().Filter(t=>t.TeamID != -1 && !t.isKnockOut).Length/SurrenderDivider).Ceil()){
+        //投降［束游戏，布??
+        BigMessage(AllPlayers(), <"多数玩家放弃这把游戏!!\n队伍 <0> 吃鸡!!", Teams.Sort(t=>-1*t.Health).First.ID>);  // 俔Ｐ用activeTeams[0]
+        DeclarePlayerVictory(Teams.Sort(t=>-1*t.Health).First.Members[0]);
+        // 为获胜队伍创??
+    }
+}
+
+rule: '每回合重置投降状态'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(CurrentGamePhase == GamePhase.Preparation)
+{
+    Surrendered = false;
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: <'            \n    <0>    \n',LocalPlayer().Surrendered?IconString(Icon.Checkmark)+'已投降':IconString(Icon.No)+'未投降'>,
+        Text: '按下集合按键可 进行/取消 投降\n只要有一个玩家投降\n游戏就将提前结束',
+        Subheader: <'当前投降人数:<0>/<1>',AllPlayers().Filter(t=>t.TeamID!=-1&&!t.isKnockOut&&t.Surrendered).Length,(AllPlayers().Filter(t=>t.TeamID != -1 && !t.isKnockOut).Length/SurrenderDivider).Ceil()>,
+        VisibleTo: AllPlayers().Filter(t=>CurrentGamePhase == GamePhase.Preparation && CurrentStage >= 2),
+        SortOrder: -999,
+        Location: Location.Top,
+        HeaderColor: LocalPlayer().Surrendered ? Color.Green : Color.Red,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+    );
+}
+
+struct BornHexRef {
+    public Hero BadHero;
+    public HexId Hexid;
+}
+
+globalvar BornHexRef[] BornHexes! = [
+    {BadHero: Hero.Widowmaker, Hexid: HexId.PrecisionLock},
+    {BadHero: Hero.WreckingBall, Hexid: HexId.MeteorStrike},
+    {BadHero: Hero.Sigma, Hexid: HexId.TripleWalnut},
+    {BadHero: Hero.Lucio, Hexid: HexId.WallRideDamageBoost},
+    {BadHero: Hero.Reinhardt, Hexid: HexId.SpringJump},
+    {BadHero: Hero.Juno, Hexid: HexId.HaikeShooter}
+];
+
+rule: '弱势英雄出生海克斯补强'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsGameInProgress())
+if(HasSpawned())
+if(BornHexes.Any(t => t.BadHero == HeroOf()))
+{
+    define bornHexId : (BornHexes.Filter(t => t.BadHero == HeroOf())).First.Hexid;
+    if(!HasHexId(bornHexId)){
+        GrantHexToPlayerById(EventPlayer(), bornHexId);
+    }
+}
+
+playervar Boolean FPSMode = false;
+
+rule: '切换FPS模式'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsCommunicating(EventPlayer(),Communication.UltimateStatus))
+{
+    FPSMode = !FPSMode;
+    SmallMessage(EventPlayer(), FPSMode ? '已开启FPS模式' : '已关闭FPS模式');
+}
+
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HostPlayer()==EventPlayer())
+{
+    CreateHudText(
+        Header: MenuLoop
+    );
+}

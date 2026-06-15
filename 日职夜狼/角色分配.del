@@ -1,0 +1,96 @@
+single struct RoleData {
+    public String Name;
+    public String Icon;
+    public String Des;
+    public Hero[] RoleHeros;
+}
+
+enum RoleType{
+    None,
+    HotelKeeper,
+    Vigilante,
+    Doctor,
+    Trader,
+    Restaurateur,
+    Thief
+}
+
+playervar RoleType CurrentRole;
+
+globalvar RoleData[] RoleData_Pool = [
+    {
+        Name: '错误',
+        Icon: IconString(Icon.QuestionMark),
+        Des: '你没有任何特殊能力',
+        RoleHeros: [Hero.Widowmaker]
+    },
+    {
+        Name: '酒店管理员',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '喵',
+        RoleHeros: [Hero.Sigma]
+    },
+    {
+        Name: '警察',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '你可以选择一个目标，如果该目标被击杀，则你获得该目标',
+        RoleHeros: [Hero.Soldier76,Hero.Cassidy]
+    },
+    {
+        Name: '医生',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '你可以选择一个目标，如果该目标被击杀，则你获得该目标',
+        RoleHeros: [Hero.Mercy]
+    },
+    {
+        Name: '商人',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '你可以选择一个目标，如果该目标被击杀，则你获得该目标',
+        RoleHeros: [Hero.Torbjorn]
+    },
+    {
+        Name: '餐馆老板',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '你可以选择一个目标，如果该目标被击杀，则你获得该目标',
+        RoleHeros: [Hero.Roadhog,Hero.Doomfist]
+    },
+    {
+        Name: '小偷',
+        Icon: HeroIconString(Hero.Widowmaker),
+        Des: '你可以选择一个目标，如果该目标被击杀，则你获得该目标',
+        RoleHeros: [Hero.Sombra,Hero.Tracer]
+    }
+];
+
+rule: '初始化角色数据'
+{
+    CreateHudText(
+        Header: <'你的角色是: <0><1>\n<2>',RoleData_Pool[<Number>LocalPlayer().CurrentRole].Icon,RoleData_Pool[<Number>LocalPlayer().CurrentRole].Name,RoleData_Pool[<Number>LocalPlayer().CurrentRole].Des>,
+    );
+}
+globalvar Any[][] Role_Hero_Pool = [
+    [RoleType.Vigilante,Hero.Cassidy],
+    [RoleType.Vigilante,Hero.Soldier76],
+    [RoleType.Doctor,Hero.Mercy],
+    [RoleType.Trader,Hero.Torbjorn],
+    [RoleType.Restaurateur,Hero.Roadhog],
+    [RoleType.Restaurateur,Hero.Doomfist],
+    [RoleType.Thief,Hero.Sombra],
+    [RoleType.Thief,Hero.Tracer],
+    [RoleType.HotelKeeper,Hero.Sigma]
+].Randomize();
+
+rule: '所有玩家获得角色'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(HostPlayer(),Button.Ability1))
+{
+    Any[] role_hero = Role_Hero_Pool[SlotOf()];
+    CurrentRole = role_hero[0];
+    ForcePlayerHero(EventPlayer(),role_hero[1]);
+}
+playervar Boolean isWolf;
+void ChooseWolfs(){
+    AllPlayers().Randomize().Slice(0,3).isWolf = true;
+}

@@ -1,0 +1,1091 @@
+enum StoryPhase
+{
+    IDLE,
+    ACTIVE,
+    RATING
+}
+
+enum MenuActive
+{
+    StoryMenu,
+    RatingMenu,
+    PlayerFunctionMenu
+}
+
+enum ButtonScale
+{
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+
+globalvar StoryPhase CurrentStoryPhase = StoryPhase.IDLE;
+globalvar Number uniqueButtonID;
+globalvar MenuButton[] Button_Pool;
+globalvar Number MenuCursorSensibility! = 2;
+globalvar Number RatingMenuTimestamp;
+globalvar Any[] StoryRatingResultHudIds = [];
+globalvar Number[] StoryRatingScores = [];
+globalvar Number StoryRatingAverage = 0;
+globalvar Player StoryHost = HostPlayer();
+globalvar Boolean IsStoryBigMessageShowing = false;
+globalvar Boolean IsStoryStartHolding = false;
+globalvar Boolean IsStoryRatingHolding = false;
+globalvar Number StoryHoldStartTimestamp = 0;
+
+playervar Number StoryScore = 5;
+playervar Boolean StoryScoreConfirmed;
+playervar Boolean isInMenu;
+playervar MenuActive menuactive;
+playervar Vector AnchorFacing;
+playervar Number MenuLoop;
+playervar Boolean HoverVisible;
+playervar Boolean isButtonHovered;
+playervar String HoverText;
+playervar String HoverBack;
+playervar Number HoverLineCount;
+playervar Boolean PlayerMenuFlightEnabled = false;
+playervar Boolean PlayerMenuGlideEnabled = false;
+playervar Number PlayerMenuScalePct = 100;
+playervar Number PlayerMenuProjectileSpeedPct = 100;
+
+String CurrentStoryPhaseText_Local():
+    CurrentStoryPhase == StoryPhase.IDLE ? 'IDLE' : (CurrentStoryPhase == StoryPhase.ACTIVE ? 'ACTIVE' : 'RATING');
+
+String STAR_FILLED: '★';
+String STAR_EMPTY: '☆';
+String STAR_FILLED_10: '★★★★★★★★★★';
+String STAR_EMPTY_10: '☆☆☆☆☆☆☆☆☆☆';
+Color STORY_RATING_GOOD_COLOR: CustomColor(144, 214, 118, 255);
+Color STORY_RATING_BAD_COLOR: CustomColor(214, 124, 124, 255);
+Color STORY_RATING_TABLE_COLOR: CustomColor(255, 208, 165, 255);
+Color STORY_STATUS_START_COLOR: CustomColor(144, 214, 118, 255);
+Color STORY_STATUS_RATING_COLOR: CustomColor(214, 124, 124, 255);
+Number STORY_RATING_DURATION: 30;
+Number PLAYER_MENU_SCALE_STEP: 10;
+Number PLAYER_MENU_SCALE_MIN: 10;
+Number PLAYER_MENU_SCALE_MAX: 200;
+Number PLAYER_MENU_PROJECTILE_SPEED_STEP: 10;
+Number PLAYER_MENU_PROJECTILE_SPEED_MIN: 10;
+Number PLAYER_MENU_PROJECTILE_SPEED_MAX: 500;
+Number PLAYER_MENU_FLIGHT_VERTICAL_IMPULSE: 6;
+String STORY_PROGRESS_DOTS: '......';
+
+String RatingStarsText(in Number rating):
+    STAR_FILLED_10.Slice(0, Min(10, Max(0, rating))) + STAR_EMPTY_10.Slice(0, 10 - Min(10, Max(0, rating)));
+
+String RatingNumberText_Local():
+    <'<0>/10', Min(10, Max(0, LocalPlayer().StoryScore))>;
+
+String ConfirmRatingText_Local():
+    <'确定评分（<0>）', Max(0, STORY_RATING_DURATION - RoundToInteger(TotalTimeElapsed() - RatingMenuTimestamp, Rounding.Down))>;
+
+String PlayerMenuFlightText_Local():
+    <'飞行模式：<0>', LocalPlayer().PlayerMenuFlightEnabled ? '开' : '关'>;
+
+String PlayerMenuGlideText_Local():
+    <'滑行模式：<0>', LocalPlayer().PlayerMenuGlideEnabled ? '开' : '关'>;
+
+String PlayerMenuScaleText_Local():
+    <'体型调整\n<0>%', LocalPlayer().PlayerMenuScalePct>;
+
+String PlayerMenuProjectileSpeedText_Local():
+    <'弹道速度\n<0>%', LocalPlayer().PlayerMenuProjectileSpeedPct>;
+
+String StoryHoldDotsText_Local():
+    STORY_PROGRESS_DOTS.Slice(0, Min(6, Max(0, RoundToInteger(TotalTimeElapsed() / 6, Rounding.Down))));
+
+Player[] StoryParticipatingPlayers():
+    AllPlayers().Filter(t => HasSpawned(t));
+
+Boolean AreAllStoryParticipantsConfirmed():
+    StoryParticipatingPlayers().Length > 0 && StoryParticipatingPlayers().IsTrueForAll(t => t.StoryScoreConfirmed);
+
+String StoryRatingTableText_Local():
+    <'——————故事评分表 平均：<0>——————', StoryRatingAverage>;
+
+String StoryStatusText_Local():
+    IsStoryStartHolding ? <'正在上麦<0>', StoryHoldDotsText_Local()> : (IsStoryRatingHolding ? <'正在进入评分<0>', StoryHoldDotsText_Local()> : (CurrentStoryPhase == StoryPhase.ACTIVE ? <'<0><1> 正在讲故事', HeroIconString(HeroOf(StoryHost)), StoryHost> : '目前无人讲故事 长按（Q）上麦'));
+
+Color StoryStatusTextColor_Local():
+    IsStoryStartHolding ? STORY_STATUS_START_COLOR : (IsStoryRatingHolding ? STORY_STATUS_RATING_COLOR : Color.White);
+
+Color StoryRatingTextColor(in Number rating):
+    rating >= 7 ? STORY_RATING_GOOD_COLOR : (rating <= 3 ? STORY_RATING_BAD_COLOR : Color.White);
+
+Color InteratableColor_Local(in Color Default = Color.White, in Color Hover = Color.Orange, in Boolean Visible = false):
+    (LocalPlayer().MenuLoop == EvaluateOnce(<Color>uniqueButtonID)) || Visible ? Hover : Default;
+
+Number CURSOR_X_LOCAL:
+    HorizontalAngleTowards(LocalPlayer(), LocalPlayer().AnchorFacing + EyePosition(LocalPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_X:
+    HorizontalAngleTowards(EventPlayer(), EventPlayer().AnchorFacing + EyePosition(EventPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_Y_LOCAL:
+    -(VerticalFacingAngleOf(LocalPlayer()) - VerticalAngleFromDirection(LocalPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+Number CURSOR_Y:
+    -(VerticalFacingAngleOf(EventPlayer()) - VerticalAngleFromDirection(EventPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+Vector CameraEye_Local:
+    EyePosition(LocalPlayer());
+
+Vector CameraLookat_Local:
+    EyePosition(LocalPlayer()) + FacingDirectionOf(LocalPlayer());
+
+Vector CameraEye:
+    EyePosition();
+
+Vector CameraLookat:
+    EyePosition() + FacingDirectionOf();
+
+Vector CameraDir_Local:
+    Normalize(CameraLookat_Local - CameraEye_Local);
+
+Vector MenuFlatBase1_Local:
+    (-0.25 * Normalize(CrossProduct(Vector(0, 1, 0), CameraDir_Local)));
+
+Vector MenuFlatBase2_Local:
+    (-0.25 * Normalize(CrossProduct(CameraDir_Local, MenuFlatBase1_Local)));
+
+Vector MenuButtonPosition_Local(in Number PosX, in Number PosY):
+    UpdateEveryFrame((CameraEye_Local + DirectionTowards(CameraEye_Local, CameraLookat_Local)) + MenuFlatBase1_Local * PosX + MenuFlatBase2_Local * PosY);
+
+Number[] GetButtonHitBox(in MenuButton b):
+    b.Data.Scale == ButtonScale.Small ? [0.4, 0.2] : (b.Data.Scale == ButtonScale.Medium ? [0.4, 0.3] : [0.6, 0.4]);
+
+single struct MenuButton_Data
+{
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public Number ID;
+    public String Name = '';
+}
+
+class MenuButton
+{
+    public String HoverLabel;
+    public MenuButton_Data Data;
+    public ()=>void OnClick;
+
+    public constructor(
+        in Any header = 'null',
+        in Number posX = 0,
+        in Number posY = 0,
+        in ButtonScale scale = ButtonScale.Medium,
+        in Color ShowColor = Color.White,
+        in Boolean interactable = false,
+        in MenuActive[] ofmenuActives,
+        in String name = '无名氏按钮',
+        in String hover = ''
+    ) {
+        uniqueButtonID++;
+        this.Data = {ID: uniqueButtonID, Interactable: interactable, Name: name, PosX: posX, PosY: posY, ofMenuActives: ofmenuActives, Scale: scale};
+        HoverLabel = hover;
+        Button_Pool += this;
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(Data.ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: header,
+            Position: MenuButtonPosition_Local(Data.PosX, Data.PosY),
+            Scale: <Number>scale,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ShowColor
+        );
+    }
+
+    public void SetOnClick(in ()=>void onClick) {
+        OnClick = onClick;
+    }
+
+    public void SetHoverlabel(in String HoverString) {
+        HoverLabel = HoverString;
+    }
+}
+
+void OpenMenu(Player p! = EventPlayer(), MenuActive name) "sub打开菜单"
+{
+    p.menuactive = name;
+    if (!p.isInMenu) {
+        SetFacing(p, Vector(0, 0, 1), Relative.ToPlayer);
+        p.AnchorFacing = FacingDirectionOf(p);
+        p.isInMenu = true;
+        SetAimSpeed(p, 0.1);
+        SetPrimaryFireEnabled(p, false);
+        SetSecondaryFireEnabled(p, false);
+        DisableHeroHud(p);
+        DisableGameModeHud(p);
+    }
+    SetFacing(p, p.AnchorFacing);
+}
+
+void CloseMenu(in Player p! = EventPlayer())
+{
+    p.isInMenu = false;
+    p.MenuLoop = 0;
+    p.HoverVisible = false;
+    p.HoverText = '';
+    p.HoverBack = '';
+    SetAimSpeed(p, 100);
+    SetPrimaryFireEnabled(p, true);
+    SetSecondaryFireEnabled(p, true);
+    EnableHeroHud(p);
+    EnableGameModeHud(p);
+    SetFacing(p, p.AnchorFacing);
+    MinWait();
+}
+
+MenuButton GetButtonByID(Number id) "sub根据ID获取按钮"
+{
+    foreach (MenuButton b! in Button_Pool.Filter(t => t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+        if (id == b.Data.ID) {
+            return b;
+        }
+    }
+    MinWait();
+}
+
+MenuButton GetButtonByName(String name) "sub根据名字获取按钮"
+{
+    foreach (MenuButton b! in Button_Pool.Filter(t => t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+        if (name == b.Data.Name) {
+            return b;
+        }
+        MinWait();
+    }
+}
+
+void UpdateHoverBack()
+{
+    HoverLineCount = 1;
+    if (HoverText == '') {
+        HoverBack = '';
+        return;
+    }
+
+    String[] lines = HoverText.Split("\n");
+    Number rowCount = lines.Length;
+    Number colCount = 0;
+
+    foreach (String line in lines) {
+        if (line.Length > colCount) {
+            colCount = line.Length;
+        }
+    }
+
+    String result = '';
+    for (define i! = 0; i < rowCount; i++) {
+        for (define j! = 0; j < colCount; j++) {
+            result = result + '███';
+        }
+        if (i < rowCount - 1) {
+            result = result + '\n';
+            HoverLineCount++;
+        }
+    }
+
+    HoverBack = result;
+}
+
+void CreateTestDebugHud()
+{
+
+}
+
+void ClearStoryRatingResultHuds() "清理讲故事评分结果HUD"
+{
+    foreach (Any hud! in StoryRatingResultHudIds) {
+        DestroyHudText(hud);
+    }
+    StoryRatingResultHudIds = [];
+    StoryRatingScores = [];
+    StoryRatingAverage = 0;
+}
+
+void UpdateStoryRatingAverage() "更新故事评分平均值"
+{
+    Number totalScore! = 0;
+
+    foreach (Number score! in StoryRatingScores) {
+        totalScore += score;
+    }
+
+    StoryRatingAverage = StoryRatingScores.Length > 0 ? RoundToInteger(totalScore / StoryRatingScores.Length * 10, Rounding.Nearest) / 10 : 0;
+}
+
+void CreateStoryRatingResultHud(Player p! = EventPlayer()) "创建讲故事评分结果HUD"
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: <'<0><1> <2>/10 ：<3>', HeroIconString(HeroOf(p)), p, p.StoryScore, RatingStarsText(p.StoryScore)>,
+        Location: Location.Left,
+        SortOrder: p.StoryScore * -1,
+        TextColor: StoryRatingTextColor(p.StoryScore)
+    );
+    StoryRatingResultHudIds += LastTextID();
+    StoryRatingScores += p.StoryScore;
+    UpdateStoryRatingAverage();
+}
+
+void FinalizeStoryRating(Player p! = EventPlayer()) "结算讲故事评分"
+{
+    if (p.StoryScoreConfirmed) {
+        return;
+    }
+
+    p.StoryScoreConfirmed = true;
+    CreateStoryRatingResultHud(p);
+    CloseMenu(p);
+    if (CurrentStoryPhase == StoryPhase.RATING && AreAllStoryParticipantsConfirmed()) {
+        CurrentStoryPhase = StoryPhase.IDLE;
+    }
+}
+
+void ApplyPlayerMenuScale(Player p! = EventPlayer())
+{
+    StartScalingPlayer(p, p.PlayerMenuScalePct / 100);
+}
+
+void ApplyPlayerMenuProjectileSpeed(Player p! = EventPlayer())
+{
+    SetProjectileSpeed(p, ProjectileSpeedPercent: p.PlayerMenuProjectileSpeedPct);
+}
+
+void ResetPlayerMenuScaleAndProjectile(Player p! = EventPlayer())
+{
+    p.PlayerMenuScalePct = 100;
+    p.PlayerMenuProjectileSpeedPct = 100;
+    ApplyPlayerMenuScale(p);
+    ApplyPlayerMenuProjectileSpeed(p);
+}
+
+void ApplyPlayerMenuFlightCompatibility(Player p! = EventPlayer())
+{
+    SetCrouchEnabled(p, !(HeroOf(p) == Hero.WreckingBall && p.PlayerMenuFlightEnabled));
+}
+
+void ApplyPlayerMenuGravity(Player p! = EventPlayer())
+{
+    SetGravity(p, p.PlayerMenuFlightEnabled || p.PlayerMenuGlideEnabled ? 0 : 100);
+}
+
+rule: "初始化菜单按钮"
+{
+    new MenuButton(
+        header: '这是故事菜单',
+        posX: 0,
+        posY: 0,
+        scale: ButtonScale.Large,
+        ShowColor: Color.White,
+        interactable: false,
+        ofmenuActives: [MenuActive.StoryMenu],
+        name: 'StoryMenuTitle'
+    );
+
+    new MenuButton(
+        header: '——为刚刚的故事评分吧——',
+        posX: 0,
+        posY: 1.9,
+        scale: ButtonScale.Large,
+        ShowColor: Color.White,
+        interactable: false,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'RatingTitle'
+    );
+
+    new MenuButton(
+        header: '——玩家功能菜单——',
+        posX: 0,
+        posY: 1.9,
+        scale: ButtonScale.Large,
+        ShowColor: Color.White,
+        interactable: false,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerFunctionMenuTitle'
+    );
+
+    new MenuButton(
+        header: RatingStarsText(LocalPlayer().StoryScore),
+        posX: 0,
+        posY: 0.7,
+        scale: ButtonScale.Medium,
+        ShowColor: Color.White,
+        interactable: false,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'RatingStars'
+    );
+
+    new MenuButton(
+        header: '<<',
+        posX: -1,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'RatingMinus'
+    ).SetOnClick(() => {
+        EventPlayer().StoryScore = Max(0, EventPlayer().StoryScore - 1);
+    });
+
+    new MenuButton(
+        header: RatingNumberText_Local(),
+        posX: 0,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: false,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'RatingNumber',
+        hover: '根据你的感受，点击箭头为故事评分！'
+    );
+
+    new MenuButton(
+        header: '>>',
+        posX: 1,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'RatingPlus'
+    ).SetOnClick(() => {
+        EventPlayer().StoryScore = Min(10, EventPlayer().StoryScore + 1);
+    });
+
+    new MenuButton(
+        header: ConfirmRatingText_Local(),
+        posX: 0,
+        posY: -1.25,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.RatingMenu],
+        name: 'ConfirmRating'
+    ).SetOnClick(() => {
+        FinalizeStoryRating(EventPlayer());
+    });
+
+    new MenuButton(
+        header: PlayerMenuFlightText_Local(),
+        posX: -1.65,
+        posY: 0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuFlightToggle'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuFlightEnabled = !EventPlayer().PlayerMenuFlightEnabled;
+        ApplyPlayerMenuGravity(EventPlayer());
+        ApplyPlayerMenuFlightCompatibility(EventPlayer());
+    });
+
+    new MenuButton(
+        header: '闪现',
+        posX: 0,
+        posY: 0,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuBlink'
+    ).SetOnClick(() => {
+        Teleport(EventPlayer(), EyePosition(EventPlayer()) + 10 * FacingDirectionOf(EventPlayer()));
+    });
+
+    new MenuButton(
+        header: PlayerMenuGlideText_Local(),
+        posX: 1.65,
+        posY: 0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuGlideToggle'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuGlideEnabled = !EventPlayer().PlayerMenuGlideEnabled;
+        ApplyPlayerMenuGravity(EventPlayer());
+    });
+
+    new MenuButton(
+        header: '<<',
+        posX: -2.65,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuScaleMinus'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuScalePct = Max(PLAYER_MENU_SCALE_MIN, EventPlayer().PlayerMenuScalePct - PLAYER_MENU_SCALE_STEP);
+        ApplyPlayerMenuScale(EventPlayer());
+    });
+
+    new MenuButton(
+        header: PlayerMenuScaleText_Local(),
+        posX: -1.65,
+        posY: -0.75,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuScaleValue',
+        hover: '设置默认'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuScalePct = 100;
+        ApplyPlayerMenuScale(EventPlayer());
+    });
+
+    new MenuButton(
+        header: '>>',
+        posX: -0.65,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuScalePlus'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuScalePct = Min(PLAYER_MENU_SCALE_MAX, EventPlayer().PlayerMenuScalePct + PLAYER_MENU_SCALE_STEP);
+        ApplyPlayerMenuScale(EventPlayer());
+    });
+
+    new MenuButton(
+        header: '<<',
+        posX: 0.65,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuProjectileSpeedMinus'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuProjectileSpeedPct = Max(PLAYER_MENU_PROJECTILE_SPEED_MIN, EventPlayer().PlayerMenuProjectileSpeedPct - PLAYER_MENU_PROJECTILE_SPEED_STEP);
+        ApplyPlayerMenuProjectileSpeed(EventPlayer());
+    });
+
+    new MenuButton(
+        header: PlayerMenuProjectileSpeedText_Local(),
+        posX: 1.65,
+        posY: -0.75,
+        scale: ButtonScale.Medium,
+        ShowColor: InteratableColor_Local(Default: Color.White, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuProjectileSpeedValue',
+        hover: '设置默认'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuProjectileSpeedPct = 100;
+        ApplyPlayerMenuProjectileSpeed(EventPlayer());
+    });
+
+    new MenuButton(
+        header: '>>',
+        posX: 2.65,
+        posY: -0.75,
+        scale: ButtonScale.Large,
+        ShowColor: InteratableColor_Local(Default: Color.Aqua, Hover: Color.Yellow),
+        interactable: true,
+        ofmenuActives: [MenuActive.PlayerFunctionMenu],
+        name: 'PlayerMenuProjectileSpeedPlus'
+    ).SetOnClick(() => {
+        EventPlayer().PlayerMenuProjectileSpeedPct = Min(PLAYER_MENU_PROJECTILE_SPEED_MAX, EventPlayer().PlayerMenuProjectileSpeedPct + PLAYER_MENU_PROJECTILE_SPEED_STEP);
+        ApplyPlayerMenuProjectileSpeed(EventPlayer());
+    });
+}
+
+rule: "初始化测试HUD"
+{
+    CreateTestDebugHud();
+}
+
+rule: "初始化故事会左侧宣传HUD"
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: '此房间为颜文字可爱捏の故事会\n喜欢每周听故事可以加q群哦',
+        Location: Location.Left,
+        SortOrder: -999,
+        TextColor: CustomColor(255, 105, 180, 255)
+    );
+}
+
+rule: "初始化故事评分表HUD"
+{
+    CreateHudText(
+        VisibleTo: CountOf(StoryRatingResultHudIds) > 0 ? AllPlayers() : null,
+        Text: StoryRatingTableText_Local(),
+        Location: Location.Left,
+        SortOrder: -900,
+        TextColor: STORY_RATING_TABLE_COLOR,
+        Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor
+    );
+}
+
+rule: "初始化故事会右侧群号HUD"
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Header: <'              \n     <0>     \n ', AbilityIconString(Hero.Dva, Button.Ultimate)>,
+        Text: '交流Q群：\n\n1085662260',
+        Location: Location.Right,
+        SortOrder: -999,
+        HeaderColor: STORY_RATING_TABLE_COLOR,
+        TextColor: CustomColor(255, 170, 90, 255)
+    );
+}
+
+rule: "初始化右侧切换英雄提示HUD"
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: <'<0>蹲+互动 切换英雄<0>', IconString(Icon.Happy)>,
+        Location: Location.Right,
+        SortOrder: -998,
+        TextColor: Color.White
+    );
+}
+
+rule: "初始化功能菜单提示HUD"
+{
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Text: '按F打开功能菜单\n长按 Q 讲故事/开放评分',
+        Location: Location.Top,
+        TextColor: Color.White
+    );
+}
+
+rule: "悬停文本初始化"
+{
+    define offset! = -0.2;
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverBack,
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL + offset * LocalPlayer().HoverLineCount),
+        Scale: 3,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Black
+    );
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverText,
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL + offset * LocalPlayer().HoverLineCount),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Yellow
+    );
+}
+
+rule: "指针初始化"
+{
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: InputBindingString(Button.PrimaryFire),
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL, CURSOR_Y_LOCAL),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+
+rule: "故事状态文本初始化"
+{
+    CreateInWorldText(
+        VisibleTo: !LocalPlayer().isInMenu && !IsStoryBigMessageShowing ? LocalPlayer() : null,
+        Header: StoryStatusText_Local(),
+        Position: MenuButtonPosition_Local(0, 1.45),
+        Scale: 3.2,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: StoryStatusTextColor_Local()
+    );
+}
+
+rule: "关闭各"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (IsGameInProgress())
+{
+    DisableAnnouncer();
+    DisableCompletion();
+    DisableGameModeInworldUI();
+    DisableMusic();
+    DisableScoring();
+    EnableSpectate();
+    DisableGameModeHud();
+}
+
+rule: "菜单命中检测"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (IsAlive())
+if (EventPlayer().isInMenu)
+{
+    Wait(RandomReal(0.1, 0.2), WaitBehavior.AbortWhenFalse);
+    EventPlayer().isButtonHovered = false;
+
+    define bns! = Button_Pool.Filter(t => t.Data.ofMenuActives.Contains(EventPlayer().menuactive));
+    MenuButton[] bns_withinCURSOR = bns.Filter(t => AbsoluteValue(CURSOR_X - t.Data.PosX) < GetButtonHitBox(t)[0] && AbsoluteValue(CURSOR_Y - t.Data.PosY) < GetButtonHitBox(t)[1]);
+    MenuButton thebn = FirstOf(bns_withinCURSOR.Sort(t => AbsoluteValue(CURSOR_X - t.Data.PosX) + AbsoluteValue(CURSOR_Y - t.Data.PosY)));
+
+    if (thebn.Data.ID != 0) {
+        EventPlayer().MenuLoop = thebn.Data.ID;
+        EventPlayer().HoverVisible = thebn.HoverLabel != '';
+        EventPlayer().HoverText = thebn.HoverLabel;
+        EventPlayer().isButtonHovered = true;
+        UpdateHoverBack();
+    }
+    if (!EventPlayer().isButtonHovered) {
+        EventPlayer().MenuLoop = 0;
+        EventPlayer().HoverVisible = false;
+    }
+    LoopIfConditionIsTrue();
+}
+
+rule: "近战重置鼠标"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (isInMenu)
+if (IsButtonHeld(Button: Button.Melee) || IsButtonHeld(Button: Button.PrimaryFire) && (AbsoluteValue(CURSOR_X) > 4 || AbsoluteValue(CURSOR_Y) > 2.5))
+{
+    SetFacing(Direction: AnchorFacing);
+}
+
+rule: "按钮点击"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    if (EventPlayer().MenuLoop != 0 && GetButtonByID(EventPlayer().MenuLoop).Data.Interactable) {
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.BuffImpactSound,
+            Position: EyePosition(EventPlayer()),
+            Radius: 150
+        );
+        (<()=>void>GetButtonByID(EventPlayer().MenuLoop).OnClick).Invoke();
+    }
+}
+
+rule: "评分超时自动提交"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (CurrentStoryPhase == StoryPhase.RATING)
+if (!EventPlayer().StoryScoreConfirmed)
+if (TotalTimeElapsed() - RatingMenuTimestamp >= STORY_RATING_DURATION)
+{
+    FinalizeStoryRating(EventPlayer());
+}
+
+rule: "飞行模式跳跃上升"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HasSpawned())
+if (IsAlive())
+if (EventPlayer().PlayerMenuFlightEnabled)
+if (!EventPlayer().isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.Jump))
+{
+    ApplyPlayerMenuGravity(EventPlayer());
+    ApplyImpulse(
+        EventPlayer(),
+        WorldVectorOf(Up(), EventPlayer(), <LocalVector>Transformation.Rotation),
+        PLAYER_MENU_FLIGHT_VERTICAL_IMPULSE,
+        Motion: ContraryMotion.Cancel
+    );
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+    ApplyImpulse(EventPlayer(), Down(), 0.001, Motion: ContraryMotion.Cancel);
+}
+
+rule: "飞行模式蹲键下降"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HasSpawned())
+if (IsAlive())
+if (EventPlayer().PlayerMenuFlightEnabled)
+if (!EventPlayer().isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.Crouch))
+{
+    ApplyPlayerMenuGravity(EventPlayer());
+    ApplyImpulse(
+        EventPlayer(),
+        WorldVectorOf(Down(), EventPlayer(), <LocalVector>Transformation.Rotation),
+        PLAYER_MENU_FLIGHT_VERTICAL_IMPULSE,
+        Motion: ContraryMotion.Cancel
+    );
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+    LoopIfConditionIsTrue();
+    ApplyImpulse(EventPlayer(), Up(), 0.001, Motion: ContraryMotion.Cancel);
+}
+
+rule: "仓鼠飞行时禁用蹲键"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HeroOf(EventPlayer()) == Hero.WreckingBall)
+if (EventPlayer().PlayerMenuFlightEnabled)
+{
+    SetCrouchEnabled(EventPlayer(), false);
+}
+
+rule: "非仓鼠飞行或关闭飞行时恢复蹲键"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HeroOf(EventPlayer()) != Hero.WreckingBall || !EventPlayer().PlayerMenuFlightEnabled)
+{
+    SetCrouchEnabled(EventPlayer(), true);
+}
+
+rule: "F切换玩家功能菜单"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (!IsButtonHeld(EventPlayer(), Button.Crouch))
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    if (EventPlayer().isInMenu && EventPlayer().menuactive == MenuActive.PlayerFunctionMenu) {
+        CloseMenu(EventPlayer());
+    } else {
+        OpenMenu(EventPlayer(), MenuActive.PlayerFunctionMenu);
+    }
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+}
+
+rule: "蹲加互动切换英雄"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (IsButtonHeld(EventPlayer(), Button.Crouch))
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    if (EventPlayer().isInMenu) {
+        SmallMessage(
+            VisibleTo: EventPlayer(),
+            Header: '请先关闭菜单，再切换英雄'
+        );
+        Wait(0.1, WaitBehavior.IgnoreCondition);
+        return;
+    }
+    SetAllowedHeroes(Hero: AllowedHeroes().Filter(t => t != HeroOf(EventPlayer())));
+    Wait(0.2, WaitBehavior.IgnoreCondition);
+    ResetHeroAvailability();
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+}
+
+rule: "已重生重置体型和弹道速度"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (HasSpawned())
+{
+    ResetPlayerMenuScaleAndProjectile(EventPlayer());
+    ApplyPlayerMenuFlightCompatibility(EventPlayer());
+}
+
+rule: "房主长按Q开始讲故事"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer() == HostPlayer())
+if (CurrentStoryPhase == StoryPhase.IDLE)
+if (!EventPlayer().isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    if (!IsStoryStartHolding) {
+        IsStoryStartHolding = true;
+        StoryHoldStartTimestamp = TotalTimeElapsed();
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.BuffExplosionSound,
+            Position: EyePosition(EventPlayer()),
+            Radius: 200
+        );
+    }
+
+    if (TotalTimeElapsed() - StoryHoldStartTimestamp >= 3) {
+        ClearStoryRatingResultHuds();
+        StoryHost = EventPlayer();
+        IsStoryStartHolding = false;
+        StoryHoldStartTimestamp = 0;
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.ExplosionSound,
+            Position: EyePosition(EventPlayer()),
+            Radius: 200
+        );
+        IsStoryBigMessageShowing = true;
+        BigMessage(
+            VisibleTo: AllPlayers(),
+            Header: <'<0><1>\n要开始讲故事啦，准备坐好板凳哦。', HeroIconString(HeroOf(EventPlayer())), EventPlayer()>
+        );
+        foreach (Player p! in AllPlayers()) {
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.GoodPickupEffect,
+                Color: Color.Green,
+                Position: p
+            );
+        }
+        Wait(3);
+        IsStoryBigMessageShowing = false;
+        CurrentStoryPhase = StoryPhase.ACTIVE;
+    }
+
+    Wait(0.05, WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+rule: "房主取消长按Q开始讲故事"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer() == HostPlayer())
+if (CurrentStoryPhase == StoryPhase.IDLE)
+if (!IsButtonHeld(EventPlayer(), Button.Ultimate))
+if (IsStoryStartHolding)
+{
+    IsStoryStartHolding = false;
+    StoryHoldStartTimestamp = 0;
+}
+
+rule: "房主讲故事提示"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer() == HostPlayer())
+if (CurrentStoryPhase == StoryPhase.ACTIVE)
+{
+    SmallMessage(
+        VisibleTo: EventPlayer(),
+        Header: '长按 Q 3秒结束讲故事，开始评分'
+    );
+    Wait(6, WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+rule: "讲故事占用提示"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (CurrentStoryPhase == StoryPhase.ACTIVE)
+if (EventPlayer() != StoryHost)
+if (!EventPlayer().isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    Wait(1, WaitBehavior.AbortWhenFalse);
+    SmallMessage(
+        VisibleTo: EventPlayer(),
+        Header: <'当前<0>正在讲故事，请等待流程结束', StoryHost>
+    );
+    PlayEffect(
+        VisibleTo: EventPlayer(),
+        Type: PlayEffect.BadPickupEffect,
+        Position: EyePosition(EventPlayer()),
+        Radius: 200
+    );
+    Wait(0.1, WaitBehavior.IgnoreCondition);
+}
+
+rule: "房主长按Q切换评分菜单"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer() == HostPlayer())
+if (CurrentStoryPhase == StoryPhase.ACTIVE)
+if (!EventPlayer().isInMenu)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    if (!IsStoryRatingHolding) {
+        IsStoryRatingHolding = true;
+        StoryHoldStartTimestamp = TotalTimeElapsed();
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.BuffExplosionSound,
+            Position: EyePosition(EventPlayer()),
+            Radius: 200
+        );
+        SmallMessage(
+            VisibleTo: EventPlayer(),
+            Header: '正在切换评分菜单'
+        );
+    }
+
+    if (TotalTimeElapsed() - StoryHoldStartTimestamp >= 3) {
+        IsStoryRatingHolding = false;
+        StoryHoldStartTimestamp = 0;
+        PlayEffect(
+            VisibleTo: EventPlayer(),
+            Type: PlayEffect.ExplosionSound,
+            Position: EyePosition(EventPlayer()),
+            Radius: 200
+        );
+        IsStoryBigMessageShowing = true;
+        BigMessage(
+            VisibleTo: AllPlayers(),
+            Header: '故事讲完啦，你的评分是?'
+        );
+        foreach (Player p! in AllPlayers()) {
+            PlayEffect(
+                VisibleTo: AllPlayers(),
+                Type: PlayEffect.GoodPickupEffect,
+                Color: Color.Red,
+                Position: p
+            );
+        }
+        Wait(3);
+        IsStoryBigMessageShowing = false;
+        RatingMenuTimestamp = TotalTimeElapsed();
+        CurrentStoryPhase = StoryPhase.RATING;
+        foreach (Player p! in StoryParticipatingPlayers()) {
+            p.StoryScore = 5;
+            p.StoryScoreConfirmed = false;
+            OpenMenu(p, MenuActive.RatingMenu);
+            MinWait();
+        }
+    }
+
+    Wait(0.05, WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+rule: "房主取消长按Q进入评分"
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer() == HostPlayer())
+if (CurrentStoryPhase == StoryPhase.ACTIVE)
+if (!IsButtonHeld(EventPlayer(), Button.Ultimate))
+if (IsStoryRatingHolding)
+{
+    IsStoryRatingHolding = false;
+    StoryHoldStartTimestamp = 0;
+}
+
+rule: '无敌规则'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    SetDamageReceived(
+        Player: EventPlayer(),
+        DamageDealtPercent: 0
+    );
+}

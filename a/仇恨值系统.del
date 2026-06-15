@@ -1,0 +1,55 @@
+playervar Number[] bot_threat_tables;
+playervar Player bot_Maxthreat_target;
+
+// 仇恨类型枚举
+enum ThreatType {
+    Damage,
+    Healing
+}
+
+// 仇恨事件结构
+single struct ThreatEvent {
+    public Player source;
+    public Number amount;
+    public ThreatType type;
+}
+playervar ThreatEvent[] ThreatQueue = [];
+// 添加仇恨值
+void AddThreat(in Player source, in Number amount, in ThreatType type,in Boolean is_tank = false,in Player[] target) {
+    // 添加到仇恨队列
+    target.ThreatQueue[target.ThreatQueue.Length] = {
+        source: source,
+        amount: amount,
+        type: type
+    };
+}
+
+rule: '处理仇恨队列'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(ThreatQueue.Length>0)
+{
+    define ThreatEvt! = ThreatQueue[0];
+    define multiplier = 1;
+    // 根据仇恨类型调整
+    switch(ThreatEvt.type) {
+        case ThreatType.Damage:
+            multiplier *= 1.0;  // 伤害标准仇恨
+            break;
+        case ThreatType.Healing:
+            multiplier *= 0.5;  // 治疗产生一半仇恨
+            break;
+    }
+    
+    bot_threat_tables[SlotOf(ThreatEvt.source)] = bot_threat_tables[SlotOf(ThreatEvt.source)]+ThreatEvt.amount*multiplier;
+    ModifyVariable(ThreatQueue,Operation.RemoveFromArrayByIndex,0);
+    MinWait();
+    LoopIfConditionIsTrue();
+}
+
+Player[] Sorted_Theat_Rank(in Player bot){
+    return AllLivingPlayers(Team.Team2).Sort(t=>-1*bot.bot_threat_tables[SlotOf(t)]);
+}
+
+

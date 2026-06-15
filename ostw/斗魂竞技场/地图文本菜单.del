@@ -1,0 +1,186 @@
+globalvar Number uniqueButtonID;
+globalvar MenuButton[] Button_Pool;
+playervar Boolean isInMenu;
+playervar MenuActive menuactive;
+playervar Vector AnchorFacing;
+playervar Number MenuLoop;
+playervar Boolean HoverVisible;
+playervar Boolean isButtonHovered;
+playervar String HoverText;
+rule: '钥匙插进去了吗'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+if(EventPlayer().isInMenu)
+{
+    // 每次循环开始时重置悬停状态
+    Wait(RandomReal(0.1,0.2),WaitBehavior.AbortWhenFalse);
+    EventPlayer().isButtonHovered = false;
+
+    define bns = Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive));
+
+    MenuButton[] bns_withinCURSOR = bns.Filter(t=>AbsoluteValue(CURSOR_X - t.Data.PosX) < GetButtonHitBox(t)[0] && AbsoluteValue(CURSOR_Y - t.Data.PosY) < GetButtonHitBox(t)[1]);
+    MenuButton thebn = FirstOf(bns.Sort(t=>AbsoluteValue(CURSOR_X - t.Data.PosX)+AbsoluteValue(CURSOR_Y - t.Data.PosY)));
+
+    if (thebn.Data.ID != 0) {
+                EventPlayer().MenuLoop = thebn.Data.ID;
+                EventPlayer().HoverVisible = thebn.HoverLabel != 0;
+                EventPlayer().HoverText = thebn.HoverLabel;
+                EventPlayer().isButtonHovered = true;
+    }
+    if (!EventPlayer().isButtonHovered) {
+        EventPlayer().MenuLoop = 0;
+        EventPlayer().HoverVisible = false;
+    }
+    LoopIfConditionIsTrue();
+}
+rule: "指针初始化" {
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: InputBindingString(Button.PrimaryFire),
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL,CURSOR_Y_LOCAL),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+globalvar Number MenuCursorSensibility! = 2;
+Number CURSOR_X_LOCAL:
+    HorizontalAngleTowards(LocalPlayer(),LocalPlayer().AnchorFacing+EyePosition(LocalPlayer())) / MenuCursorSensibility;
+
+Number CURSOR_X:
+   HorizontalAngleTowards(EventPlayer(),EventPlayer().AnchorFacing+EyePosition(EventPlayer())) / MenuCursorSensibility;
+Number CURSOR_Y_LOCAL:
+    -(VerticalFacingAngleOf(LocalPlayer())	- VerticalAngleFromDirection(LocalPlayer().AnchorFacing)) / MenuCursorSensibility;
+Number CURSOR_Y:
+    -(VerticalFacingAngleOf(EventPlayer())	- VerticalAngleFromDirection(EventPlayer().AnchorFacing)) / MenuCursorSensibility;
+Vector CameraEye_Local:
+    EyePosition(LocalPlayer());
+
+Vector CameraLookat_Local:
+    EyePosition(LocalPlayer())+FacingDirectionOf(LocalPlayer());
+
+Vector CameraEye:
+    EyePosition();
+
+Vector CameraLookat:
+    EyePosition()+FacingDirectionOf();
+
+Number[] GetButtonHitBox(in MenuButton b):
+    b.Data.Scale == ButtonScale.Small?[0.4, 0.2]:(b.Data.Scale == ButtonScale.Medium?[0.4, 0.3]:[0.6, 0.4]);
+enum MenuActive {
+    HexMenu,
+    RuleMenu,
+    ForgeMenu
+}
+enum ButtonScale {
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+Vector MenuButtonPosition_Local(in Number PosX,in Number PosY):
+    UpdateEveryFrame((CameraEye_Local+DirectionTowards(CameraEye_Local,CameraLookat_Local)) + MenuFlatBase1_Local * PosX + MenuFlatBase2_Local * PosY);
+
+Vector MenuFlatBase1_Local:
+    (-0.25 * Normalize(CrossProduct(Vector(0, 1, 0), CameraDir_Local)));
+
+Vector MenuFlatBase2_Local:
+    (-0.25 * Normalize(CrossProduct(CameraDir_Local, MenuFlatBase1_Local)))  ;
+
+Vector CameraDir_Local:
+    Normalize(CameraLookat_Local - CameraEye_Local);    
+
+single struct MenuButton_Data {
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public Number ID;
+    public String Name = '';
+}
+class MenuButton {
+    public String HoverLabel;
+    public MenuButton_Data Data;
+    public ()=>void OnClick;
+    public constructor(
+        in Any header = 'null',
+        in Number posX = 0,
+        in Number posY = 0,
+        in ButtonScale scale = ButtonScale.Medium,
+        in Color ShowColor = Color.White,
+        in Boolean interactable = false,
+        in MenuActive[] ofmenuActives,
+        in String name = '无名氏按钮'
+    ) {
+        uniqueButtonID++;
+        this.Data = {ID:uniqueButtonID,Interactable:interactable,Name:name,PosX:posX,PosY:posY,ofMenuActives:ofmenuActives,Scale:scale};
+        Button_Pool += this;
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(Data.ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: header,
+            Position: MenuButtonPosition_Local(posX,posY),
+            Scale: <Number>scale,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ShowColor
+        );
+    }
+    public void SetOnClick(in ()=>void onClick) {
+        OnClick = onClick;
+    }
+    public void SetHoverlabel(in String HoverString) {
+        HoverLabel = HoverString;
+    }
+}
+MenuButton GetButtonByID(Number id) "sub根据ID获取按钮" {
+    foreach (MenuButton b! in Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+        if (id == b.Data.ID) {
+            return b;
+        }
+        }
+        MinWait();
+    }
+
+MenuButton GetButtonByName(String name) "sub根据名字获取按钮" {
+        foreach (MenuButton b! in Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+            if (name == b.Data.Name) {
+                return b;
+            }
+            MinWait();
+        }
+    }
+
+rule: 'My Rule'
+{
+    new MenuButton(
+        header: 'test',
+        posX: 0,
+        posY: 1,
+        scale: ButtonScale.Medium,
+        ShowColor: Color.Aqua,
+        interactable: true,
+        ofmenuActives: [MenuActive.ForgeMenu],
+        name: '测试'
+
+    );
+}
+globalvar Vector LocalEyePos;
+globalvar Vector LocalFacing;
+rule: 'My Rule'
+{
+    ChaseVariableAtRate(
+        variable: LocalEyePos,
+        destination: LocalPlayer().EyePosition(),
+        rate: 999999,
+        reevaluation: RateChaseReevaluation.DestinationAndRate
+    );
+    ChaseVariableAtRate(
+        variable: LocalFacing,
+        destination: LocalPlayer().FacingDirection(),
+        rate: 999999,
+        reevaluation: RateChaseReevaluation.DestinationAndRate
+    );
+}

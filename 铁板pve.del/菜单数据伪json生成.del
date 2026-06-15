@@ -1,0 +1,239 @@
+
+enum MenuActive {
+    AreaMenu,
+    EquipMenu
+}
+enum ButtonScale {
+    Small = 2,
+    Medium = 3,
+    Large = 4
+}
+
+struct MenuButton_Data_ {
+    public String Name = '';
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Number Interactable;
+    public MenuActive[] ofMenuActives;
+    public String Label;
+    public String HoverLabel;
+    public Number Color_ID;
+}
+
+globalvar MenuButton_Data_[] ButtonData_Pool_ = [
+    {
+        Name: '退出按钮',
+        PosX: 4,
+        PosY: 2.2,
+        Scale: ButtonScale.Large,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.AreaMenu,MenuActive.EquipMenu],
+        Label: 'X',
+        HoverLabel: '',
+        Color_ID: 1
+    },
+    {
+        Name: '区域一按钮',
+        PosX: 0,
+        PosY: 1,
+        Scale: ButtonScale.Large,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.AreaMenu],
+        Label: '【区域一】',
+        HoverLabel: '进入区域一，扫荡怪物',
+        Color_ID: 0
+    },
+    {
+        Name: '区域二按钮',
+        PosX: 0,
+        PosY: 0,
+        Scale: ButtonScale.Large,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.AreaMenu],
+        Label: '【区域二】',
+        HoverLabel: '进入区域二，扫荡怪物',
+        Color_ID: 0
+    },
+    {
+        Name: '区域三按钮',
+        PosX: 0,
+        PosY: -1,
+        Scale: ButtonScale.Large,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.AreaMenu],
+        Label: '【区域三】',
+        HoverLabel: '进入区域三，扫荡怪物',
+        Color_ID: 0
+    },
+    {
+        Name: '身上装备0',
+        PosX: -3,
+        PosY: 1.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备0】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '身上装备1',
+        PosX: -3,
+        PosY: 1,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备1】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '身上装备2',
+        PosX: -3,
+        PosY: 0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备2】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '身上装备3',
+        PosX: -3,
+        PosY: -0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备3】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '身上装备4',
+        PosX: -3,
+        PosY: -1.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备4】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱0',
+        PosX: 2, // 右侧位置
+        PosY: 1.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱0】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱1',
+        PosX: 3.5,
+        PosY: 1.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱1】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱2',
+        PosX: 2,
+        PosY: 0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱2】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱3',
+        PosX: 3.5,
+        PosY: 0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱3】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱4',
+        PosX: 2,
+        PosY: -0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱4】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '装备箱5',
+        PosX: 3.5,
+        PosY: -0.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '【装备箱5】',
+        HoverLabel: '',
+        Color_ID: 0
+    },
+    {
+        Name: '穿戴按钮',
+        PosX: 2,
+        PosY: -2.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '穿戴',
+        HoverLabel: '穿戴选中装备',
+        Color_ID: 1
+    },
+    {
+        Name: '卸下按钮',
+        PosX: 3.5,
+        PosY: -2.5,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '卸下',
+        HoverLabel: '卸下选中装备',
+        Color_ID: 1
+    },
+    {
+        Name: '装备右翻页',
+        PosX: 4,
+        PosY: 1,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '>',
+        HoverLabel: '下一页',
+        Color_ID: 1
+    },
+    {
+        Name: '装备左翻页',
+        PosX: 0,
+        PosY: 1,
+        Scale: ButtonScale.Medium,
+        Interactable: 1,
+        ofMenuActives: [MenuActive.EquipMenu],
+        Label: '<',
+        HoverLabel: '上一页',
+        Color_ID: 1
+    }
+];
+
+rule: 'My Rule'
+{
+    CreateHudText(Header: ButtonData_Pool_[0].Scale);
+}

@@ -1,0 +1,757 @@
+void RevShuxing(in Player p = EventPlayer()){
+    SetMoveSpeed(MoveSpeedPercent: p.Shuxings.Speed.VirtualShuxing()); 
+}
+playervar Any JumpSkillID!;
+class JumpSkill:Skill{  
+    public constructor(){
+        Name = '腾跃';
+        Des = '腾空到空中';
+        ManaCost = 35;
+        Cooldown = 5;
+        Type = SkillType.Instant;
+    }
+
+    public override void Execute(){
+        PlayEffect(Type: PlayEffect.DoomfistRisingUppercutLeapSound,Position: PositionOf());
+        CreateEffect(Position: EventPlayer(),Type: Effect.WreckingBallPiledriverFireEffect);
+        JumpSkillID = LastCreatedEntity();
+        ApplyImpulse(Player: EventPlayer(),Direction: Up(),Speed: 25);
+        async Down();
+    }
+
+    private void Down()'sub腾跃'{
+        DisableMovementCollisionWithPlayers();
+        WaitUntil(SpeedOfInDirection(EventPlayer(),Vector(0,-1,0))<=0.5,10);
+        SetGravity(EventPlayer(),200);
+        WaitUntil(IsOnGround(),10);
+        if(IsOnGround()){
+            PlayEffect(Type: PlayEffect.DoomfistMeteorStrikeImpactEffect,Position: PositionOf());
+            foreach(Player p in PlayersWithinRadius(PositionOf(),8,Team.Team1,RadiusLOS.SurfacesAndEnemyBarriers)){
+            AddDamageEvent(amount: 75,target: p,source: EventPlayer(),type: DamageType.Physical);
+            }
+        }
+        PlayEffect(Type: PlayEffect.DoomfistMeteorStrikeImpactSound,Position: EventPlayer(),Radius: 200);
+        DestroyEffect(JumpSkillID);
+        EnableMovementCollisionWithPlayers();
+        SetGravity(GravityPercent: 100);
+    }
+}
+class Zican:Skill{  
+    public constructor(){
+        Name = '自惭';
+        Des = '腾空到空中';
+        ManaCost = 1;
+        Cooldown = 3;
+        Type = SkillType.Toggle;
+    }
+
+    public override void OnToggleTick(){
+        Health -= 1;
+    }
+}
+
+class Huifu:Skill{  
+    public constructor(){
+        Name = '回蓝';
+        Des = '腾空到空中';
+        ManaCost = 0;
+        Cooldown = 3;
+        Type = SkillType.Toggle;
+    }
+
+    public override void OnToggleTick(){
+        Mana += 2;
+    }
+}
+
+playervar Player MissleTarget!;
+class Missle : Skill {
+    public constructor() {
+        Name = "飞弹";
+        Des = "快速发射3枚魔法飞弹";
+        ManaCost = 5;
+        Cooldown = 0;
+        Type = SkillType.Channeled;
+        ChannelTime = 1;
+    }
+
+    protected override void OnChannelComplete() {
+        MissleTarget = GetObject(Range: 15);
+        CreateHomingProjectile(ProjectileType: ProjectileType.EchoStickyBomb,Speed: 20,Impulse: 5,Player: EventPlayer(),Lifetime: 5,HomingTarget: MissleTarget,HomingStrength: 0.8,StartPosition: EyePosition(),Direction: DirectionTowards(EyePosition(),MissleTarget)+WorldVectorOf(Localvector: Vector(X:RandomReal(-0.3,0.3),Y: RandomReal(0,0.3))),AffectedTeam: Team.Team1,Amount: 100,Oversize: 0,AmountScalar: 1);
+    }
+}
+
+playervar Player PrayTarget!;
+playervar Any Pray_Effect!;
+class Pray:Skill{  
+    public constructor(){
+        Name = '治愈真言';
+        Des = '腾空到空中';
+        ChannelTime = 2;
+        ManaCost = 10;
+        Cooldown = 0;
+        Type = SkillType.Channeled;
+    }
+    protected override void OnChannelTick() {
+        if(ChannelProgress%20<1){
+            PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: PrayTarget,Radius: 1);
+            PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: PrayTarget,Radius: 150,VisibleTo: PrayTarget);
+            PrayTarget.HealQueue[PrayTarget.HealQueue] = {Amount:10,IsCritical:false,Source:EventPlayer(),Timestamp:TotalTimeElapsed(),Type:HealType.Both,IsSustained:true};
+        }
+        
+    }
+
+    protected override Boolean StartChannelCondition() {
+        return IsAlive(GetObject(isTeam1: false))&&GetObject(isTeam1: false)!=0;
+    }
+    protected override void OnChannelComplete() {
+        PlayEffect(Type: PlayEffect.HealTargetActiveEffect,Position: PrayTarget,Radius: 1);
+        PlayEffect(Type: PlayEffect.BrigitteWhipShotHealAreaSound,Position: PrayTarget,Radius: 150,VisibleTo: EventPlayer());
+        PlayEffect(Type: PlayEffect.BuffImpactSound,Position: PrayTarget,Radius: 150,VisibleTo: EventPlayer());
+        PrayTarget.HealQueue[PrayTarget.HealQueue] = {Amount:50,IsCritical:false,Source:EventPlayer(),Timestamp:TotalTimeElapsed(),Type:HealType.Both,IsSustained:false};
+    }
+    protected override void OnChannelStart() {
+        PrayTarget = GetObject(isTeam1: false);
+    }
+    protected override Boolean BreakChannelCondition(){
+        return IsDead(PrayTarget)||!IsInViewAngle(EventPlayer(),PrayTarget,40);
+    }
+    protected override void OnChannelInterrupted() {
+        SmallMessage(EventPlayer(), "治疗被打断");
+    }
+}
+class PowerStrike : Skill {
+
+    public constructor() {
+        Name = "豪火术";
+        ChannelTime = 2;
+        Cooldown = 3;
+        ManaCost = 10;
+        Type = SkillType.Channeled;
+    }
+    
+    protected override void OnChannelComplete() {
+        PlayEffect(VisibleTo: AllPlayers(),Type: PlayEffect.AsheDynamiteExplosionEffect,Position: EyePosition()+FacingDirectionOf()*2,Radius: 1);
+        ApplyImpulse(Player: EventPlayer(),Direction: -1*FacingDirectionOf(),Speed: 10);
+        async! Haohuoshu();
+    }
+
+    protected void Haohuoshu()'sub 豪火树持续伤害'{
+        define Time! = 0;
+        define Center! = EyePosition()+FacingDirectionOf()*2;
+        define Victims! = PlayersWithinRadius(Center,3,Team.Team1,RadiusLOS.SurfacesAndEnemyBarriers).Filter(t=>IsAlive(t));
+        ApplyImpulse(Player: Victims,Direction: FacingDirectionOf(),Speed: 10);
+        SetStatus(Assister: null,Status: Status.Burning,Duration: 2,Player: Victims);
+        SetStatus(Assister: null,Status: Status.KnockedDown,Duration: 0.5,Player: Victims);
+        while(Time<2){
+            foreach(Player p in Victims){
+                AddDamageEvent(amount: 5,target: p,issustained: true,source: EventPlayer(),type: DamageType.Magical);
+            }
+            Time+=0.2;
+            Wait(0.2);
+        }
+    }
+}
+playervar Boolean isFrenzy;
+playervar Any FrenzyEffectID!;
+class Frenzy : Skill {
+    public constructor() {
+        Name = "狂化";
+        Des = "狂暴状态持续4秒，结束后虚脱3秒";
+        ManaCost = 1;
+        Cooldown = 8;  // 实际冷却时间（不包括虚脱时间）
+        Type = SkillType.Toggle; // 保持Toggle类型
+    }
+
+    // 核心修改：技能激活时禁止再次触发
+    public override Boolean CanTrigger() {
+        return !IsActive;
+    }
+
+    public override void OnToggleStart() {
+        isFrenzy = true;
+        // 属性提升
+        Shuxings.Speed.Abs += 50;
+        Shuxings.CriticalRate.Abs +=50;
+        RevShuxing();
+        // 无敌状态
+        SetStatus(EventPlayer(),null, Status.Unkillable, 4);
+        
+        CreateEffect(Type: Effect.LucioSoundBarrierProtectedEffect, Position: EventPlayer());
+        FrenzyEffectID = LastCreatedEntity();
+
+        // 4秒后自动关闭
+        async! AutoDeactivate();
+    }
+
+    private void AutoDeactivate()'sub自动关闭' {
+        Wait(4);
+            DestroyEffect(FrenzyEffectID);
+            
+            if(IsActive){
+                ActiveToggleSkills = ActiveToggleSkills.Filter(s => s != this);
+                IsActive = false; // 触发OnToggleEnd
+                IsToggling = false;
+                CurrentCooldown = Cooldown;
+                OnToggleEnd();
+            }       
+    }
+
+    public override void OnToggleEnd() {
+        isFrenzy = false;
+        // 移除加成
+        Shuxings.Speed.Abs -= 50;
+        Shuxings.CriticalRate.Abs -=50;
+        RevShuxing();
+             
+        // 虚脱效果(3秒)
+        SetStatus(EventPlayer(),null, Status.Hacked, 3);
+        PlayEffect(Type: PlayEffect.SombraLogoEffect, Position: EventPlayer());
+    }
+}
+
+playervar define CurrentPet!;
+playervar define Spell_Value1;
+playervar define For1!;
+playervar define Spell_Effect1!;
+playervar define Spell_Value2;
+playervar define Tempvar!;
+playervar define Spell_Value3;
+playervar define Spell_Value4!;
+playervar define Spell_Pos1;
+playervar define Spell_Value5!;
+playervar define Spell_Pos2!;
+class Slash : Skill{
+    public constructor() {
+        Name = "爪击";
+        Des = "啊";
+        ManaCost = 10;
+        Cooldown = 6;  // 实际冷却时间（不包括虚脱时间）
+        Type = SkillType.Instant; // 保持Toggle类型
+    }
+
+    public override void Execute(){
+            Spell_Effect1 = LastCreatedEntity();
+            Wait(0.1, WaitBehavior.IgnoreCondition);
+            Spell_Pos2 = [1, -1][RandomReal(0, 1)];
+            Spell_Pos1 = Forward();
+            ChaseVariableAtRate(Spell_Pos1, EyePosition(EventPlayer()) + FacingDirectionOf(EventPlayer()) * 3, 9999, RateChaseReevaluation.DestinationAndRate);
+            Spell_Value1 = Forward();
+            ChaseVariableAtRate(Spell_Value1, Normalize(CrossProduct(FacingDirectionOf(EventPlayer()), Up())), 9999, RateChaseReevaluation.DestinationAndRate);
+            Spell_Value2 = Forward();
+            ChaseVariableAtRate(Spell_Value2, Normalize(CrossProduct(Spell_Value1, FacingDirectionOf(EventPlayer()))), 9999, RateChaseReevaluation.DestinationAndRate);
+            Spell_Value3 = false;
+            ChaseVariableOverTime(Spell_Value3, 2, 0.4, TimeChaseReevaluation.DestinationAndDuration);
+            for (For1 = false; 3; 1)
+            {
+                CreateBeamEffect(LocalPlayer(), BeamType.BadBeam, Spell_Pos1 + Spell_Pos2 * Spell_Value1 * (-4 + 8 * Min(1, Spell_Value3)) * (EvaluateOnce(For1) == 1 ? 0.9 : 0.8) + Spell_Value2 * ([0.5, 1.15, 1.5][EvaluateOnce(For1)] - Min(1, Spell_Value3) * [2.5, 2.3, 1.5][EvaluateOnce(For1)]), Spell_Pos1 + Spell_Pos2 * Spell_Value1 * (-4 + 8 * Max(0, Spell_Value3 - 1)) * (EvaluateOnce(For1) == 1 ? 1 : 0.8) + Spell_Value2 * ([0.5, 1.15, 1.5][EvaluateOnce(For1)] - Max(0, Spell_Value3 - 1) * [2.5, 2.3, 1.5][EvaluateOnce(For1)]), Color.Red, EffectRev.VisibleToPositionAndRadius);
+                ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+            }
+            Spell_Value4 = false;
+            Spell_Value5 = [];
+            while (Spell_Value4 < 0.4)
+            {
+                Tempvar = RemoveFromArray(FilteredArray(PlayersWithinRadius(EyePosition(EventPlayer()), 7, OppositeTeamOf(TeamOf(EventPlayer())), RadiusLOS.Off), EventPlayer() != ArrayElement() && IsInViewAngle(EventPlayer(), EyePosition(ArrayElement()), 80)), Append(CurrentPet, Spell_Value5));
+                AddDamageEvent(amount: 70,target: Tempvar,source: EventPlayer(),type: DamageType.Physical);
+                ModifyVariable(Spell_Value5, Operation.AppendToArray, Tempvar);
+                Tempvar = false;
+                Spell_Value4 += 0.048;
+                Wait(0.048, WaitBehavior.IgnoreCondition);
+            }
+            DestroyEffect(RemoveFromArray(Spell_Effect1, FirstOf(Spell_Effect1)));
+            Wait(0.2, WaitBehavior.IgnoreCondition);
+            Spell_Pos1 = 500 * Up();
+    }
+}
+
+playervar Player ArcaneMissilesTarget!;
+playervar Number ArcaneMissilesTimer!;
+class ArcaneMissiles : Skill {
+    public constructor() {
+        Name = "奥术飞弹";
+        Des = "快速发射3枚魔法飞弹";
+        ManaCost = 25;
+        Cooldown = 4;
+        Type = SkillType.Channeled;
+        ChannelTime = 1;
+    }
+    protected override void OnChannelTick() {
+        if(ChannelProgress<100){
+            ArcaneMissilesTarget = GetObject(Range: 15);
+            if(ChannelProgress%(CurrentElement==ElementState.Arcane?10:20)<=1){
+                CreateHomingProjectile(ProjectileType: ProjectileType.EchoStickyBomb,Speed: 20,Impulse: 5,Player: EventPlayer(),Lifetime: 5,HomingTarget: ArcaneMissilesTarget,HomingStrength: 0.8,StartPosition: EyePosition(),Direction: DirectionTowards(EyePosition(),ArcaneMissilesTarget)+WorldVectorOf(Localvector: Vector(X:RandomReal(-0.3,0.3),Y: RandomReal(0,0.3))),AffectedTeam: Team.Team1,Amount: 100,AmountScalar: 1);
+                if(CurrentElement==ElementState.Arcane){
+                    Mana -= 2;
+                }
+            }
+        }
+    }
+
+    protected override void OnChannelComplete() {
+        ArcaneMissilesTarget = GetObject(Range: 15);
+        CreateHomingProjectile(ProjectileType: ProjectileType.EchoStickyBomb,Speed: 20,Impulse: 5,Player: EventPlayer(),Lifetime: 5,HomingTarget: ArcaneMissilesTarget,HomingStrength: 0.8,StartPosition: EyePosition(),Direction: DirectionTowards(EyePosition(),ArcaneMissilesTarget)+WorldVectorOf(Localvector: Vector(X:RandomReal(-0.3,0.3),Y: RandomReal(0,0.3))),AffectedTeam: Team.Team1,Amount: 200,Oversize: 0.1,ExplosionRadius: 3,AmountScalar: 1);
+    }
+}
+
+playervar Vector Flash_Start!;
+playervar Vector Flash_End!;
+class Flash:Skill{  
+    public constructor(){
+        Name = '闪现';
+        Des = '腾空到空中';
+        ManaCost = 25;
+        Cooldown = 8;
+        Type = SkillType.Instant;
+    }
+
+    public override void Execute(){
+        PlayEffect(Position: EventPlayer(),Type: PlayEffect.TracerRecallDisappearEffect);
+        Flash_Start = PositionOf(EventPlayer());
+
+        Teleport(EventPlayer(),RayCastHitPosition(StartPOS: EyePosition(),EndPOS: EyePosition()+10*FacingDirectionOf(),PlayersToExclude: AllPlayers(),IncludePlayerOwnedObjects: false));
+        Flash_End = PositionOf(EventPlayer());
+
+        if([ElementState.Fire,ElementState.Frozen].Contains(CurrentElement)){
+            async FlashRoute();
+        }
+        if(CurrentElement==ElementState.Arcane){
+            Mana+=ManaCost/2;
+        }
+        
+        PlayEffect(VisibleTo: EventPlayer(),Position: EventPlayer(),Type: PlayEffect.TracerRecallReappearEffect);
+
+        PlayEffect(Position: PositionOf(EventPlayer())+2*FacingDirectionOf(),Type: PlayEffect.TracerRecallReappearSound,Radius: 200);
+
+        PlayEffect(Position: PositionOf(EventPlayer()),Type: PlayEffect.TracerRecallDisappearSound,Radius: 200);
+
+        PlayEffect(Position: PositionOf(EventPlayer()),Type: PlayEffect.RingExplosionSound,Radius: 100);
+    }
+
+    public void FlashRoute()'sub闪现路径特效'{
+        Number Step = RoundToInteger(DistanceBetween(Flash_Start-Flash_End)/2,Rounding.Down);
+        Color color = CurrentElement==ElementState.Fire?Color.Red:(CurrentElement==ElementState.Frozen?Color.SkyBlue:null);
+        for(define i! = 0;i<Step;i++){
+            Vector MidPos = Flash_Start+3*i*Normalize(DirectionTowards(Flash_Start,Flash_End));
+            PlayEffect(Type: PlayEffect.GoodExplosion,Color: color,Position: MidPos,Radius: 1);
+            define Victims! = PlayersWithinRadius(MidPos,3,Team.Team1,RadiusLOS.SurfacesAndEnemyBarriers).Filter(t=>IsAlive(t));
+            if(CurrentElement==ElementState.Frozen){
+                    SetStatus(Player: Victims,Assister: null,Status: Status.Frozen,0.5);
+                }else{
+                    SetStatus(Player: Victims,Assister: null,Status: Status.Burning,1);
+                }
+            foreach(Player p in Victims){
+                AddDamageEvent(amount: 10,target: p,source: EventPlayer(),type: DamageType.Magical);
+            }
+            Wait(0.5/Step);
+        }
+    }
+}
+
+playervar Boolean IsManaShieldActive! = false; // 魔法盾激活状态变量
+playervar Number ManaShieldDamageRatio! = 0.5; // 伤害转换比例：50%伤害由法力值承担
+playervar Any ManaShieldEffect!;
+
+class ManaShield : Skill {
+    public constructor() {
+        Name = "魔法盾";
+        Des = "开启后消耗法力值抵消部分伤害";
+        ManaCost = 0.1; // 开启时消耗的法力值
+        Cooldown = 3;  // 关闭后3秒内不能再次开启
+        Type = SkillType.Toggle;
+    }
+
+    public override void OnToggleStart() {
+        // 设置魔法盾激活状态
+        IsManaShieldActive = true;
+        CreateEffect(Type: Effect.WreckingBallAdaptiveShieldTargetEffect,Position: EventPlayer());
+        ManaShieldEffect = LastCreatedEntity();
+        // 消耗开启法力值
+        Mana -= ManaCost;
+        
+        SmallMessage(EventPlayer(),Header: "魔法盾已激活");
+        
+        // 开始持续效果
+        IsActive = true;
+        IsToggling = true;
+        ActiveToggleSkills += this;
+    }
+
+    public override void OnToggleEnd() {
+        DestroyEffect(ManaShieldEffect);
+        // 关闭魔法盾状态
+        IsManaShieldActive = false;
+
+        
+        SmallMessage(EventPlayer(),Header: "魔法盾已关闭");
+    }
+
+    public override void OnToggleTick(){
+        if(CurrentElement==ElementState.Fire){
+            SetStatus(Assister: null,Status: Status.Burning,Duration: 0.3,Player: EventPlayer());
+            define Victims! = PlayersWithinRadius(Center: EventPlayer(),Radius: 3,Team: Team.Team1,LOSCheck: RadiusLOS.SurfacesAndEnemyBarriers).Filter(t=>IsAlive(t));
+            if(Victims.Length>0){
+                SetStatus(Assister: null,Status: Status.Burning,Duration: 0.3,Player: Victims);
+                foreach(Player p in Victims)
+                {
+                    AddDamageEvent(amount: 2,target: p,issustained: true,source: EventPlayer(),type: DamageType.Magical);
+                }
+            }
+        }
+    }
+
+    public override Boolean BreakToggleCondition() {
+        // 被沉默时自动关闭
+        return Mana==0;
+    }
+}
+
+enum ElementState{
+        Null,
+        Fire,
+        Frozen,
+        Arcane
+    }
+    globalvar ElementState[] AllElementState! = GetAllEnumValues();
+    playervar ElementState CurrentElement! = ElementState.Null; // 当前元素状态
+    playervar ElementState SwitchingElement!;
+    playervar Number ElementSwitch_Timer!;
+class ElementSwitch : Skill {
+    public constructor() {
+        Name = "元素轮转";
+        Des = "开启后每秒自动切换元素形态";
+        ManaCost = 0; // 开启消耗法力值
+        Cooldown = 15;  // 关闭后冷却时间
+        Type = SkillType.Toggle; // 开关技能
+    }
+
+    public override void OnToggleStart() {
+        // 检查法力值
+        if(Mana < 10) {
+            SmallMessage(Header: "法力不足");
+            Abort();
+        }
+        
+        // 扣除法力值
+        Mana -= 10;
+        
+        // 初始化轮转状态(初始触发一次)
+        ElementSwitch_Timer = TotalTimeElapsed()-1;
+        
+        // 初始元素状态
+        SwitchingElement = CurrentElement;
+        
+        // 激活开关状态
+        IsActive = true;
+        IsToggling = true;
+    }
+
+    public override void OnToggleTick() {
+        // 每秒切换一次元素
+        if(TotalTimeElapsed() - ElementSwitch_Timer >= 1) {
+            ElementSwitch_Timer = TotalTimeElapsed();
+            PlayEffect(VisibleTo: EventPlayer(),Position: EventPlayer(),Type: PlayEffect.BuffExplosionSound,Radius: 200);
+            // 切换到下一个元素
+            switch(SwitchingElement) {
+                case ElementState.Null:
+                    SwitchingElement = ElementState.Fire;
+                    this.Name = '元素切换(火焰)';
+                    SmallMessage(EventPlayer(),Header: "火焰形态");
+                    break;
+                case ElementState.Fire:
+                    SwitchingElement = ElementState.Frozen;
+                    this.Name = '元素切换(冰霜)';
+                    SmallMessage(EventPlayer(),Header: "冰霜形态");
+                    break;
+                case ElementState.Frozen:
+                    SwitchingElement = ElementState.Arcane;
+                    this.Name = '元素切换(奥术)';
+                    SmallMessage(EventPlayer(),Header: "奥术形态");
+                    break;
+                case ElementState.Arcane:
+                    SwitchingElement = ElementState.Null;
+                    this.Name = '元素切换';
+                    SmallMessage(EventPlayer(),Header: "默认形态");
+                    break;
+            }
+        }
+    }
+
+    public override void OnToggleEnd() {
+        CurrentElement = SwitchingElement;
+        PlayEffect(VisibleTo: EventPlayer(),Position: EventPlayer(),Type: PlayEffect.RingExplosionSound,Radius: 200);
+    }
+}
+
+class RainDrop : Skill {
+    public constructor() {
+        Name = "造水术";
+        Des = "开启时引导水球持续移动，关闭时在水球位置生成治疗雨区，治疗范围内友军";
+        ManaCost = 0;
+        Cooldown = 10;
+        Type = SkillType.Toggle;
+    }
+
+    public override void OnToggleStart() {
+        Mana -= 15;
+
+        IsActive = true;
+        IsToggling = true;
+        ActiveToggleSkills += this;
+        SmallMessage(EventPlayer(), Header: "开始引导造水术 - 再次按下释放");
+        async! GuideWaterBall();
+        async AutoDeactivate1();
+    }
+    private void AutoDeactivate1()'sub自动关闭1' {
+        Wait(4);
+            if(IsActive){
+                ActiveToggleSkills = ActiveToggleSkills.Filter(s => s != this);
+                IsActive = false; // 触发OnToggleEnd
+                IsToggling = false;
+                CurrentCooldown = Cooldown;
+                OnToggleEnd();
+            }       
+    }
+    public override void OnToggleTick() {
+        if (Mana < ManaCost) {
+            IsActive = false;
+            IsToggling = false;
+            CurrentCooldown = Cooldown;
+            ActiveToggleSkills = ActiveToggleSkills.Filter(s => s != this);
+            OnToggleEnd();
+        } else {
+            Mana -= ManaCost;
+        }
+    }
+
+    public override void OnToggleEnd() {
+        SmallMessage(EventPlayer(), Header: "造水术已关闭 - 释放雨区");
+        async CreateRainArea();
+        DestroyEffect(Spell_Effect1);
+        Spell_Effect1 = [];
+    }
+
+    private void GuideWaterBall() 'sub引导水球' {
+        CreateEffect(AllPlayers(), Effect.Orb, Color.Aqua, Spell_Pos1, 1, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(AllPlayers(), Effect.WreckingBallPiledriverFireSound, false, Spell_Pos1, 500, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+
+        Spell_Pos1 = EyePosition(EventPlayer());
+        Spell_Value1 = FacingDirectionOf(EventPlayer());
+        ChaseVariableAtRate(Spell_Pos1, Spell_Pos1 + Spell_Value1, 8, RateChaseReevaluation.DestinationAndRate);
+        ChaseVariableAtRate(Spell_Value1, DirectionTowards(Spell_Pos1, RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + FacingDirectionOf(EventPlayer()) * 20, AllPlayers(), EventPlayer(), true)), 8, RateChaseReevaluation.DestinationAndRate);
+
+        while (IsActive && IsAlive()) {
+            MinWait();
+            if (RayCastHitPosition(Spell_Pos1, Spell_Pos1 + Spell_Value1, AllPlayers(), EventPlayer(), true) != Spell_Pos1 + Spell_Value1) {
+                Spell_Value1 += 2.5 * RayCastHitNormal(Spell_Pos1, Spell_Pos1 + Spell_Value1, AllPlayers(), EventPlayer(), true);
+            }
+        }
+
+        StopChasingVariable(Spell_Pos1);
+        StopChasingVariable(Spell_Value1);
+    }
+
+    private void CreateRainArea() 'sub创建治疗雨区' {
+        Spell_Value4 = 0;
+        Tempvar = RayCastHitPosition(Spell_Pos1, Spell_Pos1 + 100 * Down(), null, null, true);
+        Extra_Val_Array = [Spell_Pos1, Tempvar, 0];
+        PlayEffect(AllPlayers(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team2, Extra_Val_Array[0], 2);
+
+        CreateEffect(AllPlayers(), Effect.Ring, Color.Blue, Extra_Val_Array[1], 6, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(AllPlayers(), Effect.WreckingBallPiledriverFireSound, false, Extra_Val_Array[1], 500, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(AllPlayers(), Effect.WreckingBallAdaptiveShieldTargetEffect, Color.Team2, Spell_Pos1, 1, EffectRev.VisibleTo);
+        ModifyVariable(Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+
+        while (Spell_Value4 < 7) {
+            Vector rainPos = Extra_Val_Array[0] + RandomReal(0, 6) * DirectionFromAngles(RandomInteger(1, 360), 0);
+            rainPos = 0.1 * Up() + RayCastHitPosition(rainPos, rainPos + 100 * Down(), null, null, true);
+            PlayEffect(AllPlayers(), PlayEffect.RingExplosion, Color.White, rainPos, 2);
+            PlayEffect(AllPlayers(), PlayEffect.RingExplosion, Color.SkyBlue, rainPos + RandomInteger(-1, 1) * (Left() + Forward()) / 2, 2);
+
+            foreach (Player p in PlayersWithinRadius(Extra_Val_Array[1], 6, TeamOf(EventPlayer()), RadiusLOS.Off)) {
+                if (p != EventPlayer() || true) {
+                    AddDHealEvent(amount: 5, target: p, iscritical: false, issustained: true, source: EventPlayer(), type: HealType.Both);
+                }
+            }
+            Spell_Value4 += 0.2;
+            Wait(0.2, WaitBehavior.IgnoreCondition);
+        }
+
+        PlayEffect(AllPlayers(), PlayEffect.TracerRecallDisappearEffect, Color.Team2, Extra_Val_Array[0], 1);
+        DestroyEffect(Spell_Effect1);
+        Extra_Val_Array = [];
+        Spell_Value4 = 0;
+        Spell_Effect1 = [];
+    }
+}
+
+playervar define ElectricClaw_Target!;
+
+class ElectricClaw : Skill {
+    public constructor() {
+        Name = "电爪";
+        Des = "对面前3m内最近的敌人为中心，触发3m范围爆炸，造成100伤害并定身1秒";
+        ManaCost = 20;
+        Cooldown = 5;
+        Type = SkillType.Instant;
+    }
+
+    public override void Execute() {
+        ElectricClaw_Target = GetObject(Range: 3, isTeam1: true);
+        define Center;
+        if (IsDead(ElectricClaw_Target)||ElectricClaw_Target==null){
+            Center = PositionOf()+3*FacingDirectionOf();
+        }
+        else{
+            Center = ElectricClaw_Target;
+        }
+
+        PlayEffect(AllPlayers(), PlayEffect.BadExplosion, Color.Blue, Center, 3);
+
+        foreach (Player p in PlayersWithinRadius(Center, 3, OppositeTeamOf(TeamOf(EventPlayer())), RadiusLOS.SurfacesAndEnemyBarriers)) {
+            AddDamageEvent(amount: 100, target: p, iscritical: false, issustained: false, source: EventPlayer(), type: DamageType.Magical);
+            PlayEffect(AllPlayers(), PlayEffect.DoomfistRisingUppercutImpactEffect, Color.Team2, p, 3);
+            SetStatus(p, null, Status.Rooted, 2);
+            SetStatus(p, null, Status.Stunned, 1);
+        }
+    }
+}
+
+playervar Player[] HealedPlayers!;
+playervar Boolean isSwiftGrace!;
+playervar Any[] SwitftGrace_Effects!;
+
+class SwiftGrace : Skill {
+    public constructor() {
+        Name = "迅捷恩泽";
+        Des = "开启时为自身和所有治疗过的玩家增加30%移动速度，若最近1秒内施加治疗则不消耗法力";
+        ManaCost = 2; // 每0.2秒消耗5法力（无治疗时）
+        Cooldown = 8;
+        Type = SkillType.Toggle;
+    }
+
+    public Boolean IsHealing(){
+        // 检查最近1秒内是否施加了治疗
+        return IsHealingTime != null && TotalTimeElapsed() - IsHealingTime <= 1;
+    }
+
+    public override void OnToggleStart() {
+        isSwiftGrace = true;
+        IsActive = true;
+        IsToggling = true;
+        ActiveToggleSkills += this;
+        HealedPlayers = [];
+
+        // 为施法者添加移速
+        Shuxings.Speed.Abs += 30;
+        RevShuxing();
+
+        // 为施法者添加特效
+        CreateEffect(AllPlayers(), Effect.Soldier76SprintingEffect, Color.Yellow, EventPlayer(), 1, EffectRev.VisibleToPositionAndRadius);
+        SwitftGrace_Effects += LastCreatedEntity();
+
+        SmallMessage(EventPlayer(), Header: "迅捷恩泽已开启");
+    }
+    public override void OnToggleTick() {
+        // 若最近1秒内施加了治疗，免除法力消耗
+        if (IsHealing()) {
+            Mana += ManaCost;
+        }
+    }
+
+    public override void OnToggleEnd() {
+        // 移除施法者移速加成
+        Shuxings.Speed.Abs -= 30;
+        RevShuxing();
+        // 移除所有治疗目标的移速加成
+        for(define i! = 0; i < Min(HealedPlayers.Length, SwitftGrace_Effects.Length); i++){
+            if(HealedPlayers[i] != null){
+                HealedPlayers[i].Shuxings.Speed.Abs -= 30;
+                RevShuxing(HealedPlayers[i]);
+            }
+            if(SwitftGrace_Effects[i] != null){
+                DestroyEffect(SwitftGrace_Effects[i]);
+            }
+        }
+
+        isSwiftGrace = false;
+        SmallMessage(EventPlayer(), Header: "迅捷恩泽已关闭");
+    }
+
+    static void SwiftGraceAction(in Player source){
+    if(!source.HealedPlayers.Contains(EventPlayer())&&EventPlayer()!=source){
+        source.HealedPlayers += EventPlayer();
+        EventPlayer().Shuxings.Speed.Abs += 30;
+        RevShuxing();
+        // 为新治疗目标添加特效
+        CreateEffect(AllPlayers(), Effect.Soldier76SprintingEffect, Color.Yellow, EventPlayer(), 1, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(source.Spell_Effect1, Operation.AppendToArray, LastCreatedEntity());
+    }
+    }
+}
+
+playervar define ThunderStorm_Value1;
+playervar define ThunderStorm_Value2!;
+playervar define ThunderStorm_Value3!;
+playervar define ThunderStorm_Value4!;
+playervar define ThunderStorm_Effect1!;
+
+class ThunderStorm : Skill {
+    public constructor() {
+        Name = "雷霆风暴";
+        Des = "沿朝向发射雷电路径，持续1秒，每0.1秒生成落雷，对2.5米范围内敌人造成100点魔法伤害并定身2秒";
+        ManaCost = 50; // 一次性消耗50法力
+        Cooldown = 20;
+        Type = SkillType.Instant;
+    }
+
+    public override void Execute() {
+
+        // 初始化雷电路径
+        ThunderStorm_Value1 = PositionOf(EventPlayer());
+        ThunderStorm_Value2 = 50 * Normalize(FacingDirectionOf(EventPlayer()) + WorldVectorOf(Forward(), EventPlayer(), LocalVector.Rotation)) + EventPlayer();
+        ChaseVariableAtRate(ThunderStorm_Value1, ThunderStorm_Value2, 15, RateChaseReevaluation.DestinationAndRate);
+
+        // 创建雷电路径特效
+        CreateBeamEffect(AllPlayers(), BeamType.BadBeam, ThunderStorm_Value3 + 100 * Up(), ThunderStorm_Value3, Color.SkyBlue, EffectRev.VisibleToPositionAndRadius);
+        ModifyVariable(ThunderStorm_Effect1, Operation.AppendToArray, LastCreatedEntity());
+
+        SmallMessage(EventPlayer(), Header: "雷霆风暴已释放");
+        async! CastStorm();
+    }
+
+    private void CastStorm() 'sub施放雷霆风暴' {
+        Number duration = 0;
+        while (duration < 1 && IsAlive()) {
+            ThunderStorm_Value4 = 2.5 * DirectionFromAngles(RandomReal(0, 360), false) + Up();
+            ThunderStorm_Value3 = RayCastHitPosition(ThunderStorm_Value1 + ThunderStorm_Value4, ThunderStorm_Value1 + ThunderStorm_Value4 + 100 * Down(), null, EventPlayer(), true);
+
+            // 对范围内敌人造成伤害和定身
+            foreach (Player p in PlayersWithinRadius(ThunderStorm_Value3, 2.5, OppositeTeamOf(TeamOf(EventPlayer())), RadiusLOS.Off)) {
+                AddDamageEvent(amount: 100, target: p, iscritical: false, issustained: false, source: EventPlayer(), type: DamageType.Magical);
+                SetStatus(p, null, Status.KnockedDown, 2);
+                PlayEffect(AllPlayers(), PlayEffect.DoomfistRisingUppercutImpactEffect, Color.Team2, p, 3);
+            }
+
+            // 播放特效
+            PlayEffect(AllPlayers(), PlayEffect.BadExplosion, Color.SkyBlue, ThunderStorm_Value3, 3);
+            PlayEffect(AllPlayers(), PlayEffect.BastionTankCannonExplosionSound, false, ThunderStorm_Value3, 100);
+
+            duration += 0.1;
+            Wait(0.1, WaitBehavior.IgnoreCondition);
+        }
+
+        // 重置变量和特效
+        StopChasingVariable(ThunderStorm_Value1);
+        StopChasingVariable(ThunderStorm_Value2);
+        DestroyEffect(ThunderStorm_Effect1);
+        ThunderStorm_Effect1 = [];
+        ThunderStorm_Value1 = null;
+        ThunderStorm_Value2 = null;
+        ThunderStorm_Value3 = null;
+        ThunderStorm_Value4 = null;
+    }
+}

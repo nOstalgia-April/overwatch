@@ -1,0 +1,432 @@
+variables
+{
+	global:
+		0: nodes_location
+		1: nodes_link
+		2: nodes_basic_distance
+		3: distance_preset
+		4: prev_node_preset
+		5: nodes_index_preset
+		10: checking_nodes
+		20: for_1
+		21: for_2
+
+	player:
+		27: nodes_basic_distance
+		30: start
+		31: end
+		32: path
+		33: now_groups
+		34: for_1
+		35: now
+		36: visited
+		37: now_weight
+		38: nodes_distance
+		39: now_ID
+		40: unvisited_nodes_distance
+		41: nodes_preset_now
+		42: is_first_iteration
+		43: maybe_distance
+		44: nodes_location
+		45: nodes_link
+		46: current
+}
+
+subroutines
+{
+	51: Sub51
+	53: Sub53
+	54: Sub54
+}
+
+rule("铁阪节点")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.nodes_location = Empty Array;
+		"//0-9"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-31.290, 4.550, 39.807));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-16.279, 6.500, 39.847));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-5.221, 8.500, 44.289));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-6.166, 10.500, 34.596));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-11.134, 10.551, 30.036));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-8.087, 10.549, 26.945));
+		Modify Global Variable(nodes_location, Append To Array, Vector(1.377, 7.549, 21.287));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-1.349, 6.390, 17.047));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-18.548, 6.389, 28.763));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-31.655, 6.389, 31.343));
+		"//10-19"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-44.665, 6.549, 33.206));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-46.938, 6.551, 23.636));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-13.292, 11.049, 19.126));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-6.143, 6.391, 12.208));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-14.892, 6.554, 16.419));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-19.007, 6.389, 9.551));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-11.718, 6.412, 4.259));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-3.138, 6.550, -7.425));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-18.857, 6.401, 5.647));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-28.181, 6.549, 21.746));
+		"//20-29"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-27.681, 6.391, 14.610));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-52.338, 8.549, 30.984));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-54.125, 8.550, 9.823));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-48.976, 8.549, 9.416));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-51.312, 9.550, 3.457));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-54.546, 9.549, -1.917));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-49.097, 9.550, -1.921));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-50.950, 9.550, -7.525));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-50.835, 11.549, -13.038));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-25.336, 8.551, 9.252));
+		"//30-39"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-27.676, 10.549, 2.481));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-19.347, 10.550, -4.126));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-19.564, 10.549, -9.575));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-30.795, 11.442, -9.139));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-44.277, 11.550, -12.613));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-41.065, 6.389, 9.838));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-41.037, 7.549, -6.545));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-37.735, 7.553, -22.837));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-36.786, 7.549, -36.927));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-37.382, 6.397, 6.624));
+		"//40-49"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-35.447, 6.391, -14.324));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-21.048, 6.390, -12.974));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-28.142, 6.390, -3.294));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-30.376, 7.105, -8.964));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-7.838, 6.551, -15.830));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-2.463, 6.549, 8.341));
+		Modify Global Variable(nodes_location, Append To Array, Vector(7.648, 7.246, 8.326));
+		Modify Global Variable(nodes_location, Append To Array, Vector(11.751, 9.551, 1.479));
+		Modify Global Variable(nodes_location, Append To Array, Vector(3.309, 6.551, -9.988));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-2.024, 6.550, -13.651));
+		"//50-59"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-39.958, 7.550, -15.285));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-58.609, 11.549, -14.503));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-57.234, 11.549, -23.874));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-56.951, 11.550, -35.874));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-50.900, 11.549, -36.586));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-50.398, 13.500, -27.583));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-52.027, 13.624, -24.327));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-43.254, 13.500, -21.076));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-44.324, 11.550, -35.959));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-40.466, 10.550, -29.658));
+		"//60-69"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-35.818, 10.547, -29.414));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-21.072, 10.550, -26.188));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-21.842, 10.549, -19.463));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-11.877, 10.561, -34.012));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-0.602, 9.549, -46.427));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-9.527, 10.594, -30.879));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-12.894, 8.551, -25.437));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-7.327, 6.550, -19.952));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-7.069, 6.549, -29.373));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-11.953, 6.550, -33.415));
+		"//70-79"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-16.072, 6.551, -27.655));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-22.544, 6.500, -30.631));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-32.521, 7.550, -43.923));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-29.732, 8.549, -36.950));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-30.307, 7.549, -48.414));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-26.348, 6.391, -45.107));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-42.474, 9.549, -51.589));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-34.693, 8.083, -50.797));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-14.789, 7.578, -52.390));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-9.133, 7.550, -49.368));
+		"//80-89"
+		Modify Global Variable(nodes_location, Append To Array, Vector(6.421, 8.550, -41.327));
+		Modify Global Variable(nodes_location, Append To Array, Vector(13.849, 8.551, -34.815));
+		Modify Global Variable(nodes_location, Append To Array, Vector(9.808, 7.550, -25.364));
+		Modify Global Variable(nodes_location, Append To Array, Vector(8.661, 6.551, -13.110));
+		Modify Global Variable(nodes_location, Append To Array, Vector(4.352, 6.549, -13.160));
+		Modify Global Variable(nodes_location, Append To Array, Vector(4.445, 7.549, -24.975));
+		Modify Global Variable(nodes_location, Append To Array, Vector(2.319, 7.550, -36.445));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-2.283, 5.474, -31.382));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-15.217, 5.500, -43.304));
+		Modify Global Variable(nodes_location, Append To Array, Vector(-23.030, 7.551, -35.503));
+		"//90-99"
+		Modify Global Variable(nodes_location, Append To Array, Vector(-15.754, 6.500, 43.598));
+	}
+}
+
+rule("铁阪路径")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.nodes_link[0] = Array(1, 9);
+		Global.nodes_link[1] = Array(0, 8, 90);
+		Global.nodes_link[2] = Array(3, 90);
+		Global.nodes_link[3] = Array(2, 4);
+		Global.nodes_link[4] = Array(3, 5);
+		Global.nodes_link[5] = Array(4, 6, 12);
+		Global.nodes_link[6] = Array(5, 7);
+		Global.nodes_link[7] = Array(6, 8, 13);
+		Global.nodes_link[8] = Array(1, 7, 9, 19);
+		Global.nodes_link[9] = Array(0, 8, 10, 11, 19);
+		Global.nodes_link[10] = Array(9, 11, 19, 21);
+		Global.nodes_link[11] = Array(9, 10, 12);
+		Global.nodes_link[12] = Array(5, 11);
+		Global.nodes_link[13] = Array(7, 14, 16, 45);
+		Global.nodes_link[14] = Array(13, 15);
+		Global.nodes_link[15] = Array(14, 16, 18, 20);
+		Global.nodes_link[16] = Array(13, 15, 17, 18);
+		Global.nodes_link[17] = Array(16, 44, 48, 49);
+		Global.nodes_link[18] = Array(15, 16, 29);
+		Global.nodes_link[19] = Array(8, 9, 10, 20);
+		Global.nodes_link[20] = Array(15, 19, 35, 39);
+		Global.nodes_link[21] = Array(10, 22, 23);
+		Global.nodes_link[22] = Array(21, 24);
+		Global.nodes_link[23] = Array(21, 24, 35);
+		Global.nodes_link[24] = Array(22, 23, 25, 26);
+		Global.nodes_link[25] = Array(24, 27);
+		Global.nodes_link[26] = Array(24, 27);
+		Global.nodes_link[27] = Array(25, 26, 28, 36);
+		Global.nodes_link[28] = Array(27, 34, 51);
+		Global.nodes_link[29] = Array(18, 30);
+		Global.nodes_link[30] = Array(29, 31);
+		Global.nodes_link[31] = Array(30, 32);
+		Global.nodes_link[32] = Array(31, 33);
+		Global.nodes_link[33] = Array(32, 34);
+		Global.nodes_link[34] = Array(28, 33, 57);
+		Global.nodes_link[35] = Array(20, 23, 36, 39);
+		Global.nodes_link[36] = Array(27, 35, 39, 50);
+		Global.nodes_link[37] = Array(38, 40, 50, 62);
+		Global.nodes_link[38] = Array(37, 72, 73);
+		Global.nodes_link[39] = Array(20, 35, 36, 40, 42, 43);
+		Global.nodes_link[40] = Array(37, 39, 41, 50);
+		Global.nodes_link[41] = Array(40, 42, 43, 44);
+		Global.nodes_link[42] = Array(39, 41, 43);
+		Global.nodes_link[43] = Array(39, 41, 42);
+		Global.nodes_link[44] = Array(17, 41, 49, 67);
+		Global.nodes_link[45] = Array(13, 46);
+		Global.nodes_link[46] = Array(45, 47);
+		Global.nodes_link[47] = Array(46, 48);
+		Global.nodes_link[48] = Array(17, 47, 49, 83, 84);
+		Global.nodes_link[49] = Array(17, 44, 48, 84, 87);
+		Global.nodes_link[50] = Array(36, 37, 40);
+		Global.nodes_link[51] = Array(28, 52);
+		Global.nodes_link[52] = Array(51, 53, 56);
+		Global.nodes_link[53] = Array(52, 54);
+		Global.nodes_link[54] = Array(53, 55, 58, 76);
+		Global.nodes_link[55] = Array(54, 56, 57);
+		Global.nodes_link[56] = Array(52, 55, 57);
+		Global.nodes_link[57] = Array(34, 55, 56);
+		Global.nodes_link[58] = Array(54, 59);
+		Global.nodes_link[59] = Array(58, 60);
+		Global.nodes_link[60] = Array(59, 61, 73);
+		Global.nodes_link[61] = Array(60, 62, 63);
+		Global.nodes_link[62] = Array(37, 61);
+		Global.nodes_link[63] = Array(61, 64, 65);
+		Global.nodes_link[64] = Array(63, 79, 80);
+		Global.nodes_link[65] = Array(63, 66);
+		Global.nodes_link[66] = Array(65, 67);
+		Global.nodes_link[67] = Array(44, 66, 68);
+		Global.nodes_link[68] = Array(67, 69);
+		Global.nodes_link[69] = Array(68, 70, 71);
+		Global.nodes_link[70] = Array(71, 69);
+		Global.nodes_link[71] = Array(69, 70, 89);
+		Global.nodes_link[72] = Array(38, 74, 75, 77, 89);
+		Global.nodes_link[73] = Array(38, 60);
+		Global.nodes_link[74] = Array(72, 75, 77, 78);
+		Global.nodes_link[75] = Array(72, 74, 88);
+		Global.nodes_link[76] = Array(54, 77);
+		Global.nodes_link[77] = Array(72, 74, 76);
+		Global.nodes_link[78] = Array(74, 79);
+		Global.nodes_link[79] = Array(64, 78, 88);
+		Global.nodes_link[80] = Array(64, 81, 86);
+		Global.nodes_link[81] = Array(80, 82);
+		Global.nodes_link[82] = Array(81, 83, 85);
+		Global.nodes_link[83] = Array(48, 82, 84);
+		Global.nodes_link[84] = Array(48, 49, 83, 85);
+		Global.nodes_link[85] = Array(82, 84, 86);
+		Global.nodes_link[86] = Array(80, 85, 87);
+		Global.nodes_link[87] = Array(49, 86, 88);
+		Global.nodes_link[88] = Array(75, 79, 87, 89);
+		Global.nodes_link[89] = Array(71, 72, 88);
+		Global.nodes_link[90] = Array(1, 2);
+	}
+}
+
+rule("初始化")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.distance_preset = Empty Array;
+		Global.prev_node_preset = Empty Array;
+		Global.nodes_index_preset = Empty Array;
+		For Global Variable(for_1, 0, Count Of(Global.nodes_location), 1);
+			Modify Global Variable(distance_preset, Append To Array, 9999);
+			Modify Global Variable(prev_node_preset, Append To Array, -1);
+			Modify Global Variable(nodes_index_preset, Append To Array, Global.for_1);
+		End;
+		Global.nodes_basic_distance = Empty Array;
+		For Global Variable(for_1, 0, Count Of(Global.nodes_location), 1);
+			Global.nodes_basic_distance[Global.for_1] = Empty Array;
+			Global.checking_nodes = Global.nodes_link[Global.for_1];
+			For Global Variable(for_2, 0, Count Of(Global.checking_nodes), 1);
+				Modify Global Variable At Index(nodes_basic_distance, Global.for_1, Append To Array, Distance Between(
+					Global.nodes_location[Global.for_1], Global.nodes_location[Global.checking_nodes[Global.for_2]]));
+			End;
+		End;
+	}
+}
+
+rule("沿路径移动")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Button Held(Event Player, Button(Crouch)) == True;
+	}
+
+	actions
+	{
+		disabled Teleport(Event Player, Event Player.start);
+		Wait(0.250, Ignore Condition);
+		Start Throttle In Direction(Event Player, Direction Towards(Eye Position(Event Player), First Of(Event Player.path)), 1, To World,
+			Replace existing throttle, Direction and Magnitude);
+	}
+}
+
+rule("移除路径中已到达的节点")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Count Of(Event Player.path) > 0;
+		Distance Between(Eye Position(Event Player), Vector(X Component Of(First Of(Event Player.path)), Y Component Of(Eye Position(
+			Event Player)), Z Component Of(First Of(Event Player.path)))) < 1;
+	}
+
+	actions
+	{
+		Modify Player Variable(Event Player, path, Remove From Array By Index, 0);
+		If(Count Of(Event Player.path) == 0);
+			Stop Throttle In Direction(Event Player);
+		End;
+	}
+}
+
+rule("sub53 最短路径模块Dijstra")
+{
+	event
+	{
+		Subroutine;
+		Sub53;
+	}
+
+	actions
+	{
+		While(True);
+			Wait(0.025, Ignore Condition);
+			If(Event Player.is_first_iteration == True);
+				Event Player.now = Event Player.start;
+				Event Player.now_ID = Index Of Array Value(Event Player.nodes_location, Event Player.now);
+				Event Player.is_first_iteration = False;
+			Else;
+				Event Player.unvisited_nodes_distance = Filtered Array(Event Player.nodes_distance, Event Player.visited[Index Of Array Value(
+					Event Player.nodes_distance, Current Array Element)] == 0);
+				If(Count Of(Event Player.unvisited_nodes_distance) == 0);
+					Abort;
+				End;
+				Event Player.now_ID = Index Of Array Value(Event Player.nodes_distance, First Of(Sorted Array(
+					Event Player.unvisited_nodes_distance, Current Array Element)));
+				Event Player.now = Event Player.nodes_location[Event Player.now_ID];
+			End;
+			Event Player.visited[Event Player.now_ID] = 1;
+			Event Player.now_groups = Event Player.nodes_link[Event Player.now_ID];
+			For Player Variable(Event Player, for_1, 0, Count Of(Event Player.now_groups), 1);
+				If(Event Player.visited[Event Player.now_groups[Event Player.for_1]] == 0);
+					Event Player.now_weight = Event Player.nodes_basic_distance[Event Player.now_ID][Event Player.for_1];
+					Event Player.maybe_distance = Event Player.nodes_distance[Event Player.now_ID] + Event Player.now_weight;
+					If(Event Player.maybe_distance < Event Player.nodes_distance[Event Player.now_groups[Event Player.for_1]]);
+						Event Player.nodes_distance[Event Player.now_groups[Event Player.for_1]] = Event Player.maybe_distance;
+						Event Player.nodes_preset_now[Event Player.now_groups[Event Player.for_1]] = Event Player.now_ID;
+					End;
+				End;
+			End;
+			If(Event Player.visited[Index Of Array Value(Event Player.nodes_location, Event Player.end)] == 1);
+				Abort;
+			End;
+		End;
+	}
+}
+
+rule("sub51 玩家初始化寻路，即将调用最短路径模块")
+{
+	event
+	{
+		Subroutine;
+		Sub51;
+	}
+
+	actions
+	{
+		Event Player.nodes_location = Global.nodes_location;
+		Event Player.nodes_link = Global.nodes_link;
+		Event Player.visited = Mapped Array(Event Player.nodes_location, 0);
+		Event Player.nodes_distance = Mapped Array(Event Player.nodes_location, 9999);
+		Event Player.nodes_distance[Index Of Array Value(Event Player.nodes_location, Event Player.start)] = 0;
+		Event Player.nodes_preset_now = Mapped Array(Event Player.nodes_location, -1);
+		Event Player.is_first_iteration = True;
+		Event Player.nodes_basic_distance = Global.nodes_basic_distance;
+		Call Subroutine(Sub53);
+		Call Subroutine(Sub54);
+	}
+}
+
+rule("sub54 生成路径图")
+{
+	event
+	{
+		Subroutine;
+		Sub54;
+	}
+
+	actions
+	{
+		Event Player.path = Empty Array;
+		Event Player.current = Event Player.end;
+		While(Event Player.current != Event Player.start);
+			Modify Player Variable(Event Player, path, Append To Array, Event Player.current);
+			Event Player.current = Event Player.nodes_location[Event Player.nodes_preset_now[Index Of Array Value(Event Player.nodes_location,
+				Event Player.current)]];
+		End;
+		Modify Player Variable(Event Player, path, Append To Array, Event Player.start);
+		Event Player.path = Sorted Array(Event Player.path, Current Array Index * -1);
+		For Player Variable(Event Player, for_1, 0, Count Of(Event Player.path) - 1, 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player.path[Event Player.for_1],
+				Event Player.path[Event Player.for_1 + 1], Color(Sky Blue), Visible To);
+		End;
+	}
+}

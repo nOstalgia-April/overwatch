@@ -1,0 +1,514 @@
+import '解压缩.del';
+
+// 全局变量定义：用于路径规划和 Dijkstra 算法
+globalvar Vector[] nodes_location; // 地图节点坐标数组
+globalvar define nodes_link; // 节点间的连接关系（邻接表）
+globalvar define nodes_basic_distance; // 节点间的基础距离矩阵
+globalvar define checking_nodes; // 当前检查的节点邻居列表
+globalvar define for_1; // 外层循环索引
+globalvar define for_2; // 内层循环索引
+globalvar define path_matrix;
+globalvar define g_visited; // Dijkstra 中节点访问标记
+globalvar define g_nodes_distance; // Dijkstra 中到各节点的距离
+globalvar define g_nodes_succ_now; // Dijkstra 中当前后驱节点
+globalvar define for_start; // Dijkstra 起点索引
+globalvar define g_is_first_iteration; // Dijkstra 是否首次迭代
+globalvar define g_now_ID; // 当前处理的节点 ID
+globalvar define g_now_groups!; // 当前节点的邻居列表
+globalvar define g_now_weight; // 当前边权重
+globalvar define g_maybe_distance; // 可能的路径距离
+globalvar define g_unvisited_nodes_distance; // 未访问节点的距离数组
+globalvar define g_predecessor;
+
+// 玩家变量定义：用于玩家和机器人的路径及状态管理
+playervar define path; // 当前路径（节点索引数组）
+playervar define p_for_1; // 玩家循环索引
+playervar define nodes_succ_now; // 玩家当前后驱节点
+playervar define p_nodes_location; // 玩家本地节点坐标
+playervar define p_nodes_link; // 玩家本地节点连接
+playervar define current_ID; // 当前所在节点 ID
+playervar Boolean is_pathfinding; // 是否在寻路状态
+playervar Vector destination; // 目标位置
+playervar Player test_player = HostPlayer(); // 测试玩家（默认主机玩家）
+playervar Player[] bot_targetArray; // 可视范围内敌人数组
+playervar Player bot_target; // 当前目标敌人
+playervar Boolean is_fighting; // 是否在战斗状态
+playervar Number LateralScale; // 横向缩放（未使用）
+playervar Number LockCounter = 0; // 卡住跳跃计数器
+
+// 压缩的节点和连接数据（用于 King's Row 地图）
+globalvar String[] Nodes_location_to_DeCompress = [
+    "v4∫3∫u∞v​​Ω4∫2∫f∞v​​Ω&∫0∫h∞v∑​​Ω1kv∫1∫&∞v​​Ω>∫1∫&∞v​​Ω8∫2∫'∞v5∫2∫d∞v2∫2∫[∞v∑​​Ω.L∫2∫∑1i@∞v∑¯¯∫2∫∑288∞v!∫7∫*∞v∑​​ΩcD∫1∫∑Z¤","v​​Ω8∫1∫∑s^∞v∑​​Ω1¡'∫1∫5∞v∑​​Ω1pĈ∫1∫∑​​Ω{^∞v​​Ω%∫1∫​​Ω5∞v​​Ω5∫1∫​​Ω7∞v∑w³∫1∫∑¡8∞v∑$8∫1∫∑]X∞v3∫1∫​​Ω1∞v1∫1∫​​Ω8∞v∑¯0∫2∫​​Ω7","v∑1t³∫5∫∑​​Ωh'∞v∑1m0∫5∫∑​​Ω,0∞v^∫7∫​​Ω3∞v4∫7∫​​Ω1∞v9∫7∫​​Ω9∞v9∫7∫​​Ω2∞v5∫7∫​​Ω~∞v∑Mv∫7∫∑​​ΩčĄ∞v​​Ω2∫1∫​​Ω#∞v∑:z∫1∫∑​​Ω1]0","v∑1*@∫1∫​​Ω_∞v∑10^∫7∫∑​​Ω2bĐ∞v∑,¯∫7∫∑​​Ω2[j∞v∑​​ΩN{∫1∫∑​​ΩĊ©∞v​​Ω&∫2∫∑​​ΩĐ{∞v∑​​Ω1l{∫2∫∑​​ΩªX∞v∑​​Ω1<Č∫2∫∑​​Ω1>¤∞v∑​​Ω1S³∫1∫​​Ω%","v∑​​Ω1K{∫1∫∑​​Ω1l{∞v∑​​Ω¢T∫1∫∑​​Ω1HĄ∞v∑2j∫1∫∑​​Ω1±z∞v∑​​Ω{Ĉ∫1∫∑​​Ω2Nz∞v∑​​ΩZ¤∫2∫∑​​Ω2®z∞v∑​​Ω®{∫2∫∑​​Ω3|T∞v∑​​Ωs^∫2∫∑​​Ω3M4","v∑​​Ωv<∫7∫∑​​Ω2XT∞v∑​​Ω1`r∫7∫∑​​Ω2ĀĀ∞v​​Ω,∫2∫∑​​Ω3/¤∞v∑​​Ω2*{∫3∫∑​​Ω3j^∞v∑​​Ωo{∫1∫∑​​Ω2.³∞v∑​​Ωďv∫1∫∑​​Ω2c©∞v∑​​Ω15P∫1∫∑​​Ω1č{","v​​Ω;∫1∫∑​​Ω2lj∞v∑​​Ω1¤f∫1∫∑​​Ω2.³∞v∑£r∫0∫∑​​Ω3c@∞v∑¤'∫0∫​​Ωn∞v∑1<Č∫0∫​​Ωn∞v∑K@∫0∫∑​​Ω2oz∞v∑​​Ω!¤∫1∫∑​​Ω2hv∞v∑​​Ω1L¯∫7∫∑S`","v∑​​Ω1IX∫7∫1∞v∑​​Ωēj∫7∫∑​​Ω!¤∞v∑​​Ω'{∫%∫[∞v∑​​ΩTz∫6∫∑2S+∞v∑PL∫1∫∑​​Ω1&f∞v∑​​Ω1Qz∫2∫​​Ωi"
+];
+globalvar String[] Nodes_link_to_DeCompress = [
+    "【1∞6】∞【0∞2∞5∞6】∞【1∞3】∞【2∞4∞#∞!】∞【3】∞【1∞8】∞【0∞1∞7∞9】∞【8∞6】∞【!∞5∞7】∞【~∞6】∞【9】∞【3∞@∞8∞&∞*∞_∞+】∞【%∞!∞&∞*∞^】∞【3∞$∞@】∞【#∞%】∞【$∞@∞^】","【@∞%∞+∞:】∞【*∞!∞@】∞【&∞!∞@∞_】∞【*∞+∞[】∞【^∞:∞_∞[】∞【_∞+∞]】∞【[∞;】∞【]∞'】∞【;∞.∞/】∞【/∞{】∞【{∞/∞}】∞【'∞,∞.】∞【,∞.】∞【.】∞【^∞+∞|∞a∞g】∞【:∞F∞h∞a】","【F∞>】∞【<∞?】∞【>】∞【:∞|∞g∞b】∞【a∞c∞d】∞【b∞e】∞【b∞f】∞【e∞f】∞【e∞u∞t∞r∞s】∞【a∞:∞h∞z∞q∞r∞s∞u】∞【|∞h∞q∞z∞s】∞【z∞q∞j】∞【i∞k】∞【j∞l∞o】∞【k∞v∞m】","【l∞n】∞【m】∞【G∞p∞k】∞【o】∞【i∞z∞h∞g∞r】∞【q∞g∞s∞f∞t】∞【g∞h∞r∞t∞u∞f】∞【f∞s∞r∞G】∞【f∞s∞G】∞【l∞w】∞【v∞x∞y】∞【w】∞【w∞z】∞【g∞h∞i∞q】∞【3∞B】∞【A∞C】","【B∞%】∞【1∞6】∞【1】∞【|∞<】∞【u∞t∞o】"
+];
+
+// 子程序：解压 King's Row 地图的节点和连接数据
+void Initialize_pf() {
+    nodes_location = Decompress(Nodes_location_to_DeCompress); // 解压节点坐标
+    nodes_link = Decompress(Nodes_link_to_DeCompress); // 解压节点连接
+    CreateHudText(Header: CountOf(nodes_link), Text: "已解压pfNodes"); // 显示解压完成的 HUD
+    Init_Optimize_PreCalculate_next_node_matrix();
+}
+
+// 枚举：机器人状态
+enum pf_State {
+    Wander, // 扫荡（随机巡逻）
+    Chase,  // 追踪目标
+    Other   // 其他状态（未使用）
+}
+
+void Init_Optimize_PreCalculate_next_node_matrix() ''{
+    path_matrix = []; // 初始化路径矩阵（替换原 next_node_matrix）
+    nodes_basic_distance = []; // 初始化距离矩阵（不变）
+    define nodeCount = CountOf(nodes_location); // 节点总数（不变）
+    
+    // 初始化节点间距离矩阵（不变）
+    for (for_1 = 0; nodeCount; 1)
+    {
+        nodes_basic_distance[for_1] = []; // 为每个节点创建空距离数组
+        checking_nodes = nodes_link[for_1]; // 获取当前节点的邻居
+        for (for_2 = 0; CountOf(checking_nodes); 1)
+        {
+            ModifyVariable(nodes_basic_distance[for_1], Operation.AppendToArray, 
+                DistanceBetween(nodes_location[for_1], nodes_location[checking_nodes[for_2]])); // 计算并存储两节点间距离
+        }
+    }
+    
+    // 初始化路径矩阵（默认空数组，表示无路径）
+    for (for_1 = 0; nodeCount; 1)
+    {
+        path_matrix[for_1] = MappedArray(nodes_location, []); // 每个[start][end] 默认空路径（替换原 -1 初始化）
+    }
+    
+    // 为每个节点运行 Dijkstra，计算最短路径并构建路径矩阵
+    for (for_1 = 0; nodeCount; 1)
+    {
+        g_visited = MappedArray(nodes_location, 0); // 初始化访问标记（不变）
+        g_nodes_distance = MappedArray(nodes_location, 9999); // 初始化距离为无穷大（不变）
+        g_nodes_distance[for_1] = 0; // 起点距离为 0（不变）
+        g_predecessor = MappedArray(nodes_location, -1); // 新增：初始化前驱数组
+        g_is_first_iteration = true; // 标记首次迭代（不变）
+        for_start = for_1; // 设置起点（不变）
+        SubGlobalDijkstra(); // 运行 Dijkstra 算法（已修改，见下文）
+        
+        // 新增：为每个 end 构建完整路径
+        define WaitCountBuild = 0; // 新增等待计数器，防止构建路径过载
+        for (define end_id = 0; nodeCount; 1)
+        {
+            if (WaitCountBuild >= 10) // 每 10 次循环等待一帧
+            {
+                WaitCountBuild = 0;
+                MinWait();
+            }
+            else
+            {
+                WaitCountBuild += 1;
+            }
+            
+            if (g_nodes_distance[end_id] == 9999) continue; // 无路径，保持空数组
+            define temp_path = [];
+            define curr = end_id;
+            while (curr != for_1)
+            {
+                if (curr == -1) break; // 无路径
+                ModifyVariable(temp_path, Operation.AppendToArray, curr); // 从 end 向前添加节点
+                curr = g_predecessor[curr];
+            }
+            // 反转路径（从起点后第一个节点到终点）
+            temp_path = temp_path.Sort(t=>-1*temp_path.IndexOf(t));
+            path_matrix[for_1][end_id] = temp_path; // 保存路径到矩阵
+        }
+        
+        //MinWait(); // 每个 start 完成后等待一帧，防过载
+    }
+}
+
+void SubGlobalDijkstra() ''{
+    define WaitCount = 0; // 等待计数器，防止服务器过载（不变）
+    while (true)
+    {
+        if (WaitCount >= 10) // 每 10 次循环等待一帧（不变）
+        {
+            WaitCount = 0;
+            MinWait();
+        }
+        else
+        {
+            WaitCount += 1;
+        }
+        
+        if (g_is_first_iteration) // 首次迭代设置起点（不变）
+        {
+            g_now_ID = for_start;
+            g_is_first_iteration = false;
+        }
+        else
+        {
+            // 筛选未访问节点的距离（不变）
+            g_unvisited_nodes_distance = FilteredArray(g_nodes_distance, 
+                g_visited[IndexOfArrayValue(g_nodes_distance, ArrayElement())] == 0);
+            if (CountOf(g_unvisited_nodes_distance) == 0) break; // 所有节点已访问，退出（不变）
+            // 选择未访问节点中距离最小的节点（不变）
+            g_now_ID = IndexOfArrayValue(g_nodes_distance, 
+                FirstOf(SortedArray(g_unvisited_nodes_distance, ArrayElement())));
+        }
+        g_visited[g_now_ID] = 1; // 标记当前节点已访问（不变）
+        g_now_groups = nodes_link[g_now_ID]; // 获取邻居节点（不变）
+        
+        for (for_2 = 0; CountOf(g_now_groups); 1)
+        {
+            define neighbor = g_now_groups[for_2]; // 当前邻居节点（不变）
+            // 检查邻居节点是否有效且未访问（不变）
+            if (neighbor >= 0 && neighbor < CountOf(nodes_location) && g_visited[neighbor] == 0)
+            {
+                g_now_weight = nodes_basic_distance[g_now_ID][for_2]; // 获取边权重（不变）
+                g_maybe_distance = g_nodes_distance[g_now_ID] + g_now_weight; // 计算可能距离（不变）
+                if (g_maybe_distance < g_nodes_distance[neighbor]) // 更新更短路径（不变）
+                {
+                    g_nodes_distance[neighbor] = g_maybe_distance;
+                    g_predecessor[neighbor] = g_now_ID; // 修改：记录前驱（替换原 g_nodes_succ_now 逻辑）
+                }
+            }
+        }
+        
+        if (CountOf(FilteredArray(g_visited, ArrayElement() == 0)) == 0) break; // 所有节点访问完毕（不变）
+    }
+}
+
+// 规则：机器人或玩家沿路径移动
+rule: "MoveAlongPath"
+Event.OngoingPlayer
+if (is_pathfinding)
+if (HasSpawned(EventPlayer()) == true)
+if (CountOf(path) > 0)
+if (IsAlive())
+{
+    Wait(0.25, WaitBehavior.IgnoreCondition); // 每 0.25 秒更新移动
+    StopForcingThrottle(); // 停止现有节流
+    bot_FacingUpdate();
+    StartThrottleInDirection(EventPlayer(), DirectionTowards(EyePosition(EventPlayer()), nodes_location[FirstOf(path)]), 1, Relative.ToWorld, ThrottleBehavior.ReplaceExistingThrottle, ThrottleRev.DirectionAndMagnitude); // 朝路径第一个节点移动
+}
+
+// 规则：移除已到达的路径节点并处理到达终点
+rule: "RemoveReachedNode"
+Event.OngoingPlayer
+if (is_pathfinding)
+if (HasSpawned(EventPlayer()) == true)
+if (CountOf(path) > 0)
+if (DistanceBetween(EyePosition(EventPlayer()), Vector(XOf(nodes_location[FirstOf(path)]), YOf(EyePosition(EventPlayer())), ZOf(nodes_location[FirstOf(path)]))) < 1)
+{
+    ModifyVariable(path, Operation.RemoveFromArrayByIndex, 0); // 移除路径第一个节点
+    if (CountOf(path) == 0) // 路径为空
+    {
+        if(DistanceBetween(EyePosition(EventPlayer()), Vector(XOf(destination), YOf(EyePosition(EventPlayer())), ZOf(destination))) > 1) {
+            is_pathfinding = CalculateSteps(RandomInteger(1,4), end: destination); // 未到达目标，生成 1-4 步路径
+        } else {
+            if(IsDummyBot() && false) { // 未使用的分支（调试用）
+                test_player = RandomValueInArray(AllPlayers(Team.Team2));
+                Teleport(EventPlayer(), RandomValueInArray(nodes_location));
+                is_pathfinding = CalculateSteps(RandomInteger(1,4), end: destination);
+                return;
+            }
+            if(IsDummyBot() && true) { // 到达目标，触发新扫荡
+                is_pathfinding = StartWander();
+                return;
+            }
+            StopThrottleInDirection(EventPlayer()); // 非机器人停止移动
+        }
+    }   
+}
+
+// 函数：获取距离指定位置最近的节点
+Any NearestNode(in Any vector)
+{
+    return FirstOf(SortedArray(nodes_location, DistanceBetween(ArrayElement(), vector))); // 返回最近节点
+}
+
+// 规则：调试显示后驱矩阵尺寸
+rule: "DebugMatrixDimensions"
+{
+    //CreateHudText(Header: <"后驱矩阵横向长度<0>", CountOf(path_matrix[0])>); // 显示矩阵行数
+    //CreateHudText(Header: <"后驱矩阵竖向长度<0>", CountOf(path_matrix)>); // 显示矩阵列数
+}
+
+// 规则：主机玩家按 Ultimate 键显示所有节点
+rule: "VisualizeNodes"
+if(IsButtonHeld(HostPlayer(), Button.Ultimate))
+{
+    //CreateHudText(Header: '已生成节点显示');
+    for(define i = 0; i < CountOf(nodes_location); i++) {
+        CreateEffect(Type: Effect.Sphere, Position: nodes_location[i], Color: Color.White, Radius: 0.5, Reevaluation: EffectRev.Color); // 在每个节点位置创建白色球体
+    }
+}
+
+// 规则：显示路径长度和服务器负载
+rule: "DebugPathAndServerLoad"
+{
+    //CreateHudText(Header: CountOf(LocalPlayer().path)); // 显示玩家路径长度
+    CreateHudText(Header: ServerLoad(), Subheader: ServerLoadAverage()); // 显示服务器负载
+}
+
+// 子程序：计算从起点到终点的路径
+Boolean CalculateSteps(Number steps = 1, Vector end, Vector start = PositionOf()) playervar 'CalculatePath' {
+    start = PositionOf();
+    p_nodes_location = nodes_location;
+    p_nodes_link = nodes_link;
+    CreateIcon(Icon: Icon.ArrowDown, Position: end, IconColor: Color.Red, VisibleTo: EventPlayer());
+    define start_ID = IndexOfArrayValue(p_nodes_location, FirstOf(SortedArray(FilteredArray(nodes_location, IsInLineOfSight(ArrayElement(), EyePosition())), DistanceBetween(ArrayElement(), EyePosition()))));
+    define end_ID = IndexOfArrayValue(p_nodes_location, NearestNode(end));
+    path = []; // 清空路径
+    current_ID = start_ID;
+
+    // 新增：直接获取预计算路径
+    define full_path = path_matrix[start_ID][end_ID];
+    if (CountOf(full_path) == 0) { // 无路径
+        return false;
+    }
+    // 处理起点：如果不在起点且视线不通，添加当前节点（保持原逻辑）
+    if (DistanceBetween(EyePosition(EventPlayer()), Vector(XOf(nodes_location[start_ID]), YOf(EyePosition(EventPlayer())), ZOf(nodes_location[start_ID]))) > 1 && !IsInLineOfSight(nodes_location[start_ID], PositionOf()+Vector(0,0.5,0)) && (SpeedOfInDirection(EventPlayer(), VectorTowards(nodes_location[start_ID], nodes_location[FirstOf(full_path)]))/SpeedOf()) < 0.75 ) {
+        ModifyVariable(path, Operation.AppendToArray, start_ID);
+    }
+
+    // 截取路径：根据 steps 限制长度（steps=1 只取下一个，9999 取全）
+    define limited_path = ArraySlice(full_path, 0, Min(steps, CountOf(full_path)));
+    path = Append(path, limited_path); // 追加到 path
+
+    if (CountOf(path) > 0) {
+        return true;
+    }
+    return false;
+}
+// 规则：主机玩家按副键创建机器人
+rule: "SpawnDummyBots"
+if(IsButtonHeld(HostPlayer(), Button.SecondaryFire) && false)
+{
+    while(CountOf(AllPlayers(Team.Team1)) < 4) {
+        CreateDummyBot(Hero: Hero.Reinhardt, Team: Team.Team1, Slot: -1, Position: HostPlayer()); // 创建 Reinhardt 机器人
+    }
+}
+
+// 规则：机器人按交互键显示路径长度并禁用玩家碰撞
+rule: "BotDebugPath"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(IsAlive())
+if(IsButtonHeld(HostPlayer(), Button.Interact))
+if(false)
+{
+    BigMessage( Header: '已生成路径显示');
+    CreateInWorldText(Header: CountOf(path), Position: EventPlayer(), Scale: 1.5, TextColor: Color.Orange, Clipping: Clipping.DoNotClip, VisibleTo: AllPlayers()); // 显示路径长度
+    CreateInWorldText(Header: <'寻路<0>,战斗<1>', EventPlayer().is_pathfinding, EventPlayer().is_fighting>, Position: EventPlayer(), Scale: 2, Clipping: Clipping.DoNotClip); // 显示机器人状态
+    DisableMovementCollisionWithPlayers(EventPlayer()); // 禁用玩家碰撞
+}
+
+
+
+// 规则：处理机器人卡住，尝试跳跃或传送
+rule: "处理机器人卡住，尝试跳跃或传送"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(is_pathfinding)
+if(SpeedOf() <= 3.5)
+{
+    Wait(3, WaitBehavior.AbortWhenFalse); // 等待 3 秒
+    AbortIf(IsDead() || HasStatus(Status: Status.Frozen) || HasStatus(Status: Status.Stunned) || HasStatus(Status: Status.Asleep) || HasStatus(Status: Status.KnockedDown) || HasStatus(Status: Status.Rooted)); // 中止如果异常状态
+    LockCounter++; // 增加卡住计数
+    PressButton(Button: Button.Jump); // 尝试跳跃
+    if(LockCounter > 2) { // 超过 5 次跳跃未解决
+        if(CountOf(path)>0){
+            Teleport(EventPlayer(), nodes_location[path[0]]); // 传送到路径第一个节点
+        }else{
+            StartWander();
+        }
+        LockCounter = 0; // 重置计数
+    }
+    LoopIfConditionIsTrue(); // 循环检查
+}
+
+// 子程序：机器人开始扫荡（随机巡逻）
+Boolean StartWander() '机器人开始扫荡（随机巡逻）'{
+    define Start_pos : PositionOf(EventPlayer()); // 记录起点
+    define try_count = 0;
+    while(true) {
+        destination = RandomValueInArray(ArraySlice(SortedArray(nodes_location, DistanceBetween(ArrayElement(), EventPlayer())), 0, 20)); // 从最近 20 个节点随机选择目标
+        try_count++;
+        if(CalculateSteps(9999, end: destination, start: Start_pos)) { // 生成全路径
+            break;
+        }
+        if(try_count >= 5){
+            Teleport(EventPlayer(), destination);
+            return StartWander();
+        }
+    }
+    return true; // 扫荡成功开始
+}
+
+
+// 规则：机器人获取目标
+rule: "机器人获取目标"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+{
+
+    bot_targetArray = AllPlayers(Team.Team2).Filter(t => IsInLineOfSight(t, EventPlayer()) && (DistanceBetween(t, EventPlayer()) <= 12 && AbsoluteValue(YOf(PositionOf(t))-YOf(PositionOf(EventPlayer())))<=3) && IsAlive(t) && HasSpawned(t)); // 筛选 12 米内可见敌人
+    if (CountOf(bot_targetArray) > 0) {
+        bot_target = bot_targetArray.Sort(t => DistanceBetween(t, EventPlayer())).First; // 选择最近敌人
+    }
+    Wait(0.5); // 每 0.5 秒更新
+    LoopIfConditionIsTrue();
+}
+
+// 规则：机器人进入战斗状态
+rule: "机器人进入战斗状态"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(!is_fighting)
+if(CountOf(bot_targetArray) > 0)
+{
+    is_pathfinding = false; // 停止寻路
+    bot_FacingUpdate(); // 朝向目标
+    is_fighting = true; // 进入战斗
+    path = []; // 清空路径
+}
+
+// 规则：机器人结束战斗，进入扫荡
+rule: "机器人结束战斗，进入扫荡"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(bot_targetArray.Length == 0)
+if(bot_target == null)
+if(CountOf(path) == 0)
+{
+    Wait(1, WaitBehavior.AbortWhenFalse); // 等待 1 秒
+    is_fighting = false; // 退出战斗
+    is_pathfinding = StartWander(); // 开始扫荡
+    LoopIfConditionIsTrue();
+}
+
+// 规则：机器人结束战斗，进入追踪
+rule: "机器人结束战斗，进入追踪"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(bot_targetArray.Length == 0)
+if(bot_target != null)
+if(is_fighting)
+{
+    Wait(0.2, WaitBehavior.AbortWhenFalse); // 等待 1 秒
+    is_fighting = false; // 退出战斗
+    if(CalculateSteps(999, end: PositionOf(bot_target), start: PositionOf())) { // 尝试追到目标位置
+        is_pathfinding = true; // 进入寻路
+    } else {
+        is_pathfinding = StartWander(); // 追不到则扫荡
+    }
+    Wait(5); // 等待 4 秒
+    bot_target = null; // 清空目标
+    LoopIfConditionIsTrue();
+}
+
+rule: '机器人受到攻击的时候，开始追踪'
+Event.OnDamageTaken
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(bot_targetArray.Length == 0)
+if(!is_fighting)
+{
+    bot_target = Attacker();
+    is_pathfinding = CalculateSteps(999, end: PositionOf(bot_target), start: PositionOf());
+    if(!is_pathfinding){
+        is_pathfinding = StartWander();
+    }
+    Wait(1);
+}
+
+// 子程序：机器人更新朝向（瞄准目标）
+void bot_FacingUpdate() 'UpdateBotFacing' {
+    if(is_pathfinding){
+        StartFacing(EventPlayer(),
+            DirectionTowards(
+                EyePosition(),
+                Vector(XOf(nodes_location[path[0]]),YOf(EyePosition()),ZOf(nodes_location[path[0]]))
+            ),
+            1000,
+            Relative.ToWorld,
+        );
+    }else{
+        StartFacing(EventPlayer(),
+            DirectionTowards(
+                EyePosition(),
+                EyePosition(bot_target) + Down() * DistanceBetween(EventPlayer(), bot_target) * 0.01 + VelocityOf(bot_target) * (DistanceBetween(EventPlayer(), bot_target) * bot_ballistic_velocity + 0.2)
+                +
+                DirectionFromAngles(
+                    HorizontalFacingAngleOf() + RandomReal(
+                        DistanceBetween(EventPlayer(), bot_target) * AbsoluteValue(bot_aming_accuracy) * -1,
+                        DistanceBetween(EventPlayer(), bot_target) * AbsoluteValue(bot_aming_accuracy)
+                    ),
+                    VerticalFacingAngleOf() + RandomReal(
+                        DistanceBetween(EventPlayer(), bot_target) * AbsoluteValue(bot_aming_accuracy) * 0.25 * -1,
+                        DistanceBetween(EventPlayer(), bot_target) * AbsoluteValue(bot_aming_accuracy) * 0.25
+                    )
+                ) * 1
+            ),
+            1000,
+            Relative.ToWorld,
+            FacingRev.DirectionAndTurnRate
+        ); // 调整机器人朝向，考虑目标速度和距离
+    }
+}
+
+// 常量：机器人瞄准参数
+Number bot_ballistic_velocity: -0.003; // 子弹轨迹补偿
+Number bot_aming_accuracy: 0; // 瞄准精度（当前无随机偏移）
+playervar Number bot_attackRange = 5;
+// 规则：机器人战斗时移动
+rule: "机器人战斗时移动"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(bot_target != null)
+if(is_fighting) 
+{
+    StartThrottleInDirection(
+        Player: EventPlayer(),
+        Direction: Vector(
+            DistanceBetween(EventPlayer(), bot_target)>bot_attackRange ?
+            0:
+            EvaluateOnce(RandomValueInArray([-1,0,1])),
+            0,
+            DistanceBetween(EventPlayer(), bot_target)>bot_attackRange ?
+            1:
+            EvaluateOnce(RandomValueInArray([-1,0,1])),
+        ),
+        Magnitude: 1,
+        Relative: Relative.ToPlayer,
+        Behavior: ThrottleBehavior.ReplaceExistingThrottle,
+        Reevaluation: ThrottleRev.DirectionAndMagnitude
+    );
+    Wait(RandomReal(0.5,1),WaitBehavior.AbortWhenFalse);
+    LoopIfConditionIsTrue();
+}
+
+// 规则：机器人非战斗时停止移动
+rule: "机器人非战斗时停止移动"
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot() && IsAlive())
+if(!is_fighting)
+{
+    StopThrottleInDirection();
+}

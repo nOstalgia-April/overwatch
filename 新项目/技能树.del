@@ -1,0 +1,167 @@
+﻿import '图标库.del';
+import '新项目菜单.del';
+import '通用技能树.del';
+//skilltype的顺序是技能id的顺序
+enum SkillType {
+    MeleeBoost,        // ID 0 - 近战强化
+    HarassBleed,       // ID 1 - 骚扰者流血
+    EliteExplosion,    // ID 2 - 精英爆炸
+    CritBoost,         // ID 3 - 致命强化
+    AmmoIncrease,      // ID 4 - 弹匣提升
+    HealthBoost,       // ID 5 - 生命强化
+    MoveSpeedBoost,    // ID 6 - 高速步伐
+    KillRegen,         // ID 7 - 战斗续航
+    FullShield,        // ID 8 - 满血护盾
+    BattleFrenzy,       // ID 9 - 战斗狂热
+    EliteArmor,
+    HarassArmor
+}
+
+enum SkillHero{
+    All,
+    Ash
+}
+globalvar Hero[] AllHeros_ofSkills = [null,Hero.Ashe];
+// =====================
+// 技能数据结构
+// =====================
+single struct SkillData {
+    public Number ID;
+    public PresetIcon Icon;
+    public String Name;
+    public String Des;
+    public Number Level;
+    public Number MaxLevel;
+    public SkillHero Hero;
+    public Number[] Requires;   // 前置技能：存父技能的索引
+    public Number[] Params;
+}
+// =====================
+// 全局技能池
+// =====================
+globalvar SkillData[] Skill_Pool = [];
+playervar SkillData[] Skill_Pool_Local = [];
+// =====================
+// 初始化技能池
+// =====================
+rule: "初始化技能池（测试版）"
+Event.OngoingGlobal
+{
+    InitCurrentSkills();
+    Skill_Pool = Skill_Pool.Sort(t=>t.ID);
+}
+playervar Number Coin = 500;
+playervar Number Crystal = 99999;
+
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+if(Skill_Pool.Length>0)
+if (!IsDummyBot())
+{
+    Skill_Pool_Local = Skill_Pool;
+}
+playervar Boolean isCurrentSkillTree = true;
+void UpdateSkillTreeMenu()''{
+    define H;
+    if(isCurrentSkillTree){
+        H = SkillHero.All;
+    }else{
+        H = FindSkillHero(EventPlayer());
+    }
+    define BNs_ID = Button_LocalPool.Filter(t=>t.Params[1] == SkillHero.All).Map(p=>p.ID);
+    for(define i =0;i<BNs_ID.Length;i++){
+        define BN : Button_LocalPool[BNs_ID[i]];
+        define SkillPoolindex = BN.Params[0];
+        define Skill = Skill_Pool[BN.Params[0]];
+
+        define SkillLocalindex = SkillPoolindex;
+        define Skill_Local : Skill_Pool_Local[SkillLocalindex];
+
+        define newLabel = Skill.Name;
+        
+        define newColor = ColorPreset.White;
+
+       Boolean preSatisfied = RequiresSatisfied(Skill_Local);
+        if (!preSatisfied) {
+            newColor = ColorPreset.Gray;
+        }
+        else if (Skill_Local.Level >= Skill.MaxLevel){
+            newColor = ColorPreset.Green;
+        }
+        newLabel = newLabel + <'(<0>/<1>)', Skill_Local.Level, Skill.MaxLevel>;
+
+        Button_LocalPool[BNs_ID[i]].HoverLabel = Skill.Des;
+        Button_LocalPool[BNs_ID[i]].Label = newLabel;
+        Button_LocalPool[BNs_ID[i]].DefaultColor = newColor;
+    }
+}
+void SkillNodeClick(in MenuButton_Data button)
+{
+    Number skillPoolIndex = button.Params[0];
+    if (skillPoolIndex < 0 || skillPoolIndex >= Skill_Pool.Length) {
+        SmallMessage(EventPlayer(), "无效技能");
+        return;
+    }
+    if (skillPoolIndex == -1) {
+        SmallMessage(EventPlayer(), "未找到技能");
+        return;
+    }
+
+    SkillData skillState = Skill_Pool_Local[skillPoolIndex];
+
+    // 前置条件：Requires 中任意一个技能等级 > 0 即算通过
+    Boolean preSatisfied = RequiresSatisfied(skillState);
+    if (!preSatisfied) {
+        SmallMessage(EventPlayer(), "需要先解锁前置技能");
+        return;
+    }
+
+    // 已经满级？
+    if (skillState.Level >= skillState.MaxLevel) {
+        SmallMessage(EventPlayer(), "已达到最大等级");
+        return;
+    }
+
+    // 消耗（可按需替换成你的实际公式）
+    Number upgradeCost = 100 + skillState.Level * 50;
+    if (Coin < upgradeCost) {
+        SmallMessage(EventPlayer(), "金币不足，需要"+upgradeCost+'金币');
+        return;
+    }
+
+    Coin -= upgradeCost;
+    Skill_Pool_Local[skillPoolIndex].Level += 1;
+
+    // 升级成功后刷新 UI
+    UpdateSkillTreeMenu();
+    SmallMessage(EventPlayer(), <'升级成功：<0> Lv.<1>', skillState.Name, Skill_Pool_Local[skillPoolIndex].Level>);
+}
+SkillHero FindSkillHero(in Player p = EventPlayer()){
+    return <SkillHero>AllHeros_ofSkills.IndexOf(HeroOf(p));
+}
+Boolean RequiresSatisfied(SkillData skillState)'判断前置条件'{
+    // 前置条件：Requires 中任意一个技能等级 > 0 即算通过
+    if (skillState.Requires.Length == 0) return true;
+    foreach (Number parentIndex in skillState.Requires) {
+        if (parentIndex >= 0 && parentIndex < Skill_Pool.Length) {
+            if (parentIndex != -1 && Skill_Pool_Local[parentIndex].Level > 0) {
+                return true;
+                break;
+            }
+        }
+    }
+    return false;
+}
+
+void OpenCurrentSkillTreeMenu(){
+    isCurrentSkillTree = true;
+    UpdateSkillTreeMenu();
+}
+void OpenHeroSkillTreeMenu(){
+    isCurrentSkillTree = false;
+    UpdateSkillTreeMenu();
+}

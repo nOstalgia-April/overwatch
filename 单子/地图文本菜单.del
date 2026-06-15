@@ -1,0 +1,265 @@
+globalvar Number uniqueButtonID;
+globalvar Vector Menu_Center;
+globalvar Vector Menu_Base1;
+globalvar Vector Menu_Base2;
+globalvar MenuButton[] Button_Pool;
+playervar Boolean isInMenu;
+playervar MenuActive menuactive;
+playervar Vector AnchorFacing;
+playervar Number MenuLoop;
+playervar Boolean HoverVisible;
+playervar Boolean isButtonHovered;
+playervar String HoverText;
+rule: '钥匙插进去了吗'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsAlive())
+if(EventPlayer().isInMenu)
+{
+    // 每次循环开始时重置悬停状态
+    Wait(0.02);
+    EventPlayer().isButtonHovered = false;
+
+    define bns = Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive));
+
+    MenuButton[] bns_withinCURSOR = bns.Filter(t=>AbsoluteValue(CURSOR_X - t.Data.PosX) < GetButtonHitBox(t)[0] && AbsoluteValue(CURSOR_Y - t.Data.PosY) < GetButtonHitBox(t)[1]);
+    MenuButton thebn = FirstOf(bns_withinCURSOR.Sort(t=>AbsoluteValue(CURSOR_X - t.Data.PosX)+AbsoluteValue(CURSOR_Y - t.Data.PosY)));
+    if (![0].Contains(thebn.Data.ID)) {
+                thebn.OnHover();
+                EventPlayer().MenuLoop = thebn.Data.ID;
+                EventPlayer().HoverVisible = thebn.HoverLabel != 0;
+                EventPlayer().HoverText = thebn.HoverLabel;
+                EventPlayer().isButtonHovered = true;
+                UpdateHoverBack();
+    }
+    if (!EventPlayer().isButtonHovered) {
+        EventPlayer().MenuLoop = 0;
+        EventPlayer().HoverVisible = false;
+        EventPlayer().HoverText = '';
+    }
+    LoopIfConditionIsTrue();
+}
+rule: "指针初始化" {
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu ? LocalPlayer() : null,
+        Header: InputBindingString(Button.PrimaryFire),
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL,CURSOR_Y_LOCAL),
+        Scale: 1.8,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.White
+    );
+}
+globalvar Number MenuCursorSensibility! = 1;
+Number CURSOR_X_LOCAL:
+    HorizontalAngleTowards(LocalPlayer(),LocalPlayer().AnchorFacing+EyePosition(LocalPlayer())) / MenuCursorSensibility;
+Number CURSOR_X:
+   HorizontalAngleTowards(EventPlayer(),EventPlayer().AnchorFacing+EyePosition(EventPlayer())) / MenuCursorSensibility;
+Number CURSOR_Y_LOCAL:
+    -(VerticalFacingAngleOf(LocalPlayer())	- VerticalAngleFromDirection(LocalPlayer().AnchorFacing)) / MenuCursorSensibility;
+Number CURSOR_Y:
+    -(VerticalFacingAngleOf(EventPlayer())	- VerticalAngleFromDirection(EventPlayer().AnchorFacing)) / MenuCursorSensibility;
+
+Number[] GetButtonHitBox(in MenuButton b):
+    b.Data.Scale == ButtonScale.Small?[0.3, 0.2]:(b.Data.Scale == ButtonScale.Medium?[0.4, 0.3]:[0.7, 0.5]);
+enum MenuActive {
+    TFMenu,
+    ShopMenu
+}
+enum ButtonScale {
+    Small = 1.5,
+    Medium = 2.3,
+    Large = 4
+}
+Vector MenuButtonPosition_Local(in Number PosX,in Number PosY):
+    UpdateEveryFrame(Menu_Center + (Menu_Base1 * PosX) + (Menu_Base2 * PosY));
+
+single struct MenuButton_Data {
+    public Number PosX;
+    public Number PosY;
+    public ButtonScale Scale;
+    public Boolean Interactable;
+    public MenuActive[] ofMenuActives;
+    public Number ID;
+    public Number _P;
+}   
+class MenuButton {
+    public String HoverLabel;
+    public MenuButton_Data Data;
+    public ()=>void OnClick;
+    public ()=>void OnHover;
+    public constructor(
+        in Any header = 'null',
+        in Number posX = 0,
+        in Number posY = 0,
+        in ButtonScale scale = ButtonScale.Medium,
+        in Color ShowColor = Color.White,
+        in Boolean interactable = false,
+        in MenuActive[] ofmenuActives,
+        in Number _p = 0
+    ) {
+        uniqueButtonID++;
+        this.Data = {ID:uniqueButtonID,Interactable:interactable,_P:_p,PosX:posX,PosY:posY,ofMenuActives:ofmenuActives,Scale:scale};
+        Button_Pool += this;
+        CreateInWorldText(
+            VisibleTo: LocalPlayer().isInMenu && ArrayContains(Data.ofMenuActives, LocalPlayer().menuactive) ? LocalPlayer() : null,
+            Header: header,
+            Position: MenuButtonPosition_Local(posX,posY),
+            Scale: <Number>scale,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+            TextColor: ShowColor
+        );
+    }
+    public MenuButton SetOnClick(in ()=>void onClick) {
+        OnClick = onClick;
+        return this;
+    }
+    public MenuButton SetOnHover(in ()=>void onHover) {
+        OnHover = onHover;
+        return this;
+    }
+    public void SetHoverlabel(in String HoverString) {
+        HoverLabel = HoverString;
+    }
+}
+MenuButton GetButtonByID(Number id) "sub根据ID获取按钮" {
+    foreach (MenuButton b! in Button_Pool.Filter(t=>t.Data.ofMenuActives.Contains(EventPlayer().menuactive))) {
+        if (id == b.Data.ID) {
+            return b;
+        }
+        }
+        MinWait();
+    }
+globalvar Vector[] MenuCameraSet = [Vector(0,100,0),Vector(0,0,5)];
+void InitMenuVectors(){
+    define menuEye = MenuCameraSet[0];
+    define menuLookat = MenuCameraSet[1];
+    define menuDir = DirectionTowards(menuEye, menuLookat);
+
+    Menu_Center = menuEye + menuDir;
+    Menu_Base1 = (-0.25 * Normalize(CrossProduct(Vector(0, 1, 0), menuDir)));
+    Menu_Base2 = (-0.25 * Normalize(CrossProduct(menuDir, Menu_Base1)));
+}
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+{
+    CreateHudText(
+        Header: MenuLoop
+    );
+    OpenMenu(name: MenuActive.TFMenu);
+}
+
+
+void OpenMenu(MenuActive name,Player p! = EventPlayer())'sub打开菜单'{
+    StartCamera(EventPlayer(),MenuCameraSet[0],MenuCameraSet[1],200);
+    p.menuactive = name;
+    if (!p.isInMenu) {
+        SetFacing(p,Vector(0,0,1),Relative.ToPlayer);
+        p.AnchorFacing = FacingDirectionOf(p);
+        p.isInMenu = true;
+        SetAimSpeed(p, 0.1);
+        SetPrimaryFireEnabled(p, false);
+        SetSecondaryFireEnabled(p, false);
+        DisableHeroHud(p);
+        DisableGameModeHud(p);
+    }
+    
+    switch (name) {
+        case MenuActive.TFMenu:
+            //OpenHexMenu();
+            break;
+    }
+    SetFacing(p,p.AnchorFacing);
+}
+
+rule: '初始化菜单向量'
+{
+    InitMenuVectors();
+}
+
+Color InteratableColor_Local(in Color Default=Color.White,in Color Hover=Color.Orange):
+    (LocalPlayer().MenuLoop==EvaluateOnce(<Color>uniqueButtonID))?Hover:Default;
+
+rule: "按钮点击" 
+Event.OngoingPlayer
+Team.All
+Player.All
+if (EventPlayer().isInMenu && IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    if (EventPlayer().MenuLoop != 0 && GetButtonByID(EventPlayer().MenuLoop).Data.Interactable) {
+            (<()=>void>GetButtonByID(EventPlayer().MenuLoop).OnClick).Invoke();
+    }
+}
+playervar String HoverBack;
+playervar Number HoverLineCount;
+void UpdateHoverBack() {
+    HoverLineCount = 1;
+    // 如果 HoverText 为空，直接设置 HoverBack 为空
+    if (HoverText == '') {
+        HoverBack = '';
+        return;
+    }
+
+    // 按换行符分割 HoverText 获取行数组
+    String[] lines = HoverText.Split("\n");
+    Number rowCount = lines.Length;
+    
+    // 找到最长行的字符数作为列数
+    Number colCount = 0;
+    foreach (String line in lines) {
+        if (line.Length > colCount) {
+            colCount = line.Length;
+        }
+    }
+
+    // 构建 HoverBack
+    String result = '';
+    for (define i = 0; i < rowCount; i++) {
+        // 每行添加 colCount 个 ▓ 字符
+        for (define j = 0; j < colCount; j++) {
+            result = result + '=';
+        }
+        // 除了最后一行，每行末尾添加换行符
+        if (i < rowCount - 1) {
+            result = result + '\n';
+
+            HoverLineCount++;
+        }
+    }
+
+    // 更新 HoverBack
+    HoverBack = result;
+}
+rule: "悬停文本初始化" {
+    define offset! = -0.2;
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverBack,
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL,CURSOR_Y_LOCAL+offset*LocalPlayer().HoverLineCount),
+        Scale: 3,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Black
+    );
+    CreateInWorldText(
+        VisibleTo: LocalPlayer().isInMenu && LocalPlayer().HoverVisible ? LocalPlayer() : null,
+        Header: LocalPlayer().HoverText,
+        Position: MenuButtonPosition_Local(CURSOR_X_LOCAL,CURSOR_Y_LOCAL+offset*LocalPlayer().HoverLineCount),
+        Scale: 1.5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleToPositionStringAndColor,
+        TextColor: Color.Yellow
+    );
+}
+
+rule: 'My Rule'
+{
+    CreateHudText(
+        Header: LocalPlayer().IsButtonHeld(Button.PrimaryFire)
+    );
+}

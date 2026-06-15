@@ -1,0 +1,74 @@
+{
+  // 确保写入权限
+  "chatgpt.sandboxMode": "workspace-write",
+
+  // 禁止自动执行（保持现有设置）
+  "chatgpt.experimental.runCode": false,
+  "chatgpt.experimental.executeCode": false,
+  "codex.autoRun": false,
+  "codex.runOnSave": false,
+
+  // ✅ 重点：加入 .del 扩展名
+  "codex.allowedWriteFileExtensions": [".del", ".py", ".txt", ".md"],
+  "codex.allowedLanguageIds": ["ostw", "plaintext", "python"],
+
+  // 可选：如果你的版本使用 chatgpt 前缀字段
+  "chatgpt.allowedWriteFileExtensions": [".del", ".py", ".txt", ".md"],
+  "chatgpt.allowedLanguageIds": ["ostw", "plaintext", "python"],
+
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "lua_analyzer.codeLinting.ignoreGlobal": ";Achievement;AICharacter;Animation;Archive;Array;Audio;Camera;Character;Chat;Creature;Currency;CustomItem;CustomProperty;Damage;Element;Engine;Events;FakeCharacter;FuncElement;Guide;IAA;Inventory;LighterCreature;Log;LogicElement;MiscService;Music;Navigation;Particle;PhysicsElement;PlayInteractive;Rank;Setting;Share;Shop;Skill;SkyBox;Story;System;Task;Team;TimerManager;TriggerBox;UI;UMath;Voice",
+  "Lua.diagnostics.globals": [
+    "Achievement",
+    "AICharacter",
+    "Animation",
+    "Archive",
+    "Array",
+    "Audio",
+    "Camera",
+    "Character",
+    "Chat",
+    "Creature",
+    "Currency",
+    "CustomItem",
+    "CustomProperty",
+    "Damage",
+    "Element",
+    "Engine",
+    "Events",
+    "FakeCharacter",
+    "FuncElement",
+    "Guide",
+    "IAA",
+    "Inventory",
+    "LighterCreature",
+    "Log",
+    "LogicElement",
+    "MiscService",
+    "Music",
+    "Navigation",
+    "Particle",
+    "PhysicsElement",
+    "PlayInteractive",
+    "Rank",
+    "Setting",
+    "Share",
+    "Shop",
+    "Skill",
+    "SkyBox",
+    "Story",
+    "System",
+    "Task",
+    "Team",
+    "TimerManager",
+    "TriggerBox",
+    "UI",
+    "UMath",
+    "Voice"
+  ],
+  "Lua.completion.showWord": "Disable",
+  "emmylua.workspace.library": [
+    "c:/Users/teeluo/.codebuddycn/extensions/dreamhelper.dream-helper-1.4.7/res/lib"
+  ],
+}

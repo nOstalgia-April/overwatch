@@ -1,0 +1,463 @@
+import '技能树.del';
+import '新项目菜单.del';
+import 'main.del';
+void InitCurrentSkills() {
+    // ================================
+    // 攻击分支（Aggressive）
+    // ================================
+    Skill_Pool += {
+        ID: 0,
+        Icon: PresetIcon.None,
+        Name: "近战强化",
+        Des: "你的近战伤害提高 10 / 20 / 30 / 40。",
+        Level: 0,
+        MaxLevel: 4,
+        Hero: SkillHero.All,
+        Requires: [],
+        Params: [10,20,30,40]
+    };
+
+    Skill_Pool += {
+        ID: 1,
+        Icon: PresetIcon.None,
+        Name: "骚扰者流血",
+        Des: "你对【核心骚扰者】爆头时附带 20 / 30 / 40 / 50 流血（持续 2 秒）。",
+        Level: 0,
+        MaxLevel: 4,
+        Hero: SkillHero.All,
+        Requires: [0],
+        Params: [20,30,40,50]
+    };
+
+    Skill_Pool += {
+        ID: 2,
+        Icon: PresetIcon.None,
+        Name: "精英爆炸",
+        Des: "你击败【精英怪】时会造成一次 20 / 40 / 60 范围爆炸伤害。",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [0],
+        Params: [20,40,60]
+    };
+
+    Skill_Pool += {
+        ID: 3,
+        Icon: PresetIcon.None,
+        Name: "致命强化",
+        Des: "你的爆头伤害附伤 5% / 10% / 15%。",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [1],
+        Params: [5,10,15]
+    };
+
+    Skill_Pool += {
+        ID: 4,
+        Icon: PresetIcon.None,
+        Name: "弹匣提升",
+        Des: "你的最大弹药提高 25% / 50% / 75% / 100%",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [2],
+        Params: [25,50,75,100]
+    };
+
+    Skill_Pool += {
+        ID: 9,
+        Icon: PresetIcon.None,
+        Name: "战斗狂热",
+        Des: "在你击杀敌人后的 3 秒内\n你的伤害提高 5 / 8 / 12%\n最多可叠加 3 层。",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [3,4],
+        Params: [5,8,12]
+    };
+
+
+    // ================================
+    // 防御分支（Defensive）
+    // ================================
+    Skill_Pool += {
+        ID: 5,
+        Icon: PresetIcon.None,
+        Name: "生命强化",
+        Des: "你的生命值提高 50 / 100 / 200 / 300。",
+        Level: 0,
+        MaxLevel: 4,
+        Hero: SkillHero.All,
+        Requires: [],
+        Params: [50,100,200,300]
+    };
+
+    Skill_Pool += {
+        ID: 6,
+        Icon: PresetIcon.None,
+        Name: "高速步伐",
+        Des: "你的移动速度提高 5 / 7 / 9 / 12%。",
+        Level: 0,
+        MaxLevel: 4,
+        Hero: SkillHero.All,
+        Requires: [5],
+        Params: [5,7,9,12]
+    };
+
+    Skill_Pool += {
+        ID: 7,
+        Icon: PresetIcon.None,
+        Name: "战斗续航",
+        Des: "击杀一个目标会回复 3 / 5 / 8 点生命值。",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [5],
+        Params: [3,5,8]
+    };
+
+    Skill_Pool += {
+        ID: 8,
+        Icon: PresetIcon.None,
+        Name: "满血护盾",
+        Des: "在满血状态下持续了2s刷新 10% / 25% / 35% 临时生命值",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [6,7],
+        Params: [10,25,35]
+    };
+
+    Skill_Pool += {
+        ID: 10,
+        Icon: PresetIcon.None,
+        Name: "精英防御",
+        Des: "收到来自精英（例如毛妹）的伤害\n降低 10% / 15% / 30%",
+        Level: 0,
+        MaxLevel: 3,
+        Hero: SkillHero.All,
+        Requires: [6],
+        Params: [10,15,30]
+    };
+
+    Skill_Pool += {
+        ID: 11,
+        Icon: PresetIcon.None,
+        Name: "骚扰者防御",
+        Des: "收到来自骚扰者（例如猩猩）的伤害\n降低 10% / 15% / 20% / 25% / 30%",
+        Level: 0,
+        MaxLevel: 5,
+        Hero: SkillHero.All,
+        Requires: [7],
+        Params: [10,15,20,25,30]
+    };
+}
+
+
+void AddCurrentSkillsButtons(){
+    foreach(MenuButton_Data d in CurrentSkillButtons){
+        ButtonData_Pool += d;
+    }
+}
+
+globalvar MenuButton_Data[] CurrentSkillButtons = [
+    {
+        ID: 0,
+        PosX: -2.0,
+        PosY: 2.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮0",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [0, SkillHero.All]        // 近战强化
+    },
+    {
+        ID: 1,
+        PosX: 2.0,
+        PosY: 2.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮1",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [5, SkillHero.All]        // 生命强化（防御 Root）
+    },
+    {
+        ID: 2,
+        PosX: -3.0,
+        PosY: 1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮2",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [1, SkillHero.All]        // 骚扰者流血
+    },
+    {
+        ID: 3,
+        PosX: -1.0,
+        PosY: 1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮3",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [2, SkillHero.All]        // 精英爆炸
+    },
+    {
+        ID: 4,
+        PosX: -3.0,
+        PosY: 0.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮4",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [3, SkillHero.All]        // 致命强化
+    },
+    {
+        ID: 5,
+        PosX: -1.0,
+        PosY: 0.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮5",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [4, SkillHero.All]        // 弹匣提升
+    },
+    {
+        ID: 6,
+        PosX: -2.0,
+        PosY: -1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮6",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [9, SkillHero.All]        // 战斗狂热（攻击顶层）
+    },
+    {
+        ID: 7,
+        PosX: 1.0,
+        PosY: 1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮7",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [6, SkillHero.All]        // 高速步伐
+    },
+    {
+        ID: 8,
+        PosX: 3.0,
+        PosY: 1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮8",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [7, SkillHero.All]        // 战斗续航
+    },
+    {
+        ID: 9,
+        PosX: 2.0,
+        PosY: -1.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮9",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [8, SkillHero.All]        // 满血护盾（防御顶层）
+    },
+    {
+        ID: 10,
+        PosX: 1.0,
+        PosY: 0.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮10",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [10, SkillHero.All]       // 精英防御
+    },
+    {
+        ID: 11,
+        PosX: 3.0,
+        PosY: 0.0,
+        Scale: 2,
+        Interactable: true,
+        ofMenuActives: [MenuActive.CurrentSkillTreeMenu],
+        Label: "按钮11",
+        HoverLabel: "",
+        DefaultColor: ColorPreset.White,
+        Kind: MenuButtonKind.SkillNode,
+        Params: [11, SkillHero.All]       // 骚扰者防御
+    }
+];
+Number GetParam_by_index(in SkillType index){
+    return Skill_Pool_Local[index].Params[Skill_Pool_Local[index].Level-1];
+}
+rule: '近战强化'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(EventAbility()==Button.Melee)
+if(Skill_Pool_Local[SkillType.MeleeBoost].Level>0)
+{
+    Damage(Victim(),EventPlayer(),GetParam_by_index(SkillType.MeleeBoost));
+}
+
+rule: '骚扰者流血'
+Event.OnDamageDealt
+Team.All
+Player.All
+if(EventWasCriticalHit())
+if(Skill_Pool_Local[SkillType.HarassBleed].Level>0)
+if(Victim().BotRole==ActionRole.CoreAttacker)
+{
+    StartDamageOverTime(
+        Victim(),
+        EventPlayer(),
+        2,
+        GetParam_by_index(SkillType.HarassBleed)
+    );
+    Wait(2,WaitBehavior.IgnoreCondition);
+}
+
+rule: '精英爆炸'
+Event.OnFinalBlow
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.EliteExplosion].Level>0)
+if(Victim().BotRole == ActionRole.Elite)
+{
+    Damage(
+        PlayersWithinRadius(
+            Center: Victim(),
+            Radius: 3,
+            Team: Team.Team1,
+            LOSCheck: RadiusLOS.Surfaces
+        ),
+        EventPlayer(),
+        GetParam_by_index(SkillType.EliteExplosion)
+    );
+
+    PlayEffect(
+        Type: PlayEffect.BadExplosion,
+        Color: Color.Red,
+        Radius: 3,
+        Position: Victim()
+    );
+}
+
+rule: '致命强化'
+Event.OnFinalBlow
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.CritBoost].Level>0)
+if(EventWasCriticalHit())
+{
+    Damage(
+        Victim(),
+        EventPlayer(),
+        GetParam_by_index(SkillType.CritBoost)
+    );
+}
+
+rule: '弹匣提升'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.AmmoIncrease].Level>0)
+if(!IsReloading())
+{
+    SetMaxAmmo(EventPlayer(),0,DefaultAmmo[0]+DefaultAmmo[0]*GetParam_by_index(SkillType.AmmoIncrease)/100);
+    SetMaxAmmo(EventPlayer(),1,DefaultAmmo[1]+DefaultAmmo[1]*GetParam_by_index(SkillType.AmmoIncrease)/100);
+}
+playervar Number[] DefaultAmmo;
+rule: '弹匣提升'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(HasSpawned())
+{
+    DefaultAmmo = [Ammo(EventPlayer(),0),Ammo(EventPlayer(),1)];
+}
+
+rule: '生命强化'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.HealthBoost].Level>0)
+{
+    AddHealthPoolToPlayer(
+        Player: EventPlayer(),
+        HealthType: HealthType.Health,
+        MaxHealth: GetParam_by_index(SkillType.HealthBoost),
+        Recoverable: true,
+        Reevaluation: true
+    );
+}
+
+rule: '高速步伐'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.MoveSpeedBoost].Level>0)
+if(DefaultSpeedPct!=100+GetParam_by_index(SkillType.MoveSpeedBoost))
+{
+    DefaultSpeedPct = 100 + GetParam_by_index(SkillType.MoveSpeedBoost);
+}
+
+rule: '击杀回血'
+Event.OnFinalBlow
+Team.All
+Player.All
+if(Skill_Pool_Local[SkillType.KillRegen].Level>0)
+{
+    Heal(Player: EventPlayer(),EventPlayer(),GetParam_by_index(SkillType.KillRegen));
+}
+
+rule: '精英防御+骚扰者防御'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    StartDamageModification(
+        Receivers: EventPlayer(),
+        Damagers: AllPlayers(Team.Team1).Filter(t=>t.BotRole==ActionRole.Elite),
+        DamagePercent: 100-GetParam_by_index(SkillType.EliteArmor),
+        Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent
+    );
+    StartDamageModification(
+        Receivers: EventPlayer(),
+        Damagers: AllPlayers(Team.Team1).Filter(t=>t.BotRole==ActionRole.Harass),
+        DamagePercent: 100-GetParam_by_index(SkillType.HarassArmor),
+        Reevaluation: DamageModificationRev.ReceiversDamagersAndDamagePercent
+    );
+}

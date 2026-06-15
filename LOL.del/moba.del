@@ -1,0 +1,175 @@
+class Tower{
+ public Number ID;
+ public TowerData Data;
+ public Number HP;
+ public Any RangeEffect;
+ public Player Target;
+ public Number LastAttackTimestamp;
+ public Number AttackInterval;
+ public Boolean Destroyed;
+
+ public constructor(in TowerData data, in Lane lane, in TowerType type, in Team team, in Vector pos, in Number id){
+    Data = data;
+    Data.ofLane = lane;
+    Data.type = type;
+    Data.ofTeam = team;
+    Data.Pos = pos;
+    HP = Data.MaxHP;
+    ID = id;
+    AttackInterval = Data.AttackSpeed > 0 ? 1 / Data.AttackSpeed : 99999;
+    LastAttackTimestamp = TotalTimeElapsed() - AttackInterval;
+    Destroyed = false;
+    RangeEffect = EffectInit();
+ }
+
+ public Boolean IsAlive(){
+    return !Destroyed && HP > 0;
+ }
+
+ public void TakeDamage(in Number amount, in Player source){
+    if(!IsAlive()){
+        return;
+    }
+    HP = Max(0, HP - Max(0, amount));
+    if(HP == 0){
+        OnDestroyed(source);
+    }
+ }
+
+ public void Repair(in Number amount){
+    if(!IsAlive()){
+        return;
+    }
+    HP = Min(Data.MaxHP, HP + Max(0, amount));
+ }
+
+ public void Tick(){
+    if(!IsAlive()){
+        return;
+    }
+    if(!IsTargetValid(Target)){
+        Target = null;
+    }
+    if(Target == null){
+        AcquireTarget();
+    }
+    if(Target == null || !CanAttack()){
+        return;
+    }
+    LastAttackTimestamp = TotalTimeElapsed();
+    Damage(Target, null, Data.Attack);
+ }
+
+ private Any EffectInit(){
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.Sphere,
+        Color: TeamColor(Data.ofTeam),
+        Position: Data.Pos,
+        Radius: Data.Range,
+        Reevaluation: EffectRev.VisibleToPositionRadiusAndColor
+    );
+    return LastCreatedEntity();
+ }
+
+ private Boolean CanAttack(){
+    return TotalTimeElapsed() - LastAttackTimestamp >= AttackInterval;
+ }
+
+ private Boolean IsTargetValid(in Player candidate){
+    return candidate != null && IsAlive(candidate) && DistanceBetween(PositionOf(candidate), Data.Pos) <= Data.Range;
+ }
+
+ private void AcquireTarget(){
+    Player[] enemies = PlayersWithinRadius(
+        Center: Data.Pos,
+        Radius: Data.Range,
+        Team: OppositeTeamOf(Data.ofTeam),
+        LOSCheck: RadiusLOS.Off
+    ).Filter(t=>IsAlive(t));
+    if(enemies.Length == 0){
+        Target = null;
+    }else{
+        Target = enemies.Sort(t=>DistanceBetween(PositionOf(t), Data.Pos)).First;
+    }
+ }
+
+ private void OnDestroyed(in Player source){
+    Destroyed = true;
+    DestroyRangeIndicator();
+    Towers = RemoveFromArray(Towers, this);
+ }
+
+ private void DestroyRangeIndicator(){
+    if(RangeEffect != null){
+        DestroyEffect(RangeEffect);
+        RangeEffect = null;
+    }
+ }
+}
+
+enum Lane{
+    Left,
+    Middle,
+    Right
+}
+
+enum TowerType{
+    Tower1,
+    Tower2,
+    Tower3
+}
+
+single struct TowerData {
+    public Number MaxHP;
+    public Number Attack;
+    public Number AttackSpeed;
+    public Number Range;
+    public Number Loot;
+    public Team ofTeam;
+    public Lane ofLane;
+    public TowerType type;
+    public Vector Pos;
+}
+
+globalvar Tower[] Towers = [];
+globalvar Number NextTowerID = 0;
+globalvar TowerData TowerDataCopy = {
+            MaxHP: 1000,
+            Attack: 50,
+            AttackSpeed: 1,
+            Range: 5,
+            Loot: 100,
+            ofTeam: Team.Team1,
+            ofLane: Lane.Left,
+            type: TowerType.Tower1,
+            Pos: Vector(-10,0,0)
+        };
+rule: 'My Rule'
+{
+    Towers += new Tower(
+        data: TowerDataCopy,
+        lane: Lane.Left,
+        type: TowerType.Tower1,
+        team: Team.Team1,
+        pos: Vector(-10,0,0),
+        id: NextTowerID
+    );
+    NextTowerID += 1;
+}
+
+Color TeamColor(in Team team){
+    if(team == Team.Team1){
+        return Color.Team1;
+    }else{
+        return Color.Team2;
+    }
+}
+
+rule: 'My Player Rule'
+Event.OngoingPlayer
+Team.All
+Player.All
+{
+    Resurrect();
+}

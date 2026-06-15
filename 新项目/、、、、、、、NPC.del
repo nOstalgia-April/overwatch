@@ -1,0 +1,139 @@
+import '塔防核心波数控制.del';
+import '新项目菜单.del';
+class NPC {
+    public Hero NPCHero;
+    public String Name;
+    public Vector Pos;
+    public Player Entity;
+    public NPCType Type;
+    public Color Colour;
+    public constructor(in Hero hero, in String name,in Vector pos, in NPCType type, in Color colour = Color.White){
+        NPCHero = hero;
+        Name = name;
+        Pos = pos;
+        Type = type;
+        Colour = colour;
+    }
+}
+globalvar NPC[] NPC_Pool;
+playervar Boolean isNPC;
+enum NPCType{
+    SkillMan
+}
+enum IconType{
+
+}
+rule: '召唤npc'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(!DirectorState.InIntermission)
+if(IsButtonHeld())
+if(NPC_Pool.Map(t=>t.Pos).Any(p=>DistanceBetween(p,EventPlayer())<=4))
+{
+    CreateDummyBot(
+        Hero: Hero.Echo,
+        Team: Team.Team2,
+        Slot: -1,
+        Position: Vector(),
+    );
+    CreateDummyBot(
+        Hero: Hero.Echo,
+        Team: Team.Team2,
+        Slot: -1,
+        Position: Vector(),
+    );
+    CreateDummyBot(
+        Hero: Hero.Echo,
+        Team: Team.Team2,
+        Slot: -1,
+        Position: Vector(),
+    );
+    Abort();
+    define GetNPC = NPC_Pool.Sort(p=>DistanceBetween(p.Pos,EventPlayer())).First;
+    //if(EntityExists(GetNPC.Entity)){}
+
+    BigMessage(Header: '召唤');
+    LogToInspector(GetNPC.NPCHero);
+    GetNPC.Entity = LastCreatedEntity();
+    GetNPC.Entity.isNPC = true;
+    DisableNameplates(GetNPC.Entity,AllPlayers());
+    CreateInWorldText(
+        Header: <'<0>',GetNPC.Name>,
+        Position: GetNPC.Entity,
+    );
+    SetStatus(Player: GetNPC.Entity,Status: Status.PhasedOut,Duration: 9999,Assister: null);
+    StartForcingPlayerOutlines(
+        ViewedPlayers: GetNPC.Entity,
+        ViewingPlayers: AllPlayers(),
+        Visible: true,
+        Color: Color.Yellow,
+        OutlineType: OutlineType.Always
+    );
+}
+rule: 'NPC到战时自动销毁'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsDummyBot())
+if(isNPC)
+if(DirectorState.InIntermission==false)
+{
+    DestroyDummyBot(Team.Team2,SlotOf());
+}
+rule: 'NPC提示'
+{
+    CreateInWorldText(
+        VisibleTo: NPC_Pool.Any(p=>DistanceBetween(p.Pos,LocalPlayer())<=4&&EntityExists(p.Entity)) && !LocalPlayer().isInMenu?LocalPlayer():null,
+        Header: '对着NPC按下互动可以开始交流',
+        Position: MenuButtonPosition_Local(0,-1),
+        Scale: 2,
+        Clipping: Clipping.DoNotClip
+    );
+}
+rule: 'NPC互动触发菜单'
+Event.OngoingPlayer
+Team.All
+Player.All
+if(IsButtonHeld(Button: Button.Interact))
+if(RayCastHitPlayer(EyePosition(),EyePosition()+10*FacingDirectionOf()).isNPC)
+{
+    define GetPlayer = RayCastHitPlayer(EyePosition(),EyePosition()+10*FacingDirectionOf());
+    if(!GetPlayer.isNPC)return;
+    define GetNPC = NPC_Pool.Filter(t=>t.Entity==GetPlayer).First;
+    switch(GetNPC.Type){
+        case NPCType.SkillMan:
+        OpenCurrentSkillTreeMenu();
+        break;
+    }
+}
+rule: '初始化NPC'
+{
+    NPC_Pool = [];
+    NPC_Pool += new NPC(hero: Hero.Echo,name: '通用训练家',pos: Vector(0,0,1),type: NPCType.SkillMan);
+    InitNPCEffects();
+}
+
+void InitNPCEffects(){
+    foreach(NPC npc in NPC_Pool){
+        CreateEffect(
+            VisibleTo: !DirectorState.InIntermission?AllPlayers():null,
+            Type: Effect.Ring,
+            Color: EvaluateOnce(npc).Colour,
+            Position: EvaluateOnce(npc).Pos,
+            Radius: 4
+        );
+        switch(npc.Type){
+            case NPCType.SkillMan:
+                CreateIcon(
+                    VisibleTo: !DirectorState.InIntermission?AllPlayers():null,
+                    Position: EvaluateOnce(npc).Pos,
+                    IconColor: EvaluateOnce(npc).Colour,
+                    ShowWhenOffscreen: true,
+                    Icon: Icon.ArrowUp
+                );
+            break;
+        }
+    }
+    
+}

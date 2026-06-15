@@ -1,0 +1,33 @@
+// 颜色索引枚举（与 Color_Pool 顺序一致）
+enum ColorPreset {
+    White,
+    Red,
+    Green,
+    Gray,
+    WarmWhite_Shade,
+    WarmWhite_Light,
+    ColdWhite_Shade,
+    ColdWhite_Light,
+    RareColor_Shade,
+    RareColor_Light,
+    EpicColor_Shade,
+    EpicColor_Light,
+    EXP_Color_Light
+}
+
+// 全部颜色池
+globalvar Color[] Color_Pool = [
+    Color.White,                    // [0]
+    Color.Red,                      // [1]
+    Color.Green,
+    Color.Gray,
+    CustomColor(255, 255, 181, 100), // WarmWhite_Shade [2]
+    CustomColor(255, 255, 181, 255), // WarmWhite_Light [3]
+    CustomColor(255, 250, 250, 100), // ColdWhite_Shade [4]
+    CustomColor(255, 250, 250, 255), // ColdWhite_Light [5]
+    CustomColor(66, 176, 255, 100),  // RareColor_Shade [6]
+    CustomColor(66, 176, 255, 255),  // RareColor_Light [7]
+    CustomColor(210, 126, 247, 100), // EpicColor_Shade [8]
+    CustomColor(210, 126, 247, 255), // EpicColor_Light [9]
+    CustomColor(174, 255, 43, 255)   // EXP_Color_Light [10]
+];
